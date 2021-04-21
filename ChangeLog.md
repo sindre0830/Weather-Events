@@ -25,3 +25,5 @@
 [0.0.3]     **setup**:          Initial commit of error handler (from assignment 2)
 
 [0.0.4]     **setup**:          Fixed ioutil.ReadAll, dataHandling.go name
+
+[0.0.5]     **setup**:          Added endpoint description
