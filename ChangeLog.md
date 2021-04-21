@@ -19,3 +19,5 @@
 [0.0.0]     **setup**:          Initial commit
 
 [0.0.1]     **setup**:          Initial commit of main and dictionary
+
+[0.0.2]     **setup**:          Initial commit of dataHandling (from assignment 2)
