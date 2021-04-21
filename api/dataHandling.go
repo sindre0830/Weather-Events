@@ -2,7 +2,7 @@ package api
 
 import (
 	"errors"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -28,7 +28,7 @@ func RequestData(url string) ([]byte, int, error) {
 		return nil, res.StatusCode, err
 	}
 	//read output and branch if an error occurred
-	output, err := io.ReadAll(res.Body)
+	output, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, http.StatusRequestTimeout, err
 	}
