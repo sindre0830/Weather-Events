@@ -17,3 +17,5 @@
 ### Logs
 
 [0.0.0]     **setup**:          Initial commit
+
+[0.0.1]     **setup**:          Initial commit of main and dictionary
