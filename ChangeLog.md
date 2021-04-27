@@ -65,3 +65,5 @@
 [0.17.0]    **development**:    HandlerCoords errors fixed up.
 
 [0.18.0]    **development**:    Added standard data structure for database with container for different structures
+
+[0.19.0]    **development**:    Added function to get all holidays of a country
