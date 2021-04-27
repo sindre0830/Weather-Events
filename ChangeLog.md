@@ -59,3 +59,5 @@
 [0.14.0]    **development**:   HanderCoords file with functions that handle the locationiq api datasource.
 
 [0.15.0]    **fix**:           Restructured countrydata to be its own package + minor fixes related to errorhandling
+
+[0.16.0]    **formatting**:    Small fix on endpoint in main.go
