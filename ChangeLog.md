@@ -39,3 +39,5 @@
 [0.4.0]     **development**:    Added initial version of WeatherData structure
 
 [0.5.0]     **development**:    Modified Yr structure to handle more context and modified get functionality to be local
+
+[0.6.0]     **development**:    Modified WeatherData structure to use Camel Case naming style
