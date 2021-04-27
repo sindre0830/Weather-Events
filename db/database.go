@@ -56,14 +56,16 @@ func (database *Database) Add(name string, data Data) error {
 	if err != nil {
 		return err
 	}
-	//update data ID in database with UUID and branch if an error occurred
-	data.ID = key.ID
-	_, err = database.Client.Collection(name).Doc(key.ID).Update(database.Ctx, []firestore.Update {{
-		Path:  "ID",
-		Value: data.ID,
-	}})
-	if err != nil {
-		return err
+	if data.ID == "" {
+		//update data ID in database with UUID and branch if an error occurred
+		data.ID = key.ID
+		_, err = database.Client.Collection(name).Doc(key.ID).Update(database.Ctx, []firestore.Update {{
+			Path:  "ID",
+			Value: data.ID,
+		}})
+		if err != nil {
+			return err
+		}	
 	}
 	// //update Notifications with data from database and branch if and error occurred
 	// err = database.Get()
