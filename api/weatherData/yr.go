@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-// data structure stores current and predicted weather data for a day.
-type data struct {
+// Data structure stores current and all predicted weather data for a day.
+type Data struct {
 	Instant struct {
 		Details struct {
 			AirPressureAtSeaLevel    float64 `json:"air_pressure_at_sea_level"`
@@ -66,7 +66,9 @@ type data struct {
 // Functionality: Get, req
 type Yr struct {
 	Properties struct {
-		Timeseries []data `json:"timeseries"`
+		Timeseries []struct {
+			Data `json:"data"`
+		} `json:"timeseries"`
 	} `json:"properties"`
 }
 
