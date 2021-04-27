@@ -47,3 +47,5 @@
 [0.8.0]     **development**:    Implemented get functor to WeatherData structure
 
 [0.9.0]     **development**:    Added functionality where information about all countries (or filtered by one country) is fetched
+
+[0.10.0]    **fix**:            Fixed Yr structure by adding type to Data field

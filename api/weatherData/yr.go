@@ -63,11 +63,11 @@ type Data struct {
 
 // Yr structure stores weather data for the next 10 days.
 //
-// Functionality: Get, req
+// Functionality: get, req
 type Yr struct {
 	Properties struct {
 		Timeseries []struct {
-			Data `json:"data"`
+			Data Data `json:"data"`
 		} `json:"timeseries"`
 	} `json:"properties"`
 }
