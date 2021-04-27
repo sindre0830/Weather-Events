@@ -51,3 +51,5 @@
 [0.10.0]    **fix**:            Fixed Yr structure by adding type to Data field
 
 [0.11.0]     **development**:   Implemented Handle functor to WeatherData structure
+
+[0.12.0]     **development**:   Implemented method handler for WeatherData
