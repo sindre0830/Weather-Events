@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"main/api"
 	geocoords "main/api/geoCoords"
+	"main/api/weatherData"
 	"main/db"
 	"main/dict"
 	"net/http"
@@ -31,6 +33,10 @@ func main() {
 
 	http.HandleFunc("/weather-rest/v1/geocoord/", geocoords.CoordHandler)
 
+	//Get all countries endpoint:
+	http.HandleFunc("/weather/v1/restCountries/", api.HandleRestCountry)
+	//handle weather data
+	http.HandleFunc("/weather-rest/v1/weather/data/", weatherData.MethodHandler)
 	//ends program if it can't open port
-	log.Fatal(http.ListenAndServe(":" + port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

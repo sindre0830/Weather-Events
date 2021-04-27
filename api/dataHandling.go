@@ -14,6 +14,8 @@ func RequestData(url string) ([]byte, int, error) {
 	if err != nil {
 		return nil, req.Response.StatusCode, err
 	}
+	//set user-agent
+	req.Header.Set("User-Agent", "weather-events(student project) sindreik@stud.ntnu.no")
 	//timeout after 2 seconds
 	apiClient := http.Client{
 		Timeout: time.Second * 4,
