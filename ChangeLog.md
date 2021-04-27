@@ -53,3 +53,5 @@
 [0.11.0]     **development**:   Implemented Handle functor to WeatherData structure
 
 [0.12.0]     **development**:   Implemented method handler for WeatherData
+
+[0.13.0]     **development**:   Added User-Agent with project information when requesting data (allows yr requests)
