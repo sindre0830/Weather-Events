@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"main/api/countryData"
+	geocoords "main/api/geoCoords"
 	"main/api/weatherData"
 	"main/db"
 	"main/dict"
@@ -29,6 +30,9 @@ func main() {
 	}
 	//set URL with port
 	dict.URL = dict.URL + ":" + port
+
+	http.HandleFunc("/weather-rest/v1/geocoord/", geocoords.CoordHandler)
+
 	//Get all countries endpoint:
 	http.HandleFunc("/weather/v1/restCountries/", countryData.HandleRestCountry)
 	//handle weather data

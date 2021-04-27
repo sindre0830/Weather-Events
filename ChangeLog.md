@@ -50,8 +50,12 @@
 
 [0.10.0]    **fix**:            Fixed Yr structure by adding type to Data field
 
-[0.11.0]     **development**:   Implemented Handle functor to WeatherData structure
+[0.11.0]    **development**:   Implemented Handle functor to WeatherData structure
 
-[0.12.0]     **development**:   Implemented method handler for WeatherData
+[0.12.0]    **development**:   Implemented method handler for WeatherData
 
-[0.13.0]     **development**:   Added User-Agent with project information when requesting data (allows yr requests)
+[0.13.0]    **development**:   Added User-Agent with project information when requesting data (allows yr requests)
+
+[0.14.0]    **development**:   HanderCoords file with functions that handle the locationiq api datasource.
+
+[0.15.0]    **fix**:           Restructured countrydata to be its own package + minor fixes related to errorhandling
