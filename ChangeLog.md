@@ -49,3 +49,5 @@
 [0.9.0]     **development**:    Added functionality where information about all countries (or filtered by one country) is fetched
 
 [0.10.0]    **fix**:            Fixed Yr structure by adding type to Data field
+
+[0.11.0]     **development**:   Implemented Handle functor to WeatherData structure
