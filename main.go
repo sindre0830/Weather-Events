@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"main/api"
+	"main/api/countryData"
 	"main/api/weatherData"
 	"main/db"
 	"main/dict"
@@ -30,7 +30,7 @@ func main() {
 	//set URL with port
 	dict.URL = dict.URL + ":" + port
 	//Get all countries endpoint:
-	http.HandleFunc("/weather/v1/restCountries/", api.HandleRestCountry)
+	http.HandleFunc("/weather/v1/restCountries/", countryData.HandleRestCountry)
 	//handle weather data
 	http.HandleFunc("/weather-rest/v1/weather/data/", weatherData.MethodHandler)
 	//ends program if it can't open port
