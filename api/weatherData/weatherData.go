@@ -2,9 +2,11 @@ package weatherData
 
 import (
 	"encoding/json"
+	"main/db"
 	"main/debug"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // WeatherData structure stores current and predicted weather data for a day.
@@ -55,6 +57,21 @@ func (weatherData *WeatherData) Handler(w http.ResponseWriter, r *http.Request) 
 		debug.ErrorMessage.Update(
 			status, 
 			"WeatherData.Handler() -> WeatherData.get() -> Getting weather data",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//send data to database
+	var data db.Data
+	data.Time = time.Now().String()
+	data.Container = weatherData
+	err = db.DB.Add("WeatherData", lat + "&" + lon, data)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusInternalServerError, 
+			"WeatherData.Handler() -> Database.Add() -> Adding data to database",
 			err.Error(),
 			"Unknown",
 		)

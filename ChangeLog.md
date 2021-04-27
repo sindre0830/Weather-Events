@@ -69,3 +69,5 @@
 [0.19.0]    **development**:    Added function to get all holidays of a country
 
 [0.20.0]    **development**:    Added possiblity for custom id in database
+
+[0.21.0]    **development**:    WeatherData Handler sends data to database

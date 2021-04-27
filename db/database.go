@@ -9,7 +9,6 @@ import (
 )
 
 type Data struct {
-	ID string `json:"id"`
 	Time string `json:"time"`
 	Container interface{} `json:"container"`
 }
@@ -50,22 +49,19 @@ func (database *Database) Setup() error {
 }
 
 // Add adds a new webhook to database.
-func (database *Database) Add(name string, data Data) error {
-	//add data to database and get a UUID from firebase and branch if an error occurred
-	key, _, err := database.Client.Collection(name).Add(database.Ctx, data)
-	if err != nil {
-		return err
-	}
-	if data.ID == "" {
-		//update data ID in database with UUID and branch if an error occurred
-		data.ID = key.ID
-		_, err = database.Client.Collection(name).Doc(key.ID).Update(database.Ctx, []firestore.Update {{
-			Path:  "ID",
-			Value: data.ID,
-		}})
+func (database *Database) Add(name string, id string, data Data) error {
+	if id == "" {
+		//add data to database and get a UUID from firebase and branch if an error occurred
+		_, _, err := database.Client.Collection(name).Add(database.Ctx, data)
 		if err != nil {
 			return err
-		}	
+		}
+	} else {
+		//add data to database and get a UUID from firebase and branch if an error occurred
+		_, err := database.Client.Collection(name).Doc(id).Set(database.Ctx, data)
+		if err != nil {
+			return err
+		}
 	}
 	// //update Notifications with data from database and branch if and error occurred
 	// err = database.Get()
@@ -90,6 +86,9 @@ func (database *Database) Add(name string, data Data) error {
 // 		} else if err != nil {
 // 			return err
 // 		}
+
+// elem.Ref.ID for ID
+
 // 		//convert data from interface and set in structure
 // 		data := elem.Data()
 // 		notification.ID = fmt.Sprintf("%v", data["ID"])
