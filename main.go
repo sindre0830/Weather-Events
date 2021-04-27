@@ -34,7 +34,7 @@ func main() {
 	http.HandleFunc("/weather-rest/v1/geocoord/", geocoords.CoordHandler)
 
 	//Get all countries endpoint:
-	http.HandleFunc("/weather/v1/restCountries/", countryData.HandleRestCountry)
+	http.HandleFunc("/weather-rest/v1/restCountries/", countryData.HandleRestCountry)
 	//handle weather data
 	http.HandleFunc("/weather-rest/v1/weather/data/", weatherData.MethodHandler)
 	//ends program if it can't open port
