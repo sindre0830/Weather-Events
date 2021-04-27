@@ -29,3 +29,5 @@
 [0.0.5]     **setup**:          Added endpoint description
 
 [0.0.6]     **setup**:          Added database package (from assignment 2)
+
+[0.1.0]     **development**:    Added database setup in init

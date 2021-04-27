@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"main/db"
 	"main/dict"
 	"net/http"
 	"os"
@@ -9,7 +10,12 @@ import (
 
 // init runs once at startup.
 func init() {
-
+	//setup connection with firebase and branch if an error occured
+	err := db.DB.Setup()
+	if err != nil {
+		defer db.DB.Client.Close()
+		log.Fatalln(err)
+	}
 }
 
 // Main program.
