@@ -31,3 +31,29 @@
 [0.0.6]     **setup**:          Added database package (from assignment 2)
 
 [0.1.0]     **development**:    Added database setup in init
+
+[0.2.0]     **development**:    Added initial version of Yr structure
+
+[0.3.0]     **development**:    Implemented get and req functors to Yr structure
+
+[0.4.0]     **development**:    Added initial version of WeatherData structure
+
+[0.5.0]     **development**:    Modified Yr structure to handle more context and modified get functionality to be local
+
+[0.6.0]     **development**:    Modified WeatherData structure to use Camel Case naming style
+
+[0.7.0]     **fix**:            Fixed Yr structure by nesting the Data structure
+
+[0.8.0]     **development**:    Implemented get functor to WeatherData structure
+
+[0.9.0]     **development**:    Added functionality where information about all countries (or filtered by one country) is fetched
+
+[0.10.0]    **fix**:            Fixed Yr structure by adding type to Data field
+
+[0.11.0]    **development**:   Implemented Handle functor to WeatherData structure
+
+[0.12.0]    **development**:   Implemented method handler for WeatherData
+
+[0.13.0]    **development**:   Added User-Agent with project information when requesting data (allows yr requests)
+
+[0.14.0]    **development**:   HanderCoords file with functions that handle the locationiq api datasource.
