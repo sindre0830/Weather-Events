@@ -43,3 +43,5 @@
 [0.6.0]     **development**:    Modified WeatherData structure to use Camel Case naming style
 
 [0.7.0]     **fix**:            Fixed Yr structure by nesting the Data structure
+
+[0.8.0]     **development**:    Implemented get functor to WeatherData structure
