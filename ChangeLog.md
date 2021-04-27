@@ -31,3 +31,5 @@
 [0.0.6]     **setup**:          Added database package (from assignment 2)
 
 [0.1.0]     **development**:    Added database setup in init
+
+[0.2.0]     **development**:    Added initial version of Yr structure
