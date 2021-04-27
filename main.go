@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	geocoords "main/api/geoCoords"
 	"main/db"
 	"main/dict"
 	"net/http"
@@ -27,6 +28,9 @@ func main() {
 	}
 	//set URL with port
 	dict.URL = dict.URL + ":" + port
+
+	http.HandleFunc("/weather-rest/v1/geocoord/", geocoords.CoordHandler)
+
 	//ends program if it can't open port
 	log.Fatal(http.ListenAndServe(":" + port, nil))
 }
