@@ -56,8 +56,10 @@
 
 [0.13.0]    **development**:   Added User-Agent with project information when requesting data (allows yr requests)
 
-[0.14.0]    **development**:   HanderCoords file with functions that handle the locationiq api datasource.
+[0.14.0]    **development**:   HandlerCoords file with functions that handle the locationiq api datasource.
 
 [0.15.0]    **fix**:           Restructured countrydata to be its own package + minor fixes related to errorhandling
 
 [0.16.0]    **formatting**:    Small fix on endpoint in main.go
+
+[0.17.0]    **development**:   HandlerCoords errors fixed up.

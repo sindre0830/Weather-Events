@@ -3,6 +3,7 @@ package geocoords
 import (
 	"encoding/json"
 	"main/api"
+	"main/debug"
 	"net/http"
 	"strconv"
 	"strings"
@@ -37,43 +38,62 @@ var Locations = make(map[string]LocationCoords)
 **/
 func CoordHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	parts := strings.Split(r.URL.Path, "/")
-	// Implement this check once error setup is complete
-	// if len(parts) != 5 {
-	// 	outErr := api.MakeError("In function CoordHandler, expecting format weather-rest/v1/geocoord/PLACE", http.StatusBadRequest)
-
-	// 	json.NewEncoder(w).Encode(outErr)
-	// 	return
-	// }
-	// place := parseName(parts[4])  // Not sure we need parseName function? Will check later.
-	placeName := parts[4]
+	arrPath := strings.Split(r.URL.Path, "/")
+	if len(arrPath) != 6 {
+		debug.ErrorMessage.Update(
+			http.StatusBadRequest, 
+			"GeoCoords.Handler() -> Parsing URL",
+			"url validation: either too many or too few arguments in url path",
+			"URL format. Expected format: '.../place'. Example: '.../oslo'",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	placeName := arrPath[4]
 
 	// We get the data from the locationiq api
 	var locations []map[string]interface{}
-	err := getLocations(&locations, placeName)
+	status, err := getLocations(&locations, placeName)
 
 	if err != nil {
-		err = json.NewEncoder(w).Encode(err)
+		debug.ErrorMessage.Update(
+			status, 
+			"GeoCoords.Handler() -> GetCoords.getLocations() -> Getting location data",
+			err.Error(),
+			"Unknown - ensure that place name is valid and spelled correctly.",
+		)
+		debug.ErrorMessage.Print(w)
+		return
 	}
-
-	// We pass the first json object in our locations array
+	// We get lat and lon from the first json object in our locations array
 	var locationCoords LocationCoords
 	err = getCoords(&locationCoords, locations[0])
+
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusInternalServerError, 
+			"GeoCoords.Handler() -> GeoCoords.getCoords -> Getting latitude and longitude from json array.",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
 
 	locationName :=	strings.ToLower(placeName)
 
 	Locations[locationName] = locationCoords
 
-	// Again, fix up once error handling is clarified
-	if err != nil {
-		err = json.NewEncoder(w).Encode(err)
-	}
-
 	err = json.NewEncoder(w).Encode(Locations[locationName])
 	
-	// Again, fix up once error handling is clarified
 	if err != nil {
-		err = json.NewEncoder(w).Encode(err)
+		debug.ErrorMessage.Update(
+			http.StatusInternalServerError, 
+			"GeoCoords.Handler() -> Sending data to user",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
 	}
 }
 
@@ -104,17 +124,17 @@ func getCoords(coords *LocationCoords, location map[string]interface{}) error {
 *	@param	location		-	String specifying the location for our URL
 *	@return	err				-	Interface holding error messages
 **/
-func getLocations(locations *[]map[string]interface{}, location string) error {
+func getLocations(locations *[]map[string]interface{}, location string) (int, error) {
 	url := baseURL + key + "&q=" + location + "&format=json"
 
 	out, status, err := api.RequestData(url)
 
 	if err != nil && status != http.StatusOK {
-		return err
+		return status, err
 	}
 
 	// should we use NewDecoder?
 	err = json.Unmarshal(out, locations)
 
-	return err
+	return status, err
 }
