@@ -33,3 +33,5 @@
 [0.1.0]     **development**:    Added database setup in init
 
 [0.2.0]     **development**:    Added initial version of Yr structure
+
+[0.3.0]     **development**:    Implemented get and req functors to Yr structure
