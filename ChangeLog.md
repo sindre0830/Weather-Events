@@ -37,3 +37,5 @@
 [0.3.0]     **development**:    Implemented get and req functors to Yr structure
 
 [0.4.0]     **development**:    Added initial version of WeatherData structure
+
+[0.5.0]     **development**:    Modified Yr structure to handle more context and modified get functionality to be local
