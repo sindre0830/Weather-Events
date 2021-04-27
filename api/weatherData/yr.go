@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-// Yr structure stores weather data for a location.
+// Yr structure stores weather data within scope for a location.
 //
 // Functionality: Get, req
 type Yr struct {
