@@ -8,6 +8,12 @@ import (
 	"google.golang.org/api/option"
 )
 
+type Data struct {
+	ID string `json:"id"`
+	Time string `json:"time"`
+	Container interface{} `json:"container"`
+}
+
 // DB stores information about the firebase database.
 //
 // Used in notification structure.
@@ -44,9 +50,18 @@ func (database *Database) Setup() error {
 }
 
 // Add adds a new webhook to database.
-func (database *Database) Add(name string, data interface{}) error {
-	//add webhook to database and get a UUID from firebase and branch if an error occurred
-	_, _, err := database.Client.Collection(name).Add(database.Ctx, data)
+func (database *Database) Add(name string, data Data) error {
+	//add data to database and get a UUID from firebase and branch if an error occurred
+	key, _, err := database.Client.Collection(name).Add(database.Ctx, data)
+	if err != nil {
+		return err
+	}
+	//update data ID in database with UUID and branch if an error occurred
+	data.ID = key.ID
+	_, err = database.Client.Collection(name).Doc(key.ID).Update(database.Ctx, []firestore.Update {{
+		Path:  "ID",
+		Value: data.ID,
+	}})
 	if err != nil {
 		return err
 	}
