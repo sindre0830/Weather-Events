@@ -10,18 +10,18 @@ import (
 
 // Struct for information about one holiday, used when getting data from the API
 type Holiday struct {
-	Date string `json:"date"`
-	LocalName string `json:"localName"`
-	Name string `json:"name"`
-	CountryCode string `json:"countryCode"`
-	Fixed bool `json:"fixed"`
-	Global bool `json:"global"`
-	Counties []string `json:"counties"`
-	LaunchYear int `json:"launchYear"`
-	Type string `json:"string"`
+	Date        string   `json:"date"`
+	LocalName   string   `json:"localName"`
+	Name        string   `json:"name"`
+	CountryCode string   `json:"countryCode"`
+	Fixed       bool     `json:"fixed"`
+	Global      bool     `json:"global"`
+	Counties    []string `json:"counties"`
+	LaunchYear  int      `json:"launchYear"`
+	Type        string   `json:"string"`
 }
 
-func GetCountryHolidays(w http.ResponseWriter, r* http.Request) {
+func GetCountryHolidays(w http.ResponseWriter, r *http.Request) {
 	var countryHolidays []Holiday
 
 	// Parsing variables from URL path
@@ -44,11 +44,11 @@ func GetCountryHolidays(w http.ResponseWriter, r* http.Request) {
 	countryHolidays, status, err := GetAllHolidays(year, location)
 	if err != nil {
 		debug.ErrorMessage.Update(
-				status,
-				"holidays.GetCountryHolidays() -> holidays.GetAllHolidays() -> Getting holidays",
-				err.Error(),
-				"Unknown",
-			)
+			status,
+			"holidays.GetCountryHolidays() -> holidays.GetAllHolidays() -> Getting holidays",
+			err.Error(),
+			"Unknown",
+		)
 		debug.ErrorMessage.Print(w)
 		return
 	}
@@ -70,7 +70,7 @@ func GetCountryHolidays(w http.ResponseWriter, r* http.Request) {
 }
 
 // Get information about all holidays in a country
-func GetAllHolidays(year string, countryCode string) ([]Holiday, int,  error) {
+func GetAllHolidays(year string, countryCode string) ([]Holiday, int, error) {
 	// Slice with holiday structs
 	var countryHolidays []Holiday
 	url := "https://date.nager.at/api/v2/PublicHolidays/" + year + "/" + countryCode
@@ -89,4 +89,3 @@ func GetAllHolidays(year string, countryCode string) ([]Holiday, int,  error) {
 
 	return countryHolidays, http.StatusOK, err
 }
-

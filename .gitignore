@@ -1,2 +1,3 @@
 *.exe
 serviceAccountKey.json
+data/
