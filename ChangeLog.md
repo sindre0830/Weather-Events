@@ -71,3 +71,5 @@
 [0.20.0]    **development**:    Added possiblity for custom id in database
 
 [0.21.0]    **development**:    WeatherData Handler sends data to database
+
+[0.22.0]    **development**:    Added database reader

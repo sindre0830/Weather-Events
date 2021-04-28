@@ -2,6 +2,7 @@ package weatherData
 
 import (
 	"encoding/json"
+	"errors"
 	"main/db"
 	"main/debug"
 	"net/http"
@@ -51,32 +52,60 @@ func (weatherData *WeatherData) Handler(w http.ResponseWriter, r *http.Request) 
 	}
 	lat := arrPath[5]
 	lon := arrPath[6]
-	//get data based on coordinates and branch if an error occured
-	status, err := weatherData.get(lat, lon)
-	if err != nil {
+	//try to get data from database and branch if an error occurred
+	id := lat + "&" + lon
+	data, exist, err := db.DB.Get("WeatherData", id)
+	if err != nil && exist {
 		debug.ErrorMessage.Update(
-			status, 
-			"WeatherData.Handler() -> WeatherData.get() -> Getting weather data",
+			http.StatusInternalServerError, 
+			"WeatherData.Handler() -> Database.get() -> Trying to get data",
 			err.Error(),
 			"Unknown",
 		)
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	//send data to database
-	var data db.Data
-	data.Time = time.Now().String()
-	data.Container = weatherData
-	err = db.DB.Add("WeatherData", lat + "&" + lon, data)
-	if err != nil {
-		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
-			"WeatherData.Handler() -> Database.Add() -> Adding data to database",
-			err.Error(),
-			"Unknown",
-		)
-		debug.ErrorMessage.Print(w)
-		return
+	//check if data was in database and either read data or get new data
+	if exist {
+		err = weatherData.readData(data.Container)
+		if err != nil {
+			debug.ErrorMessage.Update(
+				http.StatusInternalServerError, 
+				"WeatherData.Handler() -> Database.get() -> reading data",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+	} else {
+		//get data based on coordinates and branch if an error occured
+		status, err := weatherData.get(lat, lon)
+		if err != nil {
+			debug.ErrorMessage.Update(
+				status, 
+				"WeatherData.Handler() -> WeatherData.get() -> Getting weather data",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+		//send data to database
+		var data db.Data
+		data.Time = time.Now().String()
+		data.Container = weatherData
+		err = db.DB.Add("WeatherData", id, data)
+		if err != nil {
+			debug.ErrorMessage.Update(
+				http.StatusInternalServerError, 
+				"WeatherData.Handler() -> Database.Add() -> Adding data to database",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
 	}
 	//update header to JSON and set HTTP code
 	w.Header().Set("Content-Type", "application/json")
@@ -121,4 +150,67 @@ func (weatherData *WeatherData) get(lat string, lon string) (int, error) {
 	weatherData.Today.PrecipitationAmountMin = yr.Properties.Timeseries[0].Data.Next6Hours.Details.PrecipitationAmountMin
 	weatherData.Today.ProbabilityOfPrecipitation = yr.Properties.Timeseries[0].Data.Next12Hours.Details.ProbabilityOfPrecipitation
 	return http.StatusOK, nil
+}
+
+func (weatherData *WeatherData) readData(data interface{}) error {
+    m := data.(map[string]interface{})
+    if data, ok := m["Now"]; ok {
+		now := data.(map[string]interface{})
+		if field, ok := now["AirTemperature"].(float64); ok {
+			weatherData.Now.AirTemperature = field
+		}
+		if field, ok := now["CloudAreaFraction"].(float64); ok {
+			weatherData.Now.CloudAreaFraction = field
+		}
+		if field, ok := now["DewPointTemperature"].(float64); ok {
+			weatherData.Now.DewPointTemperature = field
+		}
+		if field, ok := now["RelativeHumidity"].(float64); ok {
+			weatherData.Now.RelativeHumidity = field
+		}
+		if field, ok := now["WindFromDirection"].(float64); ok {
+			weatherData.Now.WindFromDirection = field
+		}
+		if field, ok := now["WindSpeed"].(float64); ok {
+			weatherData.Now.WindSpeed = field
+		}
+		if field, ok := now["WindSpeedOfGust"].(float64); ok {
+			weatherData.Now.WindSpeedOfGust = field
+		}
+		if field, ok := now["PrecipitationAmount"].(float64); ok {
+			weatherData.Now.PrecipitationAmount = field
+		}
+    } else {
+		return errors.New("getting data from database: Can't find expected fields")
+	}
+    if data, ok := m["Today"]; ok {
+		today := data.(map[string]interface{})
+		if field, ok := today["Summary"].(string); ok {
+			weatherData.Today.Summary = field
+		}
+		if field, ok := today["Confidence"].(string); ok {
+			weatherData.Today.Confidence = field
+		}
+		if field, ok := today["AirTemperatureMax"].(float64); ok {
+			weatherData.Today.AirTemperatureMax = field
+		}
+		if field, ok := today["AirTemperatureMin"].(float64); ok {
+			weatherData.Today.AirTemperatureMin = field
+		}
+		if field, ok := today["PrecipitationAmount"].(float64); ok {
+			weatherData.Today.PrecipitationAmount = field
+		}
+		if field, ok := today["PrecipitationAmountMax"].(float64); ok {
+			weatherData.Today.PrecipitationAmountMax = field
+		}
+		if field, ok := today["PrecipitationAmountMin"].(float64); ok {
+			weatherData.Today.PrecipitationAmountMin = field
+		}
+		if field, ok := today["ProbabilityOfPrecipitation"].(float64); ok {
+			weatherData.Today.ProbabilityOfPrecipitation = field
+		}
+    } else {
+		return errors.New("getting data from database: Can't find expected fields")
+	}
+	return nil
 }

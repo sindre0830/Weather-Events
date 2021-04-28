@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"encoding/json"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
@@ -69,6 +70,23 @@ func (database *Database) Add(name string, id string, data Data) error {
 	// 	return err
 	// }
 	return nil
+}
+
+func (database *Database) Get(name string, id string) (Data, bool, error) {
+	var data Data
+	iter, err := database.Client.Collection(name).Doc(id).Get(database.Ctx)
+	if err != nil {
+		return data, false, err
+	}
+	output, err := json.Marshal(iter.Data())
+	if err != nil {
+		return data, true, err
+	}
+	err = json.Unmarshal(output, &data)
+	if err != nil {
+		return data, true, err
+	}
+	return data, true, nil
 }
 
 // // Get gets all webhooks from database
