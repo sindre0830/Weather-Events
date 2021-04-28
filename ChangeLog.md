@@ -75,3 +75,5 @@
 [0.22.0]    **development**:    Added database reader
 
 [0.23.0]    **development**:    Added time validation on data stored in database
+
+[0.24.0]    **development**:    Refactored HandlerCoords to check firestore for existing data.
