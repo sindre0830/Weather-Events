@@ -3,9 +3,11 @@ package geocoords
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"main/api"
 	"main/db"
 	"main/debug"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,6 +22,7 @@ import (
 type LocationCoords struct {
 	Latitude	float64	`json:"lat"`
 	Longitude	float64 `json:"lon"`
+	Importance	float64 `json:"importance"`
 }
 
 var baseURL = "https://us1.locationiq.com/v1/search.php?key="
@@ -67,20 +70,20 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 	// We check whether data is deprecated or not.
 	// For locations that are not countries/capitals, we don't want to keep our data more than 3 hours.
 	withinTimeframe, err := db.CheckDate(data.Time, 3)
-	if err != nil && exist {
-		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
-			"GeoCoords.HandlerCoords() -> Database.get() -> Trying to get data",
-			err.Error(),
-			"Unknown",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
-
-	// If the data is in database and not deprecated, we just read it from firebase and move on
-	if exist && withinTimeframe/**withinTimeframe || the location is a country/capital**/ {
+	fmt.Print(withinTimeframe)
+	if exist /**&& withinTimeframewithinTimeframe || the location is a country/capital**/ {
+		if err != nil{
+			debug.ErrorMessage.Update(
+				http.StatusInternalServerError, 
+				"GeoCoords.HandlerCoords() -> db.CheckDate() -> parsing time data",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
 		err = readData(&locationCoords, data.Container)
+		fmt.Printf("Hurrah!")
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError, 
@@ -91,10 +94,11 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 			debug.ErrorMessage.Print(w)
 			return
 		}
-	} else {
+	} else  {
 		// If the location is not stored in firestore, We get the data from the locationiq api
 		var locations []map[string]interface{}
 		status, err := getLocations(&locations, id)
+		fmt.Printf("Boo!!")
 
 		if err != nil {
 			debug.ErrorMessage.Update(
@@ -161,8 +165,12 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 func getCoords(coords *LocationCoords, location map[string]interface{}) error {
 	var err error
 
-	coords.Latitude, err = strconv.ParseFloat(location["lat"].(string), 64) 
-	coords.Longitude, err = strconv.ParseFloat(location["lon"].(string), 64) 
+	latitude, err := strconv.ParseFloat(location["lat"].(string), 64) 
+	coords.Latitude = math.Round(latitude*100)/100
+	longitude, err := strconv.ParseFloat(location["lon"].(string), 64) 
+	coords.Longitude = math.Round(longitude*100)/100
+	importance := location["importance"].(float64)
+	coords.Importance = math.Round(importance*100)/100
 
 	return err
 }
@@ -205,12 +213,17 @@ func readData(coords *LocationCoords, data interface{}) error {
 	if field, ok := m["Latitude"].(float64); ok {
 		coords.Latitude = field
 	} else {
-		return errors.New("getting data from database: Can't find expected fields")
+		return errors.New("getting data from database: Can't find expected field Latitude")
 	}
 	if field, ok := m["Longitude"].(float64); ok {
 		coords.Longitude = field
 	} else {
-		return errors.New("getting data from database: Can't find expected fields")
+		return errors.New("getting data from database: Can't find expected field Longitude")
+	}	
+	if field, ok := m["Importance"].(float64); ok {
+		coords.Importance = field
+	} else {
+		return errors.New("getting data from database: Can't find expected field Importance")
 	}	
 	return nil
 }
