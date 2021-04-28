@@ -85,3 +85,5 @@
 [0.27.0]    **development**:    Added ability to add and get holidays from the database
 
 [0.28.0]    **development**:    Saving information from restCountries localy instead of firebase
+
+[0.29.0]    **development**:    Added reading from and writing to local database in addition to firestore in HandlerCoords
