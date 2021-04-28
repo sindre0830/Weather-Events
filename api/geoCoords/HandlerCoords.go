@@ -122,7 +122,7 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 		var data db.Data
 		data.Time = time.Now().String()
 		data.Container = locationCoords
-		err = db.DB.Add("GeoCoords", id, data)
+		_, err = db.DB.Add("GeoCoords", id, data)
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError, 

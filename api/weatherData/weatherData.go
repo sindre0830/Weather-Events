@@ -3,6 +3,7 @@ package weatherData
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"main/db"
 	"main/debug"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 //
 // Functionality: Handler, get
 type WeatherData struct {
+	Updated string `json:"updated"`
 	Now struct {
 		AirTemperature      float64 `json:"air_temperature"`
 		CloudAreaFraction   float64 `json:"cloud_area_fraction"`
@@ -68,6 +70,7 @@ func (weatherData *WeatherData) Handler(w http.ResponseWriter, r *http.Request) 
 	withinTimeframe, err := db.CheckDate(data.Time, 6)
 	//check if data is in database and if it's usable then either read data or get new data
 	if exist && withinTimeframe {
+		fmt.Println("Got data from database")
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError, 
@@ -79,6 +82,7 @@ func (weatherData *WeatherData) Handler(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		err = weatherData.readData(data.Container)
+		weatherData.Updated = data.Time
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError, 
@@ -105,7 +109,7 @@ func (weatherData *WeatherData) Handler(w http.ResponseWriter, r *http.Request) 
 		//send data to database
 		var data db.Data
 		data.Container = weatherData
-		err = db.DB.Add("WeatherData", id, data)
+		date, err := db.DB.Add("WeatherData", id, data)
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError, 
@@ -116,6 +120,7 @@ func (weatherData *WeatherData) Handler(w http.ResponseWriter, r *http.Request) 
 			debug.ErrorMessage.Print(w)
 			return
 		}
+		weatherData.Updated = date
 	}
 	//update header to JSON and set HTTP code
 	w.Header().Set("Content-Type", "application/json")
