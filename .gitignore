@@ -1,7 +1,4 @@
 *.exe
 serviceAccountKey.json
-<<<<<<< HEAD
 *.json
-=======
 data/
->>>>>>> 41e140e10172dd6274881ab9dd1651f6e059e7ab
