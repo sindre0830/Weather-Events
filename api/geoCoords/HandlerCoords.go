@@ -2,11 +2,14 @@ package geocoords
 
 import (
 	"encoding/json"
+	"errors"
 	"main/api"
+	"main/db"
 	"main/debug"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Not sure if we should export this
@@ -22,9 +25,6 @@ type LocationCoords struct {
 var baseURL = "https://us1.locationiq.com/v1/search.php?key="
 var key = "pk.d8a67c78822d16869c7a3e8f6d7617af"
 
-// Stored list of locations
-var Locations = make(map[string]LocationCoords)
-
 /**
 *	CoordHandler
 *	Accepts a place name, and gets the geological coordinages associated with that place.
@@ -39,7 +39,7 @@ var Locations = make(map[string]LocationCoords)
 func CoordHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	arrPath := strings.Split(r.URL.Path, "/")
-	if len(arrPath) != 6 {
+	if len(arrPath) != 5 {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest, 
 			"GeoCoords.Handler() -> Parsing URL",
@@ -49,30 +49,28 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	placeName := arrPath[4]
+	id := strings.ToLower(arrPath[4])
+	var locationCoords LocationCoords
 
-	// We get the data from the locationiq api
-	var locations []map[string]interface{}
-	status, err := getLocations(&locations, placeName)
-
-	if err != nil {
+	// Check DB fif location data for this location exists
+	data, exist, err := db.DB.Get("GeoCoords", id)
+	if err != nil && exist {
 		debug.ErrorMessage.Update(
-			status, 
-			"GeoCoords.Handler() -> GetCoords.getLocations() -> Getting location data",
+			http.StatusInternalServerError, 
+			"GeoCoords.HandlerCoords() -> Database.get() -> Trying to get data",
 			err.Error(),
-			"Unknown - ensure that place name is valid and spelled correctly.",
+			"Unknown",
 		)
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	// We get lat and lon from the first json object in our locations array
-	var locationCoords LocationCoords
-	err = getCoords(&locationCoords, locations[0])
-
-	if err != nil {
+	// We check whether data is deprecated or not.
+	// For locations that are not countries/capitals, we don't want to keep our data more than 3 hours.
+	withinTimeframe, err := db.CheckDate(data.Time, 3)
+	if err != nil && exist {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError, 
-			"GeoCoords.Handler() -> GeoCoords.getCoords -> Getting latitude and longitude from json array.",
+			"GeoCoords.HandlerCoords() -> Database.get() -> Trying to get data",
 			err.Error(),
 			"Unknown",
 		)
@@ -80,11 +78,65 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	locationName :=	strings.ToLower(placeName)
+	// If the data is in database and not deprecated, we just read it from firebase and move on
+	if exist && withinTimeframe/**withinTimeframe || the location is a country/capital**/ {
+		err = readData(&locationCoords, data.Container)
+		if err != nil {
+			debug.ErrorMessage.Update(
+				http.StatusInternalServerError, 
+				"GeoCoords.HandlerCoords() -> Database.get() -> reading data",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+	} else {
+		// If the location is not stored in firestore, We get the data from the locationiq api
+		var locations []map[string]interface{}
+		status, err := getLocations(&locations, id)
 
-	Locations[locationName] = locationCoords
-
-	err = json.NewEncoder(w).Encode(Locations[locationName])
+		if err != nil {
+			debug.ErrorMessage.Update(
+				status, 
+				"GeoCoords.Handler() -> GetCoords.getLocations() -> Getting location data",
+				err.Error(),
+				"Unknown - ensure that place name is valid and spelled correctly.",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+		// We get lat and lon from the first json object in our locations array
+		err = getCoords(&locationCoords, locations[0])
+		if err != nil {
+			debug.ErrorMessage.Update(
+				status, 
+				"GeoCoords.HandlerCoords() -> WeatherData.get() -> Getting weather data",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+		// Now we send the data to firestore
+		var data db.Data
+		data.Time = time.Now().String()
+		data.Container = locationCoords
+		_, err = db.DB.Add("GeoCoords", id, data)
+		if err != nil {
+			debug.ErrorMessage.Update(
+				http.StatusInternalServerError, 
+				"GeoCoords.HandlerCoords() -> Database.Add() -> Adding data to database",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+	}	
+	
+	// Now that we have our data, we encode and pass it to the user.
+	err = json.NewEncoder(w).Encode(locationCoords)
 	
 	if err != nil {
 		debug.ErrorMessage.Update(
@@ -137,4 +189,28 @@ func getLocations(locations *[]map[string]interface{}, location string) (int, er
 	err = json.Unmarshal(out, locations)
 
 	return status, err
+}
+
+/**
+*	readData
+*	Takes a pointer to a LocationCoords struct, and an interface containing the data from Firestore.
+*	Reads firestore data into the struct
+*
+*	@param	coords			-	Pointer to LocationCoords struct we want to fill
+*	@param	data			-	interface containing Latitude and Longitude.
+*	@return	err				-	Interface holding error messages
+**/
+func readData(coords *LocationCoords, data interface{}) error {
+	m := data.(map[string]interface{})
+	if field, ok := m["Latitude"].(float64); ok {
+		coords.Latitude = field
+	} else {
+		return errors.New("getting data from database: Can't find expected fields")
+	}
+	if field, ok := m["Longitude"].(float64); ok {
+		coords.Longitude = field
+	} else {
+		return errors.New("getting data from database: Can't find expected fields")
+	}	
+	return nil
 }
