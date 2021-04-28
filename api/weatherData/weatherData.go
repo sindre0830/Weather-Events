@@ -66,18 +66,18 @@ func (weatherData *WeatherData) Handler(w http.ResponseWriter, r *http.Request) 
 	}
 	//get status on timeframe and branch if an error occurred
 	withinTimeframe, err := db.CheckDate(data.Time, 6)
-	if err != nil {
-		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
-			"WeatherData.Handler() -> Database.CheckDate() -> Trying to parse time",
-			err.Error(),
-			"Unknown",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
 	//check if data is in database and if it's usable then either read data or get new data
 	if exist && withinTimeframe {
+		if err != nil {
+			debug.ErrorMessage.Update(
+				http.StatusInternalServerError, 
+				"WeatherData.Handler() -> Database.CheckDate() -> parsing time",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
 		err = weatherData.readData(data.Container)
 		if err != nil {
 			debug.ErrorMessage.Update(

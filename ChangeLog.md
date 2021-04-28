@@ -77,3 +77,5 @@
 [0.23.0]    **development**:    Added time validation on data stored in database
 
 [0.24.0]    **development**:    Refactored HandlerCoords to check firestore for existing data.
+
+[0.25.0]    **development**:    Fixed time validation when errors occur

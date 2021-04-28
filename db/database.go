@@ -149,7 +149,7 @@ func (database *Database) Delete(id string) error {
 func CheckDate(dataTime string, expectedHours int) (bool, error) {
 	then, err := time.Parse(time.RFC822, dataTime)
 	if err != nil {
-		return false, err
+		return true, err
 	}
 	//get current time and subtract inputted date
 	currentTime := time.Now()
