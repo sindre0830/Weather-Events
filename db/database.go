@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"math"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
@@ -51,6 +53,7 @@ func (database *Database) Setup() error {
 
 // Add adds a new webhook to database.
 func (database *Database) Add(name string, id string, data Data) error {
+	data.Time = time.Now().Format(time.RFC822)
 	if id == "" {
 		//add data to database and get a UUID from firebase and branch if an error occurred
 		_, _, err := database.Client.Collection(name).Add(database.Ctx, data)
@@ -76,9 +79,10 @@ func (database *Database) Get(name string, id string) (Data, bool, error) {
 	var data Data
 	iter, err := database.Client.Collection(name).Doc(id).Get(database.Ctx)
 	if err != nil {
-		return data, false, err
+		return data, false, nil
 	}
-	output, err := json.Marshal(iter.Data())
+	test := iter.Data()
+	output, err := json.Marshal(test)
 	if err != nil {
 		return data, true, err
 	}
@@ -140,4 +144,17 @@ func (database *Database) Delete(id string) error {
 	// 	return err
 	// }
 	return nil
+}
+
+func CheckDate(dataTime string, expectedHours int) (bool, error) {
+	then, err := time.Parse(time.RFC822, dataTime)
+	if err != nil {
+		return false, err
+	}
+	//get current time and subtract inputted date
+	currentTime := time.Now()
+	diffTime := currentTime.Sub(then)
+	//convert the difference to integer of hours
+	diffHours := int(math.Floor(diffTime.Hours()))
+	return diffHours >= expectedHours, nil
 }

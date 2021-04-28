@@ -7,7 +7,6 @@ import (
 	"main/debug"
 	"net/http"
 	"strings"
-	"time"
 )
 
 // WeatherData structure stores current and predicted weather data for a day.
@@ -65,8 +64,20 @@ func (weatherData *WeatherData) Handler(w http.ResponseWriter, r *http.Request) 
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	//check if data was in database and either read data or get new data
-	if exist {
+	//get status on timeframe and branch if an error occurred
+	withinTimeframe, err := db.CheckDate(data.Time, 6)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusInternalServerError, 
+			"WeatherData.Handler() -> Database.CheckDate() -> Trying to parse time",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//check if data is in database and if it's usable then either read data or get new data
+	if exist && withinTimeframe {
 		err = weatherData.readData(data.Container)
 		if err != nil {
 			debug.ErrorMessage.Update(
@@ -93,7 +104,6 @@ func (weatherData *WeatherData) Handler(w http.ResponseWriter, r *http.Request) 
 		}
 		//send data to database
 		var data db.Data
-		data.Time = time.Now().String()
 		data.Container = weatherData
 		err = db.DB.Add("WeatherData", id, data)
 		if err != nil {

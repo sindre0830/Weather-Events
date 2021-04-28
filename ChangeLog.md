@@ -73,3 +73,5 @@
 [0.21.0]    **development**:    WeatherData Handler sends data to database
 
 [0.22.0]    **development**:    Added database reader
+
+[0.23.0]    **development**:    Added time validation on data stored in database
