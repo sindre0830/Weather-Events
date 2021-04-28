@@ -81,3 +81,5 @@
 [0.25.0]    **development**:    Fixed time validation when errors occur
 
 [0.26.0]    **development**:    Added updated field in WeatherData
+
+[0.27.0]    **development**:    Added ability to add and get holidays from the database
