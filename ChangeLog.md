@@ -79,3 +79,5 @@
 [0.24.0]    **development**:    Refactored HandlerCoords to check firestore for existing data.
 
 [0.25.0]    **development**:    Fixed time validation when errors occur
+
+[0.26.0]    **development**:    Added updated field in WeatherData

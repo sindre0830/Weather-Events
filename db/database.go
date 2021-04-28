@@ -52,19 +52,19 @@ func (database *Database) Setup() error {
 }
 
 // Add adds a new webhook to database.
-func (database *Database) Add(name string, id string, data Data) error {
+func (database *Database) Add(name string, id string, data Data) (string, error) {
 	data.Time = time.Now().Format(time.RFC822)
 	if id == "" {
 		//add data to database and get a UUID from firebase and branch if an error occurred
 		_, _, err := database.Client.Collection(name).Add(database.Ctx, data)
 		if err != nil {
-			return err
+			return "", err
 		}
 	} else {
 		//add data to database and get a UUID from firebase and branch if an error occurred
 		_, err := database.Client.Collection(name).Doc(id).Set(database.Ctx, data)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 	// //update Notifications with data from database and branch if and error occurred
@@ -72,7 +72,7 @@ func (database *Database) Add(name string, id string, data Data) error {
 	// if err != nil {
 	// 	return err
 	// }
-	return nil
+	return data.Time, nil
 }
 
 func (database *Database) Get(name string, id string) (Data, bool, error) {
@@ -156,5 +156,5 @@ func CheckDate(dataTime string, expectedHours int) (bool, error) {
 	diffTime := currentTime.Sub(then)
 	//convert the difference to integer of hours
 	diffHours := int(math.Floor(diffTime.Hours()))
-	return diffHours >= expectedHours, nil
+	return diffHours <= expectedHours, nil
 }
