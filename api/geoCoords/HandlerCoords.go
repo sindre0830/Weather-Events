@@ -3,19 +3,19 @@ package geocoords
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"io/ioutil"
 	"main/api"
 	"main/db"
 	"main/debug"
 	"math"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
-// Not sure if we should export this
-/*
+/**
 *	LocationCoords
 *	Holds our latitude and longitude data for one location
 **/
@@ -27,6 +27,9 @@ type LocationCoords struct {
 
 var baseURL = "https://us1.locationiq.com/v1/search.php?key="
 var key = "pk.d8a67c78822d16869c7a3e8f6d7617af"
+
+// This loads in local database from file of most important locations
+var LocalCoords = make(map[string]LocationCoords)
 
 /**
 *	CoordHandler
@@ -55,7 +58,18 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 	id := strings.ToLower(arrPath[4])
 	var locationCoords LocationCoords
 
-	// Check DB fif location data for this location exists
+	// We read our local DB, if one exists, into LocalCoords map.
+	var file []byte
+	if _, err := os.Stat("GeoCoords.json"); err == nil {
+		file, err = ioutil.ReadFile("GeoCoords.json")
+		err = json.Unmarshal([]byte(file), &LocalCoords)
+	}
+
+	// Check LocalCoords if location data for this location exists
+	localData, found := LocalCoords[id]
+
+	// LAST TO FIX - how to avoid this extra work?
+	// Check firestoreDB if location data for this location exists
 	data, exist, err := db.DB.Get("GeoCoords", id)
 	if err != nil && exist {
 		debug.ErrorMessage.Update(
@@ -67,11 +81,12 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	// We check whether data is deprecated or not.
+
+	// We check whether data on firestore is deprecated or not.
 	// For locations that are not countries/capitals, we don't want to keep our data more than 3 hours.
+	// Data saved in local files should be kept indefinitely, so we don't check it.
 	withinTimeframe, err := db.CheckDate(data.Time, 3)
-	fmt.Print(withinTimeframe)
-	if exist /**&& withinTimeframewithinTimeframe || the location is a country/capital**/ {
+	if exist && withinTimeframe{
 		if err != nil{
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError, 
@@ -82,8 +97,9 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 			debug.ErrorMessage.Print(w)
 			return
 		}
+		
 		err = readData(&locationCoords, data.Container)
-		fmt.Printf("Hurrah!")
+
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError, 
@@ -94,11 +110,13 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 			debug.ErrorMessage.Print(w)
 			return
 		}
+	} else if found {
+		// If the data was on file, we set it here.
+		locationCoords = localData
 	} else  {
-		// If the location is not stored in firestore, We get the data from the locationiq api
+		// If the location is not stored in firestore OR locally, We get the data from the locationiq api
 		var locations []map[string]interface{}
 		status, err := getLocations(&locations, id)
-		fmt.Printf("Boo!!")
 
 		if err != nil {
 			debug.ErrorMessage.Update(
@@ -122,21 +140,40 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 			debug.ErrorMessage.Print(w)
 			return
 		}
-		// Now we send the data to firestore
-		var data db.Data
-		data.Time = time.Now().String()
-		data.Container = locationCoords
-		_, err = db.DB.Add("GeoCoords", id, data)
-		if err != nil {
-			debug.ErrorMessage.Update(
-				http.StatusInternalServerError, 
-				"GeoCoords.HandlerCoords() -> Database.Add() -> Adding data to database",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-			return
+		if locationCoords.Importance > 0.7 {
+			// Save locally if it's an important place
+			LocalCoords[id] = locationCoords
+			file, err := json.MarshalIndent(LocalCoords, "", " ")
+ 
+			err = ioutil.WriteFile("GeoCoords.json", file, 0644)
+			if err != nil {
+				debug.ErrorMessage.Update(
+					http.StatusInternalServerError, 
+					"GeoCoords.HandlerCoords() -> Adding data to local database",
+					err.Error(),
+					"Unknown",
+				)
+				debug.ErrorMessage.Print(w)
+				return
+			}
+		} else {
+			// If not important, we send the data to firestore
+			var data db.Data
+			data.Time = time.Now().String()
+			data.Container = locationCoords
+			_, err = db.DB.Add("GeoCoords", id, data)
+			if err != nil {
+				debug.ErrorMessage.Update(
+					http.StatusInternalServerError, 
+					"GeoCoords.HandlerCoords() -> Database.Add() -> Adding data to database",
+					err.Error(),
+					"Unknown",
+				)
+				debug.ErrorMessage.Print(w)
+				return
+			}
 		}
+		
 	}	
 	
 	// Now that we have our data, we encode and pass it to the user.
