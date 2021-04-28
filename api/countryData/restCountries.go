@@ -2,76 +2,30 @@ package countryData
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"main/api"
 	"main/debug"
 	"net/http"
+	"os"
 	"strings"
 )
 
-// //Struct containing all information from restcountries
-// type Data []struct {
-// 	Name           string    `json:"name"`
-// 	Topleveldomain []string  `json:"topLevelDomain"`
-// 	Alpha2Code     string    `json:"alpha2Code"`
-// 	Alpha3Code     string    `json:"alpha3Code"`
-// 	Callingcodes   []string  `json:"callingCodes"`
-// 	Capital        string    `json:"capital"`
-// 	Altspellings   []string  `json:"altSpellings"`
-// 	Region         string    `json:"region"`
-// 	Subregion      string    `json:"subregion"`
-// 	Population     int       `json:"population"`
-// 	Latlng         []float64 `json:"latlng"`
-// 	Demonym        string    `json:"demonym"`
-// 	Area           float64   `json:"area"`
-// 	Gini           float64   `json:"gini"`
-// 	Timezones      []string  `json:"timezones"`
-// 	Borders        []string  `json:"borders"`
-// 	Nativename     string    `json:"nativeName"`
-// 	Numericcode    string    `json:"numericCode"`
-// 	Currencies     []struct {
-// 		Code   string `json:"code"`
-// 		Name   string `json:"name"`
-// 		Symbol string `json:"symbol"`
-// 	} `json:"currencies"`
-// 	Languages []struct {
-// 		Iso6391    string `json:"iso639_1"`
-// 		Iso6392    string `json:"iso639_2"`
-// 		Name       string `json:"name"`
-// 		Nativename string `json:"nativeName"`
-// 	} `json:"languages"`
-// 	Translations struct {
-// 		De string `json:"de"`
-// 		Es string `json:"es"`
-// 		Fr string `json:"fr"`
-// 		Ja string `json:"ja"`
-// 		It string `json:"it"`
-// 		Br string `json:"br"`
-// 		Pt string `json:"pt"`
-// 		Nl string `json:"nl"`
-// 		Hr string `json:"hr"`
-// 		Fa string `json:"fa"`
-// 	} `json:"translations"`
-// 	Flag          string `json:"flag"`
-// 	Regionalblocs []struct {
-// 		Acronym       string        `json:"acronym"`
-// 		Name          string        `json:"name"`
-// 		Otheracronyms []interface{} `json:"otherAcronyms"`
-// 		Othernames    []interface{} `json:"otherNames"`
-// 	} `json:"regionalBlocs"`
-// 	Cioc string `json:"cioc"`
-// }
-
 //Struct containing all information from restcountries
-type Data []struct {
+type Information []struct {
 	Name       string `json:"name"`
 	Alpha2Code string `json:"alpha2Code"`
 	Capital    string `json:"capital"`
 }
 
+type MyError struct {
+	What string
+}
+
 func HandleRestCountry(w http.ResponseWriter, r *http.Request) {
 	//url parsing
 	parts := strings.Split(r.URL.Path, "/")
-	if len(parts) != 5 {
+	if len(parts) != 5 && len(parts) != 6 {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
 			"WeatherData.Handler() -> Parsing URL",
@@ -81,52 +35,73 @@ func HandleRestCountry(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 	}
 
-	query := r.URL.Query()
-	country := query.Get("specificCountry")
-	var input Data
-	if country == "" {
+	//Check if document exists
+
+	if _, err := os.Stat("./data/countries.json"); os.IsNotExist(err) { //if it does not exist:
+		//Fetch information
+		var input Information
 		status, err := input.req("https://restcountries.eu/rest/v2/all")
 		if err != nil {
 			debug.ErrorMessage.Update(
 				status,
-				"CountryData.Handler() -> WeatherData.get() -> Getting counrty data",
+				"CountryData.Handler() -> Getting country data",
 				err.Error(),
 				"Unknown",
 			)
 			debug.ErrorMessage.Print(w)
 			return
 		}
-	} else { //Shouldn't take this as a url
-		status, err := input.req("https://restcountries.eu/rest/v2/name/" + country + "?fullText=true")
+
+		//Store it in a file:
+		file, _ := json.MarshalIndent(input, "", " ")
+
+		_ = ioutil.WriteFile("./data/countries.json", file, 0644)
+	}
+
+	country := parts[4]
+
+	//If you want a specific country
+	if country != "" {
+		var specificCountry Information
+		status, err := specificCountry.oneCountry(parts[4])
 		if err != nil {
 			debug.ErrorMessage.Update(
 				status,
-				"CountryData.Handler() -> WeatherData.get() -> Getting counrty data",
+				"CountryData.Handler() ->  Getting specific country data",
 				err.Error(),
 				"Unknown",
 			)
 			debug.ErrorMessage.Print(w)
 			return
 		}
+
+		//update header to JSON and set HTTP code
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		//send output to user and branch if an error occured
+		err = json.NewEncoder(w).Encode(specificCountry)
+		if err != nil {
+			debug.ErrorMessage.Update(
+				http.StatusInternalServerError,
+				"CountryData.Handler() -> Sending data to user",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+		}
+	} else { //if you dont require a specific country:
+		//This is to show the result of a file to the screen:
+		w.Header().Set("Content-Type", "application/json")
+		output := ParseFile("./data/countries.json") //path to where the document is
+
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, string(output))
 	}
 
-	//Formats the printouts
-	w.Header().Set("Content-Type", "application/json")
-	//Outputs results
-	err := json.NewEncoder(w).Encode(input)
-	if err != nil {
-		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, //Since code will be changed later the status will be available outside of ifstatement and
-			"CountryData.Handler() -> Sending data to user",
-			err.Error(),
-			"Unknown",
-		)
-		debug.ErrorMessage.Print(w)
-	}
 }
 
 //req requests information
-func (data *Data) req(url string) (int, error) {
+func (data *Information) req(url string) (int, error) {
 	output, status, jsonErr := api.RequestData(url)
 
 	if jsonErr != nil {
@@ -138,4 +113,47 @@ func (data *Data) req(url string) (int, error) {
 		return http.StatusInternalServerError, jsonErr
 	}
 	return http.StatusOK, jsonErr
+}
+
+//req requests information
+func (data *Information) oneCountry(countryName string) (int, error) {
+	countryName = strings.Title(strings.ToLower(countryName))
+	//Get data from document
+	file, err := ioutil.ReadFile("./data/countries.json")
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	err = json.Unmarshal([]byte(file), &data)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	for _, v := range *data {
+		if v.Name == countryName {
+
+			//only return one data instance
+			*data = Information{{v.Name, v.Alpha2Code, v.Capital}}
+
+			return http.StatusOK, nil
+		}
+
+	}
+
+	return http.StatusBadRequest, &MyError{"Country:" + countryName + " was not found in the database"}
+}
+
+//From restStub
+func ParseFile(filename string) []byte {
+	file, err := ioutil.ReadFile(filename)
+	if err != nil {
+		fmt.Printf("File error: %v\n", err)
+		os.Exit(1)
+	}
+	return file
+}
+
+func (e *MyError) Error() string {
+	return fmt.Sprintf("Error: %s",
+		e.What)
 }
