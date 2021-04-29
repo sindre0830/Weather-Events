@@ -60,7 +60,6 @@ func Handler(year string, country string) (map[string]string, int, error) {
 
 // Get information about all holidays in a country
 func (holidays *Holiday) get(year string, country string) (int, error) {
-	// Slice with holiday structs
 	url := "https://date.nager.at/api/v2/PublicHolidays/" + year + "/" + country
 
 	// Gets data from the request URL
