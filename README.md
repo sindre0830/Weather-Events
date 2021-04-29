@@ -54,9 +54,9 @@ No real issues save for a event where we figured that the data stored from restc
     - Output:
         ```go
         type Weather struct {
-            Location  string  `json:"location"`
             Longitude float64 `json:"longitude"`
             Latitude  float64 `json:"latitude"`
+            Location  string  `json:"location"`
             Updated   string  `json:"updated"`
             Data      struct {
                 Now struct {
@@ -92,9 +92,9 @@ No real issues save for a event where we figured that the data stored from restc
         - Output:
             ```json
             {
-                "location": "Oslo, 0026, Norway",
                 "longitude": 10.74,
                 "latitude": 59.91,
+                "location": "Oslo, 0026, Norway",
                 "updated": "29 Apr 21 11:20 CEST",
                 "data": {
                     "now": {
@@ -126,18 +126,21 @@ No real issues save for a event where we figured that the data stored from restc
     - Input:
         ```
         Method: GET
-        Path: .../weather/compare/{:location}/{:compare=location1;location2;...}
+        Path: .../weather/compare/{:location}/{:location1;location2;...}
         ```
 
     - Output:
         ```go
         type WeatherCompare struct {
-            Updated      string `json:"updated"`
-            MainLocation string `json:"main_location"`
+            Longitude float64 `json:"longitude"`
+            Latitude  float64 `json:"latitude"`
+            Location  string  `json:"location"`
+            Updated   string  `json:"updated"`
             Data         struct {
-                Location  string  `json:"location"`
                 Longitude float64 `json:"longitude"`
-                Latitude  float64 `json:"latiude"`
+                Latitude  float64 `json:"latitude"`
+                Location  string  `json:"location"`
+                Updated   string  `json:"updated"`
                 Now       struct {
                     AirTemperature      float64 `json:"air_temperature"`
                     CloudAreaFraction   float64 `json:"cloud_area_fraction"`
@@ -163,18 +166,21 @@ No real issues save for a event where we figured that the data stored from restc
         - Input: 
             ```
             Method: GET
-            Path: localhost:8080/weather-rest/v1/weather/compare/oslo/bergen;stavanger;trondheim
+            Path: localhost:8080/weather-rest/v1/weather/compare/oslo/bergen;stavanger
             ```
         - Output:
             ```json
             {
+                "longitude": 10.74,
+                "latitude": 59.91,
+                "location": "Oslo, 0026, Norway",
                 "updated": "29 Apr 21 11:20 CEST",
-                "main_location": "Oslo, 0026, Norway",
                 "data": [
                     {
-                        "location": "Bergen, Vestland, Norway",
                         "longitude": 5.33,
-                        "latiude": 60.39,
+                        "latitude": 60.39,
+                        "location": "Bergen, Vestland, Norway",
+                        "updated": "29 Apr 21 12:26 CEST",
                         "now": {
                             "air_temperature": 0.1,
                             "cloud_area_fraction": 11.3,
@@ -194,9 +200,10 @@ No real issues save for a event where we figured that the data stored from restc
                         }
                     },
                     {
-                        "location": "Stavanger, Rogaland, Norway",
                         "longitude": 5.71,
-                        "latiude": 59.1,
+                        "latitude": 59.1,
+                        "location": "Stavanger, Rogaland, Norway",
+                        "updated": "29 Apr 21 13:09 CEST",
                         "now": {
                             "air_temperature": 1.9,
                             "cloud_area_fraction": 31.5,
@@ -209,28 +216,6 @@ No real issues save for a event where we figured that the data stored from restc
                         "today": {
                             "air_temperature_max": -0.1,
                             "air_temperature_min": 1.2,
-                            "precipitation_amount": 0,
-                            "precipitation_amount_max": 0,
-                            "precipitation_amount_min": 0,
-                            "probability_of_precipitation": 0
-                        }
-                    },
-                    {
-                        "location": "Trondheim, Trøndelag, 7011, Norway",
-                        "longitude": 10.4,
-                        "latiude": 63.43,
-                        "now": {
-                            "air_temperature": -2.7,
-                            "cloud_area_fraction": 18.2,
-                            "dew_point_temperature": 1.6,
-                            "relative_humidity": 15.6,
-                            "wind_speed": -2.3,
-                            "wind_speed_of_gust": -3,
-                            "precipitation_amount": 0
-                        },
-                        "today": {
-                            "air_temperature_max": -5,
-                            "air_temperature_min": -3.4,
                             "precipitation_amount": 0,
                             "precipitation_amount_max": 0,
                             "precipitation_amount_min": 0,
@@ -289,10 +274,12 @@ When an error is found, we add info to a debug struct.
 Debugging information is then sent to user as a json object, and printed to console.
 
 ```go
-	StatusCode 		 int    `json:"status_code"`                // The REST code for the error
-	Location   		 string `json:"location"`                   // Where in the program did the error occur
-	RawError   		 string `json:"raw_error"`                  // The raw error data
-	PossibleReason   string `json:"possible_reason"`            // Potential reasons for the error occurring (e.g. misspelled endpoint, etc)
+type Debug struct {
+	StatusCode 		 int    `json:"status_code"`     // The REST code for the error
+	Location   		 string `json:"location"`        // Where in the program did the error occur
+	RawError   		 string `json:"raw_error"`       // The raw error data
+	PossibleReason   string `json:"possible_reason"` // Potential reasons for the error occurring (e.g. misspelled endpoint, etc)
+}
 ```
 
 #### Testing

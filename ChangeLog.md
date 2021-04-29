@@ -135,3 +135,5 @@
 [2.2.0]     **development**:    Added more comments on restCountry file, edited readme
 
 [2.2.1]     **reformatting**:   Moved fields around in Weather and WeatherCompare structure and added comments to structure functors
+
+[2.3.0]     **development**:    Modified information about endpoints
