@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"main/api/countryData"
 	geocoords "main/api/geoCoords"
 	"main/api/holidays"
 	"main/api/weatherData"
@@ -34,8 +33,6 @@ func main() {
 
 	http.HandleFunc("/weather-rest/v1/geocoord/", geocoords.CoordHandler)
 
-	//Get all countries endpoint:
-	http.HandleFunc("/weather-rest/v1/restCountries/", countryData.HandleRestCountry)
 	//handle weather data
 	http.HandleFunc("/weather-rest/v1/weather/data/", weatherData.MethodHandler)
 	// Get a country's holidays
