@@ -2,7 +2,6 @@ package weatherData
 
 import (
 	"errors"
-	"fmt"
 	"main/db"
 	"net/http"
 )
@@ -46,7 +45,6 @@ func (weatherData *WeatherData) Handler(lat string, lon string) (int, error) {
 	withinTimeframe, err := db.CheckDate(data.Time, 6)
 	//check if data is in database and if it's usable then either read data or get new data
 	if exist && withinTimeframe {
-		fmt.Println("Got data from database")
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}

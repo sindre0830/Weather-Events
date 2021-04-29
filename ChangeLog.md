@@ -107,3 +107,5 @@
 [1.8.0]     **development**:    Changed errorhandling a little in restcountries and added some more comments
 
 [1.9.0]     **development**:    Implemented handler functor and method handler for Weather structure
+
+[1.9.1]     **fix**:            Fixed file reading for LocationCoords structure

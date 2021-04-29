@@ -43,7 +43,7 @@ var LocalCoords = make(map[string]LocationCoords)
 *	@see	getLocations
 *	@see	debug.Debug
 **/
-func (locationCoords *LocationCoords) Handler (id string) (int, error) {
+func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	// We read our local DB, if one exists, into LocalCoords map.
 	var file []byte
 	if _, err := os.Stat("GeoCoords.json"); err == nil {
@@ -53,6 +53,14 @@ func (locationCoords *LocationCoords) Handler (id string) (int, error) {
 
 	// Check LocalCoords if location data for this location exists
 	localData, found := LocalCoords[id]
+
+	if found {
+		locationCoords.Address = localData.Address
+		locationCoords.Importance = localData.Importance
+		locationCoords.Latitude = localData.Latitude
+		locationCoords.Longitude = localData.Longitude
+		return http.StatusOK, nil
+	}
 
 	// LAST TO FIX - how to avoid this extra work?
 	// Check firestoreDB if location data for this location exists
@@ -100,7 +108,6 @@ func (locationCoords *LocationCoords) Handler (id string) (int, error) {
 		if locationCoords.Importance > 0.7 {
 			// Save locally if it's an important place
 			LocalCoords[id] = *locationCoords
-			fmt.Print(LocalCoords[id])
 			file, err := json.MarshalIndent(LocalCoords, "", " ")
  
 			err = ioutil.WriteFile("GeoCoords.json", file, 0644)
