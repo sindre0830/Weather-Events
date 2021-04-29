@@ -8,7 +8,10 @@
     - Main:     localhost:8080/weather-rest/v1
     - Client:   *TBA*
 - We have used these REST web services to build our service:
-    - *TBA*
+    - Weather information:  https://api.met.no/weatherapi/locationforecast/2.0/complete
+    - Country information:  https://restcountries.eu/rest/v2/all
+    - Holiday information:  https://date.nager.at/api/v2/PublicHolidays/
+    - Location information: https://us1.locationiq.com/v1/
 - You need to be connected to NTNU network with a VPN to run the program. If you want to run it locally, you will have to change the URL variable in the 'dict' package to ```http://localhost```.
 - Client Repo: *TBA*
 
@@ -36,16 +39,6 @@ Which a user can pass in a location and a holiday, and our API will find out wha
 In addition to these endpoints we discussed having this endpoint if we have the time for it:
 
 We use the ticketmaster API to register webhooks for a certain id to a concert(or such) there. It should return the lokation of the event and the date. Additionally the weather could be added in, but the weather report from Yr is typically only 9 days in time so we would have to notify the user via the webhook when the weather report is available. 
-
-The Apis we have are:
-- the yr api for the weather information
-	- https://api.met.no/weatherapi/locationforecast/2.0/complete
-- The restcountries for getting the capital and alpha2code 
-	- https://restcountries.eu/rest/v2/all
-- The holliday one for a map of hollidays for a location
-	- https://date.nager.at/api/v2/PublicHolidays/
-- And the geo coordinates which translate a longtitude and latitude to a location 
-	- https://us1.locationiq.com/v1/
 
 #### Technologies used:
 
@@ -272,6 +265,7 @@ No real issues save for a event where we figured that the data stored from restc
 
 #### Structure
 
+```
 ├──api
 │   ├── countryData
 │   │   └── restCountries.go
@@ -303,6 +297,7 @@ No real issues save for a event where we figured that the data stored from restc
 ├── main.go
 ├── README.md
 └── fun
+```
 
 #### Error Handling
 

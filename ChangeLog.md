@@ -129,3 +129,5 @@
 [1.16.0]    **development**:    Removed filtering suggestion from Weather and WeatherCompare
 
 [2.0.0]     **milestone**:      Implemented all endpoints except webhooks
+
+[2.1.0]     **development**:    Moved information about used REST services
