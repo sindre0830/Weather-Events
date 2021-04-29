@@ -4,7 +4,6 @@ import (
 	"log"
 	geocoords "main/api/geoCoords"
 	"main/api/holidays"
-	"main/api/weatherData"
 	"main/db"
 	"main/dict"
 	"net/http"
@@ -31,10 +30,12 @@ func main() {
 	//set URL with port
 	dict.URL = dict.URL + ":" + port
 
-	http.HandleFunc("/weather-rest/v1/geocoord/", geocoords.CoordHandler)
+	http.HandleFunc("/weather-rest/v1/geocoord/", geocoords.MethodHandler)
 
 	//handle weather data
-	http.HandleFunc("/weather-rest/v1/weather/data/", weatherData.MethodHandler)
+	//http.HandleFunc("/weather-rest/v1/weather/data/", weatherData.MethodHandler)
+	//Get all countries endpoint:
+	//http.HandleFunc("/weather-rest/v1/restCountries/", countryData.HandleRestCountry)
 	// Get a country's holidays
 	http.HandleFunc("/weather-rest/v1/holidays/", holidays.GetCountryHolidays)
 

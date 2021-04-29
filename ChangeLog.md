@@ -91,3 +91,11 @@
 [1.0.0]     **milestone**:      Implimented services to build our endpoints
 
 [1.1.0]     **development**:    Added inital version of Weather structure
+
+[1.2.0]     **development**:    Modified WeatherData to not be an endpoint
+
+[1.3.0]     **development**:    Implemented get functor to Weather structure
+
+[1.4.0]     **development**:    Added country names to LocationCoords struct, reimplemented handler as class method.
+
+[1.5.0]     **development**:    Reimplemented rest country handler as class method.

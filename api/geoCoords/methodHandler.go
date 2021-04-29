@@ -1,4 +1,4 @@
-package weatherData
+package geocoords
 
 import (
 	"main/debug"
@@ -9,8 +9,8 @@ import (
 func MethodHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 		case http.MethodGet:
-			var weatherData WeatherData
-			weatherData.Handler(w, r)
+			var coords LocationCoords
+			coords.Handler(w, r)
 		default:
 			debug.ErrorMessage.Update(
 				http.StatusMethodNotAllowed, 
