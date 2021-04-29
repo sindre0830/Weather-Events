@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"main/api"
-	"main/debug"
 	"net/http"
 	"os"
 	"strings"
@@ -18,24 +17,19 @@ type Information []struct {
 	Capital    string `json:"capital"`
 }
 
+//Struct containing error message
 type MyError struct {
 	What string
 }
 
+// Class function will be called and handle all requests and fetches
 func (data *Information) Handler(country string) (int, error) {
 	//Check if document exists
-
 	if _, err := os.Stat("./data/countries.json"); os.IsNotExist(err) { //if it does not exist:
 		//Fetch information
 		var input Information
 		status, err := input.req("https://restcountries.eu/rest/v2/all")
 		if err != nil {
-			debug.ErrorMessage.Update(
-				status,
-				"CountryData.Handler() -> Getting country data",
-				err.Error(),
-				"Unknown",
-			)
 			return status, err
 		}
 
@@ -50,28 +44,19 @@ func (data *Information) Handler(country string) (int, error) {
 		var specificCountry Information
 		status, err := specificCountry.oneCountry(country)
 		if err != nil {
-			debug.ErrorMessage.Update(
-				status,
-				"CountryData.Handler() ->  Getting specific country data",
-				err.Error(),
-				"Unknown",
-			)
+
 			return status, err
 		}
-		return status, err
+		return http.StatusOK, nil
+
 	} else { //if you dont require a specific country:
 		var AllData Information
 		status, err := AllData.allCountries()
 		if err != nil {
-			debug.ErrorMessage.Update(
-				status,
-				"CountryData.Handler() ->  Getting specific country data",
-				err.Error(),
-				"Unknown",
-			)
+
 			return status, err
 		}
-		return status, err
+		return http.StatusOK, nil
 	}
 }
 
@@ -90,7 +75,7 @@ func (data *Information) req(url string) (int, error) {
 	return http.StatusOK, jsonErr
 }
 
-//req requests information
+//oneCountry gets information about one specific country
 func (data *Information) oneCountry(countryName string) (int, error) {
 	countryName = strings.Title(strings.ToLower(countryName))
 	//Get data from document
@@ -118,7 +103,7 @@ func (data *Information) oneCountry(countryName string) (int, error) {
 	return http.StatusBadRequest, &MyError{"Country:" + countryName + " was not found in the database"}
 }
 
-//req requests information
+//allCountries gets information about all countries
 func (data *Information) allCountries() (int, error) {
 	//Get data from document
 	file, err := ioutil.ReadFile("./data/countries.json")
@@ -134,14 +119,13 @@ func (data *Information) allCountries() (int, error) {
 	return http.StatusOK, nil
 }
 
-//From restStub
-func ParseFile(filename string) []byte {
+//From restStub (https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2021/-/tree/master/RESTstub)
+func ParseFile(filename string) ([]byte, int, error) {
 	file, err := ioutil.ReadFile(filename)
 	if err != nil {
-		fmt.Printf("File error: %v\n", err)
-		os.Exit(1)
+		return file, http.StatusInternalServerError, err
 	}
-	return file
+	return file, http.StatusOK, err
 }
 
 //Custom error function
