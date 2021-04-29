@@ -272,6 +272,7 @@ No real issues save for a event where we figured that the data stored from restc
 
 #### Structure
 
+```
 ├──api
 │   ├── countryData
 │   │   └── restCountries.go
@@ -303,6 +304,7 @@ No real issues save for a event where we figured that the data stored from restc
 ├── main.go
 ├── README.md
 └── fun
+```
 
 #### Error Handling
 
