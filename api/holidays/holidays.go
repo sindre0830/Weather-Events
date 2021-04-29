@@ -18,7 +18,7 @@ type Holiday struct {
 
 func GetCountryHolidays(w http.ResponseWriter, r *http.Request) {
 	var countryHolidays []Holiday
-	var newCountryHolidays = make(map[string]interface{}, len(countryHolidays))
+	var newCountryHolidays = make(map[string]interface{})
 
 	// Parsing variables from URL path
 	path := strings.Split(r.URL.Path, "/")
