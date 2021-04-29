@@ -87,3 +87,11 @@
 [0.28.0]    **development**:    Saving information from restCountries localy instead of firebase
 
 [0.29.0]    **development**:    Added reading from and writing to local database in addition to firestore in HandlerCoords
+
+[1.0.0]     **milestone**:      Implimented services to build our endpoints
+
+[1.1.0]     **development**:    Added inital version of Weather structure
+
+[1.2.0]     **development**:    Modified WeatherData to not be an endpoint
+
+[1.3.0]     **development**:    Implemented get functor to Weather structure

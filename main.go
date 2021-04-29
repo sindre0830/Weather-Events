@@ -5,7 +5,6 @@ import (
 	"main/api/countryData"
 	geocoords "main/api/geoCoords"
 	"main/api/holidays"
-	"main/api/weatherData"
 	"main/db"
 	"main/dict"
 	"net/http"
@@ -36,8 +35,6 @@ func main() {
 
 	//Get all countries endpoint:
 	http.HandleFunc("/weather-rest/v1/restCountries/", countryData.HandleRestCountry)
-	//handle weather data
-	http.HandleFunc("/weather-rest/v1/weather/data/", weatherData.MethodHandler)
 	// Get a country's holidays
 	http.HandleFunc("/weather-rest/v1/holidays/", holidays.GetCountryHolidays)
 

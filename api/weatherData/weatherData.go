@@ -1,13 +1,10 @@
 package weatherData
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"main/db"
-	"main/debug"
 	"net/http"
-	"strings"
 )
 
 // WeatherData structure stores current and predicted weather data for a day.
@@ -38,33 +35,12 @@ type WeatherData struct {
 }
 
 // Handler will handle http request for REST service.
-func (weatherData *WeatherData) Handler(w http.ResponseWriter, r *http.Request) {
-	//split URL path by '/' and branch if there aren't enough elements
-	arrPath := strings.Split(r.URL.Path, "/")
-	if len(arrPath) != 7 {
-		debug.ErrorMessage.Update(
-			http.StatusBadRequest, 
-			"WeatherData.Handler() -> Parsing URL",
-			"url validation: either too many or too few arguments in url path",
-			"URL format. Expected format: '.../latitude/longitude'. Example: '.../59.913868/10.752245'",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
-	lat := arrPath[5]
-	lon := arrPath[6]
+func (weatherData *WeatherData) Handler(lat string, lon string) (int, error) {
 	//try to get data from database and branch if an error occurred
 	id := lat + "&" + lon
 	data, exist, err := db.DB.Get("WeatherData", id)
 	if err != nil && exist {
-		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
-			"WeatherData.Handler() -> Database.get() -> Trying to get data",
-			err.Error(),
-			"Unknown",
-		)
-		debug.ErrorMessage.Print(w)
-		return
+		return http.StatusInternalServerError, err
 	}
 	//get status on timeframe and branch if an error occurred
 	withinTimeframe, err := db.CheckDate(data.Time, 6)
@@ -72,70 +48,29 @@ func (weatherData *WeatherData) Handler(w http.ResponseWriter, r *http.Request) 
 	if exist && withinTimeframe {
 		fmt.Println("Got data from database")
 		if err != nil {
-			debug.ErrorMessage.Update(
-				http.StatusInternalServerError, 
-				"WeatherData.Handler() -> Database.CheckDate() -> parsing time",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-			return
+			return http.StatusInternalServerError, err
 		}
 		err = weatherData.readData(data.Container)
 		weatherData.Updated = data.Time
 		if err != nil {
-			debug.ErrorMessage.Update(
-				http.StatusInternalServerError, 
-				"WeatherData.Handler() -> Database.get() -> reading data",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-			return
+			return http.StatusInternalServerError, err
 		}
 	} else {
 		//get data based on coordinates and branch if an error occured
 		status, err := weatherData.get(lat, lon)
 		if err != nil {
-			debug.ErrorMessage.Update(
-				status, 
-				"WeatherData.Handler() -> WeatherData.get() -> Getting weather data",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-			return
+			return status, err
 		}
 		//send data to database
 		var data db.Data
 		data.Container = weatherData
 		date, err := db.DB.Add("WeatherData", id, data)
 		if err != nil {
-			debug.ErrorMessage.Update(
-				http.StatusInternalServerError, 
-				"WeatherData.Handler() -> Database.Add() -> Adding data to database",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-			return
+			return http.StatusInternalServerError, err
 		}
 		weatherData.Updated = date
 	}
-	//update header to JSON and set HTTP code
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	//send output to user and branch if an error occured
-	err = json.NewEncoder(w).Encode(weatherData)
-	if err != nil {
-		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
-			"WeatherData.Handler() -> Sending data to user",
-			err.Error(),
-			"Unknown",
-		)
-		debug.ErrorMessage.Print(w)
-	}
+	return http.StatusOK, nil
 }
 
 // get will get data for structure.
