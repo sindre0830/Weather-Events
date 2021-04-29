@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"main/api/holidays"
 	"main/db"
 	"main/dict"
 	"net/http"
@@ -35,7 +34,7 @@ func main() {
 	//Get all countries endpoint:
 	//http.HandleFunc("/weather-rest/v1/restCountries/", countryData.HandleRestCountry)
 	// Get a country's holidays
-	http.HandleFunc("/weather-rest/v1/holidays/", holidays.GetCountryHolidays)
+	//http.HandleFunc("/weather-rest/v1/holidays/", holidays.GetCountryHolidays)
 
 	//ends program if it can't open port
 	log.Fatal(http.ListenAndServe(":"+port, nil))

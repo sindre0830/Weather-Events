@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -21,7 +20,7 @@ import (
 *	Holds our latitude and longitude data for one location
 **/
 type LocationCoords struct {
-	Country 	string
+	Address 	string
 	Importance	float64 `json:"importance"`
 	Latitude	float64	`json:"lat"`
 	Longitude	float64 `json:"lon"`
@@ -137,8 +136,7 @@ func (locationCoords *LocationCoords) Handler (id string) (int, error) {
 func getCoords(coords *LocationCoords, location map[string]interface{}) error {
 	var err error
 
-	name := strings.Split(location["display_name"].(string), ",")
-	coords.Country = name[len(name)-1]
+	coords.Address = location["display_name"].(string)
 	latitude, err := strconv.ParseFloat(location["lat"].(string), 64) 
 	coords.Latitude = math.Round(latitude*100)/100
 	longitude, err := strconv.ParseFloat(location["lon"].(string), 64) 
