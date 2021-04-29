@@ -112,6 +112,8 @@
 
 [1.10.0]    **development**:    Added inital version of WeatherCompare structure
 
-[1.10.1]     **formatting**:     Reformated Handler in geocoords to be cleaner
+[1.10.1]    **formatting**:     Reformated Handler in geocoords to be cleaner
 
-[1.11.0]     **development**:   Changed holidaysData so it checks if the year stored is the current
+[1.11.0]    **development**:    Changed holidaysData so it checks if the year stored is the current
+
+[1.12.0]    **development**:    Added fun package with decimal limiter
