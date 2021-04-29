@@ -19,7 +19,7 @@ import (
 *	Holds our latitude and longitude data for one location
 **/
 type LocationCoords struct {
-	Address 	string
+	Address 	string	`json:"address"`
 	Importance	float64 `json:"importance"`
 	Latitude	float64	`json:"lat"`
 	Longitude	float64 `json:"lon"`
@@ -199,6 +199,11 @@ func readData(coords *LocationCoords, data interface{}) error {
 		coords.Importance = field
 	} else {
 		return errors.New("getting data from database: Can't find expected field Importance")
-	}	
+	}
+	if field, ok := m["Address"].(string); ok {
+		coords.Address = field
+	} else {
+		return errors.New("getting data from database: Can't find expected field Address")
+	}
 	return nil
 }

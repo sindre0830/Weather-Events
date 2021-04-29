@@ -119,3 +119,5 @@
 [1.12.0]    **development**:    Added fun package with decimal limiter
 
 [1.13.0]    **development**:    Implemented get functor to WeatherCompare structure
+
+[1.13.1]    **fix**:            Fixed database reading for LocationCoords structure
