@@ -34,17 +34,17 @@ type Data struct {
 	} `json:"today"`
 }
 
+type LocationInfo struct {
+	Location  string  `json:"location"`
+	Longitude float64 `json:"longitude"`
+	Latitude  float64 `json:"latiude"`
+}
+
 // WeatherCompare structure stores current and predicted weather data comparisons for different locations.
 type WeatherCompare struct {
 	Updated      string `json:"updated"`
 	MainLocation string `json:"main_location"`
 	Data         []Data `json:"data"`
-}
-
-type LocationInfo struct {
-	Location  string  `json:"location"`
-	Longitude float64 `json:"longitude"`
-	Latitude  float64 `json:"latiude"`
 }
 
 func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +55,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 			http.StatusBadRequest, 
 			"WeatherCompare.Handler() -> Parsing URL",
 			"url validation: either too many or too few arguments in url path",
-			"URL format. Expected format: '.../place?fields=filter1;filter2...'. Example: '.../oslo?fields=Data'",
+			"URL format. Expected format: '.../place'. Example: '.../oslo'",
 		)
 		debug.ErrorMessage.Print(w)
 		return
@@ -69,7 +69,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 			http.StatusBadRequest, 
 			"WeatherCompare.Handler() -> Getting locations to compare",
 			"url validation: not enough locations to compare to",
-			"URL format. Expected format: '...main_place/place1;place2;...'. Example: '...bergen/oslo;stavanger'",
+			"URL format. Expected format: '.../main_place/place1;place2;...'. Example: '.../bergen/oslo;stavanger'",
 		)
 		debug.ErrorMessage.Print(w)
 		return

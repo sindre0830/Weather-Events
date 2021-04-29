@@ -50,7 +50,7 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 			http.StatusBadRequest, 
 			"Weather.Handler() -> Parsing URL",
 			"url validation: either too many or too few arguments in url path",
-			"URL format. Expected format: '.../place?fields=filter1;filter2...'. Example: '.../oslo?fields=Data'",
+			"URL format. Expected format: '.../place'. Example: '.../oslo'",
 		)
 		debug.ErrorMessage.Print(w)
 		return

@@ -123,3 +123,9 @@
 [1.13.1]    **fix**:            Fixed database reading for LocationCoords structure
 
 [1.14.0]    **development**:    Implemented handler functor and method handler for WeatherCompare structure
+
+[1.15.0]    **development**:    Added information about endpoints
+
+[1.16.0]    **development**:    Removed filtering suggestion from Weather and WeatherCompare
+
+[2.0.0]     **milestone**:      Implemented all endpoints except webhooks
