@@ -99,3 +99,5 @@
 [1.4.0]     **development**:    Added country names to LocationCoords struct, reimplemented handler as class method.
 
 [1.5.0]     **development**:    Reimplemented rest country handler as class method.
+
+[1.5.0]     **development**:    Reimplemented holidays handler as class method
