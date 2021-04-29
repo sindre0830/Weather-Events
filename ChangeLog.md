@@ -91,3 +91,5 @@
 [1.0.0]     **milestone**:      Implimented services to build our endpoints
 
 [1.1.0]     **development**:    Added inital version of Weather structure
+
+[1.2.0]     **development**:    Modified WeatherData to not be an endpoint
