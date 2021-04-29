@@ -141,17 +141,51 @@
 
 *TBA*
 
-#### Feedback From Last Assignment
-
-*TBA*
-
 #### Structure
 
-*TBA*
+├──api
+│   ├── countryData
+│   │   └── restCountries.go
+│   ├── geoCoordsData
+│   │   └── HandlerCoords.go
+│   ├── holidaysData
+│   │   └── holidays.go
+│   ├── weather
+│   │   ├── methodHandler.go
+│   │   └── weather.go
+│   ├── weatherCompare
+│   │   ├── methodHandler.go
+│   │   └── weatherCompare.go
+│   ├── weatherData
+│   │   ├── weatherData.go
+│   │   └── yr.go
+│   └── dataHandling
+├── db
+│   └── database.go
+├── debug
+│   └── errorHandler.go
+├── dict
+│   └── dictionary.go
+├── fun
+│   └── math.go
+├── ChangeLog.md
+├── go.mod
+├── go.sum
+├── main.go
+├── README.md
+└── fun
 
 #### Error Handling
 
-*TBA*
+When an error is found, we add info to a debug struct.
+Debugging information is then sent to user as a json object, and printed to console.
+
+```go
+	StatusCode 		 int    `json:"status_code"`                // The REST code for the error
+	Location   		 string `json:"location"`                   // Where in the program did the error occur
+	RawError   		 string `json:"raw_error"`                  // The raw error data
+	PossibleReason   string `json:"possible_reason"`            // Potential reasons for the error occurring (e.g. misspelled endpoint, etc)
+```
 
 #### Testing
 
