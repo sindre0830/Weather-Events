@@ -44,21 +44,7 @@ var LocalCoords = make(map[string]LocationCoords)
 *	@see	getLocations
 *	@see	debug.Debug
 **/
-func (locationCoords *LocationCoords) Handler (w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	arrPath := strings.Split(r.URL.Path, "/")
-	if len(arrPath) != 5 {
-		debug.ErrorMessage.Update(
-			http.StatusBadRequest, 
-			"GeoCoords.Handler() -> Parsing URL",
-			"url validation: either too many or too few arguments in url path",
-			"URL format. Expected format: '.../place'. Example: '.../oslo'",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
-	id := strings.ToLower(arrPath[4])
-
+func (locationCoords *LocationCoords) Handler (id string) (int, error) {
 	// We read our local DB, if one exists, into LocalCoords map.
 	var file []byte
 	if _, err := os.Stat("GeoCoords.json"); err == nil {
@@ -79,8 +65,7 @@ func (locationCoords *LocationCoords) Handler (w http.ResponseWriter, r *http.Re
 			err.Error(),
 			"Unknown",
 		)
-		debug.ErrorMessage.Print(w)
-		return
+		return http.StatusInternalServerError, err
 	}
 
 	// We check whether data on firestore is deprecated or not.
@@ -88,28 +73,14 @@ func (locationCoords *LocationCoords) Handler (w http.ResponseWriter, r *http.Re
 	// Data saved in local files should be kept indefinitely, so we don't check it.
 	withinTimeframe, err := db.CheckDate(data.Time, 3)
 	if exist && withinTimeframe{
-		if err != nil{
-			debug.ErrorMessage.Update(
-				http.StatusInternalServerError, 
-				"GeoCoords.HandlerCoords() -> db.CheckDate() -> parsing time data",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-			return
+		if err != nil {
+			return http.StatusInternalServerError, err
 		}
 		
 		err = readData(locationCoords, data.Container)
 
 		if err != nil {
-			debug.ErrorMessage.Update(
-				http.StatusInternalServerError, 
-				"GeoCoords.HandlerCoords() -> Database.get() -> reading data",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-			return
+			return http.StatusInternalServerError, err
 		}
 	} else if found {
 		// If the data was on file, we set it here.
@@ -120,26 +91,12 @@ func (locationCoords *LocationCoords) Handler (w http.ResponseWriter, r *http.Re
 		status, err := getLocations(&locations, id)
 
 		if err != nil {
-			debug.ErrorMessage.Update(
-				status, 
-				"GeoCoords.Handler() -> GetCoords.getLocations() -> Getting location data",
-				err.Error(),
-				"Unknown - ensure that place name is valid and spelled correctly.",
-			)
-			debug.ErrorMessage.Print(w)
-			return
+			return status, err
 		}
 		// We get lat and lon from the first json object in our locations array
 		err = getCoords(locationCoords, locations[0])
 		if err != nil {
-			debug.ErrorMessage.Update(
-				status, 
-				"GeoCoords.HandlerCoords() -> WeatherData.get() -> Getting weather data",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-			return
+			return http.StatusInternalServerError, err
 		}
 		if locationCoords.Importance > 0.7 {
 			// Save locally if it's an important place
@@ -149,14 +106,7 @@ func (locationCoords *LocationCoords) Handler (w http.ResponseWriter, r *http.Re
  
 			err = ioutil.WriteFile("GeoCoords.json", file, 0644)
 			if err != nil {
-				debug.ErrorMessage.Update(
-					http.StatusInternalServerError, 
-					"GeoCoords.HandlerCoords() -> Adding data to local database",
-					err.Error(),
-					"Unknown",
-				)
-				debug.ErrorMessage.Print(w)
-				return
+				return http.StatusInternalServerError, err
 			}
 		} else {
 			// If not important, we send the data to firestore
@@ -165,31 +115,14 @@ func (locationCoords *LocationCoords) Handler (w http.ResponseWriter, r *http.Re
 			data.Container = locationCoords
 			_, err = db.DB.Add("GeoCoords", id, data)
 			if err != nil {
-				debug.ErrorMessage.Update(
-					http.StatusInternalServerError, 
-					"GeoCoords.HandlerCoords() -> Database.Add() -> Adding data to database",
-					err.Error(),
-					"Unknown",
-				)
-				debug.ErrorMessage.Print(w)
-				return
+				return http.StatusInternalServerError, err
 			}
 		}
-		
 	}	
 	
 	// Now that we have our data, we encode and pass it to the user.
-	err = json.NewEncoder(w).Encode(locationCoords)
+	return http.StatusOK, nil
 	
-	if err != nil {
-		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
-			"GeoCoords.Handler() -> Sending data to user",
-			err.Error(),
-			"Unknown",
-		)
-		debug.ErrorMessage.Print(w)
-	}
 }
 
 /**

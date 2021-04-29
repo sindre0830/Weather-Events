@@ -96,4 +96,6 @@
 
 [1.3.0]     **development**:    Implemented get functor to Weather structure
 
-[1.4.0]     **development**:    Added country names to LocationCoords struct, reimplemented handler as class method.
+[1.4.0]     **development**:    Added country names to LocationCoords struct, reimplemented handler as class method
+
+[1.5.0]     **development**:    Changed how Handler in geocoords works, removed MethodHandler
