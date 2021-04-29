@@ -3,6 +3,7 @@
 ### Info
 - Authors: 
     - Sindre Eiklid (sindreik@stud.ntnu.no)
+    - Rickard Loland (rickarl@stud.ntnu.no)
 - Root path:
     - Main:     localhost:8080/weather-rest/v1
     - Client:   *TBA*
