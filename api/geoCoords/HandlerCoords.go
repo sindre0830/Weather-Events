@@ -3,6 +3,7 @@ package geocoords
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"main/api"
 	"main/db"
@@ -20,9 +21,10 @@ import (
 *	Holds our latitude and longitude data for one location
 **/
 type LocationCoords struct {
+	Country 	string
+	Importance	float64 `json:"importance"`
 	Latitude	float64	`json:"lat"`
 	Longitude	float64 `json:"lon"`
-	Importance	float64 `json:"importance"`
 }
 
 var baseURL = "https://us1.locationiq.com/v1/search.php?key="
@@ -42,7 +44,7 @@ var LocalCoords = make(map[string]LocationCoords)
 *	@see	getLocations
 *	@see	debug.Debug
 **/
-func CoordHandler(w http.ResponseWriter, r *http.Request) {
+func (locationCoords *LocationCoords) Handler (w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	arrPath := strings.Split(r.URL.Path, "/")
 	if len(arrPath) != 5 {
@@ -56,7 +58,6 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := strings.ToLower(arrPath[4])
-	var locationCoords LocationCoords
 
 	// We read our local DB, if one exists, into LocalCoords map.
 	var file []byte
@@ -98,7 +99,7 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		
-		err = readData(&locationCoords, data.Container)
+		err = readData(locationCoords, data.Container)
 
 		if err != nil {
 			debug.ErrorMessage.Update(
@@ -112,7 +113,7 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if found {
 		// If the data was on file, we set it here.
-		locationCoords = localData
+		locationCoords = &localData
 	} else  {
 		// If the location is not stored in firestore OR locally, We get the data from the locationiq api
 		var locations []map[string]interface{}
@@ -129,7 +130,7 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// We get lat and lon from the first json object in our locations array
-		err = getCoords(&locationCoords, locations[0])
+		err = getCoords(locationCoords, locations[0])
 		if err != nil {
 			debug.ErrorMessage.Update(
 				status, 
@@ -142,7 +143,8 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if locationCoords.Importance > 0.7 {
 			// Save locally if it's an important place
-			LocalCoords[id] = locationCoords
+			LocalCoords[id] = *locationCoords
+			fmt.Print(LocalCoords[id])
 			file, err := json.MarshalIndent(LocalCoords, "", " ")
  
 			err = ioutil.WriteFile("GeoCoords.json", file, 0644)
@@ -202,6 +204,8 @@ func CoordHandler(w http.ResponseWriter, r *http.Request) {
 func getCoords(coords *LocationCoords, location map[string]interface{}) error {
 	var err error
 
+	name := strings.Split(location["display_name"].(string), ",")
+	coords.Country = name[len(name)-1]
 	latitude, err := strconv.ParseFloat(location["lat"].(string), 64) 
 	coords.Latitude = math.Round(latitude*100)/100
 	longitude, err := strconv.ParseFloat(location["lon"].(string), 64) 
