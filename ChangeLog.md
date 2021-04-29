@@ -131,3 +131,5 @@
 [2.0.0]     **milestone**:      Implemented all endpoints except webhooks
 
 [2.1.0]     **development**:    Moved information about used REST services
+
+[2.2.0]     **development**:    Added more comments on restCountry file, edited readme
