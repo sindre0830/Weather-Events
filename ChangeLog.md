@@ -129,3 +129,11 @@
 [1.16.0]    **development**:    Removed filtering suggestion from Weather and WeatherCompare
 
 [2.0.0]     **milestone**:      Implemented all endpoints except webhooks
+
+[2.1.0]     **development**:    Moved information about used REST services
+
+[2.2.0]     **development**:    Added more comments on restCountry file, edited readme
+
+[2.2.1]     **reformatting**:   Moved fields around in Weather and WeatherCompare structure and added comments to structure functors
+
+[2.3.0]     **development**:    Modified information about endpoints
