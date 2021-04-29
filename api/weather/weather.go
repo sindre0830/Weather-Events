@@ -14,9 +14,9 @@ import (
 //
 // Functionality: Handler, get
 type Weather struct {
-	Location  string  `json:"location"`
 	Longitude float64 `json:"longitude"`
 	Latitude  float64 `json:"latitude"`
+	Location  string  `json:"location"`
 	Updated   string  `json:"updated"`
 	Data      struct {
 		Now struct {
@@ -42,6 +42,7 @@ type Weather struct {
 	} `json:"data"`
 }
 
+// Handler will handle http request for REST service.
 func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 	//parse url and branch if an error occurred
 	arrPath := strings.Split(r.URL.Path, "/")

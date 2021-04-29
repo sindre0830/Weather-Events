@@ -11,10 +11,12 @@ import (
 	"strings"
 )
 
-type Data struct {
-	Location  string  `json:"location"`
+// data structure stores weather data for a location.
+type data struct {
 	Longitude float64 `json:"longitude"`
-	Latitude  float64 `json:"latiude"`
+	Latitude  float64 `json:"latitude"`
+	Location  string  `json:"location"`
+	Updated   string  `json:"updated"`
 	Now       struct {
 		AirTemperature      float64 `json:"air_temperature"`
 		CloudAreaFraction   float64 `json:"cloud_area_fraction"`
@@ -34,19 +36,25 @@ type Data struct {
 	} `json:"today"`
 }
 
-type LocationInfo struct {
-	Location  string  `json:"location"`
-	Longitude float64 `json:"longitude"`
-	Latitude  float64 `json:"latiude"`
+// locationInfo structure stores all comparison locations information.
+type locationInfo struct {
+	Location  string
+	Longitude float64
+	Latitude  float64
 }
 
 // WeatherCompare structure stores current and predicted weather data comparisons for different locations.
+//
+// Functionality: Handler, get
 type WeatherCompare struct {
-	Updated      string `json:"updated"`
-	MainLocation string `json:"main_location"`
-	Data         []Data `json:"data"`
+	Longitude float64 `json:"longitude"`
+	Latitude  float64 `json:"latitude"`
+	Location  string  `json:"location"`
+	Updated   string  `json:"updated"`
+	Data      []data  `json:"data"`
 }
 
+// Handler will handle http request for REST service.
 func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Request) {
 	//parse url and branch if an error occurred
 	arrPath := strings.Split(r.URL.Path, "/")
@@ -86,8 +94,10 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	weatherCompare.MainLocation = mainLocationCoords.Address
-	var arrCoordinates []LocationInfo
+	weatherCompare.Longitude = mainLocationCoords.Longitude
+	weatherCompare.Latitude = mainLocationCoords.Latitude
+	weatherCompare.Location = mainLocationCoords.Address
+	var arrCoordinates []locationInfo
 	for _, location := range arrCompareLocations {
 		var locationCoords geocoords.LocationCoords
 		status, err := locationCoords.Handler(location)
@@ -101,7 +111,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 			debug.ErrorMessage.Print(w)
 			return
 		}
-		var coordinates LocationInfo
+		var coordinates locationInfo
 		coordinates.Longitude = locationCoords.Longitude
 		coordinates.Latitude = locationCoords.Latitude
 		coordinates.Location = locationCoords.Address
@@ -134,7 +144,8 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 	}
 }
 
-func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinates []LocationInfo) (int, error) {
+// get will get data for structure.
+func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinates []locationInfo) (int, error) {
 	//convert coordinates to string
 	strLat := fmt.Sprintf("%f", lat)
 	strLon := fmt.Sprintf("%f", lon)
@@ -146,7 +157,7 @@ func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinat
 	}
 	//set data in structure
 	weatherCompare.Updated = mainWeatherData.Updated
-	
+	//get weather data for each comparison location and branch if an error occurred
 	for _, coordinates := range arrCoordinates {
 		//convert coordinates to string
 		strLat := fmt.Sprintf("%f", coordinates.Latitude)
@@ -157,11 +168,12 @@ func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinat
 		if err != nil {
 			return status, err
 		}
-		var data Data
+		var data data
 		//set data in structure
-		data.Location = coordinates.Location
 		data.Longitude = coordinates.Longitude
 		data.Latitude = coordinates.Latitude
+		data.Location = coordinates.Location
+		data.Updated = weatherData.Updated
 
 		data.Now.AirTemperature = fun.LimitDecimals(weatherData.Now.AirTemperature - mainWeatherData.Now.AirTemperature)
 		data.Now.CloudAreaFraction = fun.LimitDecimals(weatherData.Now.CloudAreaFraction - mainWeatherData.Now.CloudAreaFraction)
