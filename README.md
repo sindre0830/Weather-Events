@@ -308,14 +308,16 @@ No real issues save for a event where we figured that the data stored from restc
 
 #### Error Handling
 
-When an error is found, we add info to a debug struct.
-Debugging information is then sent to user as a json object, and printed to console.
+When an error is found, we add info to a debug struct with an Update struct function.
+Debugging information is then sent to user as a json object, and printed to console with a Print function.
 
 ```go
-	StatusCode 		 int    `json:"status_code"`                // The REST code for the error
-	Location   		 string `json:"location"`                   // Where in the program did the error occur
-	RawError   		 string `json:"raw_error"`                  // The raw error data
-	PossibleReason   string `json:"possible_reason"`            // Potential reasons for the error occurring (e.g. misspelled endpoint, etc)
+type Debug struct {
+	StatusCode       int    `json:"status_code"`      // The REST code for the error
+	Location         string `json:"location"`         // Where in the program did the error occur
+	RawError         string `json:"raw_error"`        // The raw error data
+    PossibleReason   string `json:"possible_reason"`  // Potential reasons for the error occurring (e.g. misspelled endpoint, etc)
+}
 ```
 
 #### Testing
