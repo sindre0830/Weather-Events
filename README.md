@@ -11,6 +11,58 @@
 - You need to be connected to NTNU network with a VPN to run the program. If you want to run it locally, you will have to change the URL variable in the 'dict' package to ```http://localhost```.
 - Client Repo: *TBA*
 
+### Presentation information:
+
+#### Pitch of the project:
+
+Our idea was to utilize the weather data at yr's API and match it with event-based APIs (concerts, games, whatever) to let users find the weather for the event time + location. We have designed 3 endpoints for this:
+
+Method: GET
+Path: .../weather/location/{:location}
+
+Which gives a basic weather report for the location.
+
+Method: GET
+Path: localhost:8080/weather-rest/v1/weather/location/oslo
+
+Which compares a base location with other locations.
+
+Method: GET
+Path: .../events/holidays/{:location}{?holiday=holiday}
+
+Which a user can pass in a location and a holiday, and our API will find out what the weather will be for that date. For this endpoint we are going to implement webhooks. Webhooks will be able to register for a future event and be triggered for example when the weather report for that event changes.
+
+In addition to these endpoints we discussed having this endpoint if we have the time for it:
+
+We use the ticketmaster API to register webhooks for a certain id to a concert(or such) there. It should return the lokation of the event and the date. Additionally the weather could be added in, but the weather report from Yr is typically only 9 days in time so we would have to notify the user via the webhook when the weather report is available. 
+
+The Apis we have are:
+- the yr api for the weather information
+	- https://api.met.no/weatherapi/locationforecast/2.0/complete
+- The restcountries for getting the capital and alpha2code 
+	- https://restcountries.eu/rest/v2/all
+- The holliday one for a map of hollidays for a location
+	- https://date.nager.at/api/v2/PublicHolidays/
+- And the geo coordinates which translate a longtitude and latitude to a location 
+	- https://us1.locationiq.com/v1/
+
+#### Technologies used:
+
+- The technologies we are going to use are Firestore, OpenStack and Docker. 
+- We are using firestore for caching. When a request is sent to an endpoint, we check if a similar request is already stored in the database. If that is the case, we get the data from there. 
+    - The weather data is stored for 6 hours.
+    - The geocoords data depends on the importance of the selected location. If it has a low importance, it is stored for 3 hours. If the importance is high, it is stored in a file.
+    - The data about holidays is stored until the year changes.
+    - Data about countries, capitals and alpha2code is stored locally
+
+#### Discussion of progress:
+
+So far we have implemented most of the functionality. All endpoints except holidays (the one with webhooks) are done. It has gone smooth so far, working on incremenmting where its natural and building on what we have so far. We are making it so it should be easy to rewrite and repurpose, as well as helping functions and packages where its fitting and classmethods for structs are quite numerous throughout the project. Working in a group has also been great. We have had regular meetings and a structured plan which made it easy to actually get things done.
+
+#### Experience so far (e.g., with APIs, groups, tech):
+
+No real issues save for a event where we figured that the data stored from restcountries made it so that when we read from the firebase we requested a lot of inormation. Therefore the information of restcountries are stored locally instead of in firebase to prevent an excesive amount of reads which may make it so we need to pay for the service on firebase.
+
 ### Usage
 
 1. Weather
