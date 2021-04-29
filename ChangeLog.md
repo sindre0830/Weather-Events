@@ -109,3 +109,5 @@
 [1.9.0]     **development**:    Implemented handler functor and method handler for Weather structure
 
 [1.9.1]     **fix**:            Fixed file reading for LocationCoords structure
+
+[1.9.2]     **formatting**:     Reformated Handler in geocoords to be cleaner

@@ -3,7 +3,6 @@ package geocoords
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"main/api"
 	"main/db"
@@ -36,12 +35,11 @@ var LocalCoords = make(map[string]LocationCoords)
 *	CoordHandler
 *	Accepts a place name, and gets the geological coordinages associated with that place.
 *
-*	@param	w			-	ResponseWriter we pass our final struct to
-*	@param	r			-	Request holding the data passed to us from a user
+*	@param	id			-	String containing the name of the location we want the coordinates of
+*	@return	int, error)	-	Tuple with an http status code and an error interface. If everything works ok, the error is nil
 *
 *	@see	getCoords
 *	@see	getLocations
-*	@see	debug.Debug
 **/
 func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	// We read our local DB, if one exists, into LocalCoords map.
@@ -55,15 +53,16 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	localData, found := LocalCoords[id]
 
 	if found {
+		// If the data was on file, we set it here and return!
 		locationCoords.Address = localData.Address
 		locationCoords.Importance = localData.Importance
 		locationCoords.Latitude = localData.Latitude
 		locationCoords.Longitude = localData.Longitude
+		
 		return http.StatusOK, nil
 	}
 
-	// LAST TO FIX - how to avoid this extra work?
-	// Check firestoreDB if location data for this location exists
+	// If not, we check in firestoreDB if location data for this location exists
 	data, exist, err := db.DB.Get("GeoCoords", id)
 	if err != nil && exist {
 		debug.ErrorMessage.Update(
@@ -88,47 +87,44 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 
 		if err != nil {
 			return http.StatusInternalServerError, err
-		}
-	} else if found {
-		// If the data was on file, we set it here.
-		locationCoords = &localData
-	} else  {
-		// If the location is not stored in firestore OR locally, We get the data from the locationiq api
-		var locations []map[string]interface{}
-		status, err := getLocations(&locations, id)
+		} 
 
-		if err != nil {
-			return status, err
-		}
-		// We get lat and lon from the first json object in our locations array
-		err = getCoords(locationCoords, locations[0])
+		return http.StatusOK, nil
+	} 
+
+	// If the location is not stored in firestore OR locally, We get the data from the locationiq api
+	var locations []map[string]interface{}
+	status, err := getLocations(&locations, id)
+
+	if err != nil {
+		return status, err
+	}
+	// We get lat and lon from the first json object in our locations array
+	err = getCoords(locationCoords, locations[0])
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	// We store our fresh data
+	if locationCoords.Importance > 0.7 {
+		// Save locally if it's an important place
+		LocalCoords[id] = *locationCoords
+		file, err := json.MarshalIndent(LocalCoords, "", " ")
+
+		err = ioutil.WriteFile("GeoCoords.json", file, 0644)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-		if locationCoords.Importance > 0.7 {
-			// Save locally if it's an important place
-			LocalCoords[id] = *locationCoords
-			file, err := json.MarshalIndent(LocalCoords, "", " ")
- 
-			err = ioutil.WriteFile("GeoCoords.json", file, 0644)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-		} else {
-			// If not important, we send the data to firestore
-			var data db.Data
-			data.Time = time.Now().String()
-			data.Container = locationCoords
-			_, err = db.DB.Add("GeoCoords", id, data)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
+	} else {
+		// If not important, we send the data to firestore
+		var data db.Data
+		data.Time = time.Now().String()
+		data.Container = locationCoords
+		_, err = db.DB.Add("GeoCoords", id, data)
+		if err != nil {
+			return http.StatusInternalServerError, err
 		}
-	}	
-	
-	// Now that we have our data, we encode and pass it to the user.
+	}
 	return http.StatusOK, nil
-	
 }
 
 /**
