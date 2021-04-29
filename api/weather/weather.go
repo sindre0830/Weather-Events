@@ -1,5 +1,14 @@
 package weather
 
+import (
+	"fmt"
+	"main/api/weatherData"
+	"net/http"
+)
+
+// Weather structure stores current and predicted weather data for a day and information about location.
+//
+// Functionality: get
 type Weather struct {
 	Location  string  `json:"location"`
 	Longitude float64 `json:"longitude"`
@@ -28,4 +37,22 @@ type Weather struct {
 			ProbabilityOfPrecipitation float64 `json:"probability_of_precipitation"`
 		} `json:"today"`
 	} `json:"data"`
+}
+
+// get will get data for structure.
+func (weather *Weather) get(lat float64, lon float64) (int, error) {
+	//convert coordinates to string
+	strLat := fmt.Sprintf("%f", lat)
+	strLon := fmt.Sprintf("%f", lon)
+	//get weather data and branch if an error occurred
+	var weatherData weatherData.WeatherData
+	status, err := weatherData.Handler(strLat, strLon)
+	if err != nil {
+		return status, err
+	}
+	//set data in structure
+	weather.Updated = weatherData.Updated
+	weather.Data.Now = weatherData.Now
+	weather.Data.Today = weatherData.Today
+	return http.StatusOK, nil
 }
