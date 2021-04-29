@@ -110,4 +110,6 @@
 
 [1.9.1]     **fix**:            Fixed file reading for LocationCoords structure
 
-[1.9.2]     **formatting**:     Reformated Handler in geocoords to be cleaner
+[1.10.0]    **development**:    Added inital version of WeatherCompare structure
+
+[1.10.1]     **formatting**:     Reformated Handler in geocoords to be cleaner
