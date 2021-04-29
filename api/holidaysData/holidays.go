@@ -16,7 +16,7 @@ type Holiday []struct {
 }
 
 
-// Gets data about a country's holidaysData from either the API or the database
+// Handler that gets data about a country's holidaysData from either the API or the database
 func Handler(country string) (map[string]interface{}, int, error) {
 	var holidaysMap = make(map[string]interface{})
 	var holidays Holiday
@@ -68,7 +68,7 @@ func Handler(country string) (map[string]interface{}, int, error) {
 	return holidaysMap, http.StatusOK, err
 }
 
-// Get information about all holidaysData in a country
+// get information about all holidaysData in a country
 func (holidays *Holiday) get(country string) (int, error) {
 	// Get the current year as a string
 	t := time.Now()
