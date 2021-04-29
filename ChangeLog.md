@@ -103,3 +103,5 @@
 [1.6.0]     **development**:    Reimplemented holidays handler as class method
 
 [1.7.0]     **development**:    Changed how Handler in geocoords works, removed MethodHandler, changed Country to Address
+
+[1.8.0]     **development**:    Changed errorhandling a little in restcountries and added some more comments
