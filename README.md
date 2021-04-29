@@ -22,24 +22,16 @@ Our idea was to utilize the weather data at yr's API and match it with event-bas
 
 In addition to these endpoints we discussed having this endpoint if we have the time for it:
 
-We use the ticketmaster API to register webhooks for a certain id to a concert(or such) there. It should return the lokation of the event and the date. Additionally the weather could be added in, but the weather report from Yr is typically only 9 days in time so we would have to notify the user via the webhook when the weather report is available. 
+We use the ticketmaster API to register webhooks for a certain id to a concert(or such) there. It should return the location of the event and the date. Additionally the weather could be added in, but the weather report from Yr is typically only 9 days in time so we would have to notify the user via the webhook when the weather report is available. 
 
-### Technologies used:
+#### Progress
 
-- The technologies we are going to use are Firestore, OpenStack and Docker. 
-- We are using firestore for caching. When a request is sent to an endpoint, we check if a similar request is already stored in the database. If that is the case, we get the data from there. 
-    - The weather data is stored for 6 hours.
-    - The geocoords data depends on the importance of the selected location. If it has a low importance, it is stored for 3 hours. If the importance is high, it is stored in a file.
-    - The data about holidays is stored until the year changes.
-    - Data about countries, capitals and alpha2code is stored locally
+So far we have implemented most of the functionality. All endpoints except webhooks are done. It has gone smooth so far, working on incremenmting where its natural and building on what we have so far. We are making it so it should be easy to rewrite and repurpose, as well as helping functions and packages where its fitting and classmethods for structs are quite numerous throughout the project. Working in a group has also been great. We have had regular meetings and a structured plan which made it easy to actually get things done.
 
-### Discussion of progress:
-
-So far we have implemented most of the functionality. All endpoints except holidays (the one with webhooks) are done. It has gone smooth so far, working on incremenmting where its natural and building on what we have so far. We are making it so it should be easy to rewrite and repurpose, as well as helping functions and packages where its fitting and classmethods for structs are quite numerous throughout the project. Working in a group has also been great. We have had regular meetings and a structured plan which made it easy to actually get things done.
-
-### Experience so far (e.g., with APIs, groups, tech):
+#### Experiences
 
 No real issues save for a event where we figured that the data stored from restcountries made it so that when we read from the firebase we requested a lot of inormation. Therefore the information of restcountries are stored locally instead of in firebase to prevent an excesive amount of reads which may make it so we need to pay for the service on firebase.
+No problems with the REST services that we found, but we spent some time finding them.
 
 ### Usage
 
@@ -230,7 +222,14 @@ No real issues save for a event where we figured that the data stored from restc
 
 #### Design Decisions
 
-*TBA*
+###### Technologies used:
+
+- The technologies we are going to use are Firestore, OpenStack and Docker. 
+- We are using firestore for caching. When a request is sent to an endpoint, we check if a similar request is already stored in the database. If that is the case, we get the data from there. 
+    - The weather data is stored for 6 hours.
+    - The geocoords data depends on the importance of the selected location. If it has a low importance, it is stored for 3 hours. If the importance is high, it is stored in a file.
+    - The data about holidays is stored until the year changes.
+    - Data about countries, capitals and alpha2code is stored locally
 
 #### Structure
 
