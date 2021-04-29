@@ -1,19 +1,22 @@
 package weather
 
 import (
+	"encoding/json"
 	"fmt"
+	"main/api/geocoords"
 	"main/api/weatherData"
+	"main/debug"
 	"net/http"
+	"strings"
 )
 
 // Weather structure stores current and predicted weather data for a day and information about location.
 //
-// Functionality: get
+// Functionality: Handler, get
 type Weather struct {
 	Location  string  `json:"location"`
 	Longitude float64 `json:"longitude"`
-	Latiude   float64 `json:"latiude"`
-	Country   string  `json:"country"`
+	Latitude  float64 `json:"latitude"`
 	Updated   string  `json:"updated"`
 	Data      struct {
 		Now struct {
@@ -37,6 +40,65 @@ type Weather struct {
 			ProbabilityOfPrecipitation float64 `json:"probability_of_precipitation"`
 		} `json:"today"`
 	} `json:"data"`
+}
+
+func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
+	//parse url and branch if an error occurred
+	arrPath := strings.Split(r.URL.Path, "/")
+	if len(arrPath) != 6 {
+		debug.ErrorMessage.Update(
+			http.StatusBadRequest, 
+			"Weather.Handler() -> Parsing URL",
+			"url validation: either too many or too few arguments in url path",
+			"URL format. Expected format: '.../place?fields=filter1;filter2...'. Example: '.../oslo?fields=Data'",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//get location information and branch if an error occurred
+	location := arrPath[5]
+	var locationCoords geocoords.LocationCoords
+	status, err := locationCoords.Handler(location)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			status, 
+			"Weather.Handler() -> LocationCoords.Handler() -> Getting location info",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//get weather data and branch if an error occurred
+	status, err = weather.get(locationCoords.Latitude, locationCoords.Longitude)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			status, 
+			"Weather.Handler() -> Weather.get() -> Getting weather data",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//set data in structure
+	weather.Longitude = locationCoords.Longitude
+	weather.Latitude = locationCoords.Latitude
+	weather.Location = locationCoords.Address
+	//update header to JSON and set HTTP code
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	//send output to user and branch if an error occured
+	err = json.NewEncoder(w).Encode(weather)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusInternalServerError, 
+			"Weather.Handler() -> Sending data to user",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
+	}
 }
 
 // get will get data for structure.

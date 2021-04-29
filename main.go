@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"main/api/weather"
 	"main/db"
 	"main/dict"
 	"net/http"
@@ -28,8 +29,9 @@ func main() {
 	//set URL with port
 	dict.URL = dict.URL + ":" + port
 
+
 	//handle weather data
-	//http.HandleFunc("/weather-rest/v1/weather/data/", weatherData.MethodHandler)
+	http.HandleFunc("/weather-rest/v1/weather/location/", weather.MethodHandler)
 	//Get all countries endpoint:
 	//http.HandleFunc("/weather-rest/v1/restCountries/", countryData.HandleRestCountry)
 	// Get a country's holidays
