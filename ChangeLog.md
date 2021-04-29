@@ -95,3 +95,5 @@
 [1.2.0]     **development**:    Modified WeatherData to not be an endpoint
 
 [1.3.0]     **development**:    Implemented get functor to Weather structure
+
+[1.4.0]     **development**:    Added country names to LocationCoords struct, reimplemented handler as class method.
