@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"main/api/weather"
+	compare "main/api/weatherCompare"
 	"main/db"
 	"main/dict"
 	"net/http"
@@ -30,11 +31,8 @@ func main() {
 	dict.URL = dict.URL + ":" + port
 	//handle weather data
 	http.HandleFunc("/weather-rest/v1/weather/location/", weather.MethodHandler)
-	//Get all countries endpoint:
-	//http.HandleFunc("/weather-rest/v1/restCountries/", countryData.HandleRestCountry)
-	// Get a country's holidays
-	//http.HandleFunc("/weather-rest/v1/holidays/", holidays.GetCountryHolidays)
-
+	//handle weather comparison data
+	http.HandleFunc("/weather-rest/v1/weather/compare/", compare.MethodHandler)
 	//ends program if it can't open port
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":" + port, nil))
 }

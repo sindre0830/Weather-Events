@@ -121,3 +121,5 @@
 [1.13.0]    **development**:    Implemented get functor to WeatherCompare structure
 
 [1.13.1]    **fix**:            Fixed database reading for LocationCoords structure
+
+[1.14.0]    **development**:    Implemented handler functor and method handler for WeatherCompare structure
