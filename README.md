@@ -20,13 +20,13 @@
 
 Our idea was to utilize the weather data at yr's API and match it with event-based APIs (concerts, games, whatever) to let users find the weather for the event time + location. For this task we have designed two endpoints and one webhook. The first webhook gives a basic weather report for the location, and the second compares a base location with other locations. The webhook lets a user pass in a location and a holiday, and our API will find out what the weather will be for that date. The webhook will be able to register for a future event and be triggered for example when the weather report for that event changes.
 
-In addition to these endpoints we discussed having this endpoint if we have the time for it:
+In addition to these endpoints we discussed having this endpoint, if we have the time to implement it:
 
-We use the ticketmaster API to register webhooks for a certain id to a concert(or such) there. It should return the location of the event and the date. Additionally the weather could be added in, but the weather report from Yr is typically only 9 days in time so we would have to notify the user via the webhook when the weather report is available. 
+We use the ticketmaster API to register webhooks for a certain id to a concert(or such) there. It should return the location of the event and the date. Additionally the weather could be added in, but the weather report from Yr is typically only 9 days ahead so we would have to notify the user via webhook when the weather report is available. 
 
 #### Progress
 
-So far we have implemented most of the functionality. All endpoints except webhooks are done. It has gone smooth so far, working on incremenmting where its natural and building on what we have so far. We are making it so it should be easy to rewrite and repurpose, as well as helping functions and packages where its fitting and classmethods for structs are quite numerous throughout the project. Working in a group has also been great. We have had regular meetings and a structured plan which made it easy to actually get things done.
+So far we have implemented most of the functionality. All endpoints except webhooks are done. It has gone smooth so far, working on incrementing each endpoint when natural and building on what we have so far. We are designing it to be easy to rewrite and repurpose. We are implementing helping functions and packages where it's fitting, and class methods for structs are quite numerous throughout the project. Working in a group has worked out well so far. We have had regular meetings and a structured plan which made it easy to actually get things done. This worked especially well while working on retrieving data from our service endpoints, as everyone could work siultaneously without issue. For some more difficult work, we brainstormed solutions together during meetings while one person implemented and pushed the code. We did have occasional bottlenecks where some of us had to wait for someone else to finish, but there was always refactoring, readme improvements and other things to fix up. None of these lasted very long, so they did not present a challenge for the project as a whole.
 
 #### Experiences
 
@@ -274,17 +274,10 @@ Debugging information is then sent to user as a json object, and printed to cons
 
 ```go
 type Debug struct {
-<<<<<<< HEAD
-	StatusCode       int    `json:"status_code"`      // The REST code for the error
-	Location         string `json:"location"`         // Where in the program did the error occur
-	RawError         string `json:"raw_error"`        // The raw error data
-    PossibleReason   string `json:"possible_reason"`  // Potential reasons for the error occurring (e.g. misspelled endpoint, etc)
-=======
 	StatusCode 		 int    `json:"status_code"`     // The REST code for the error
 	Location   		 string `json:"location"`        // Where in the program did the error occur
 	RawError   		 string `json:"raw_error"`       // The raw error data
 	PossibleReason   string `json:"possible_reason"` // Potential reasons for the error occurring (e.g. misspelled endpoint, etc)
->>>>>>> 2c4aee65cbee488fd1f1a38e6765b11f644040bb
 }
 ```
 
