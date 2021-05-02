@@ -18,11 +18,11 @@
 
 ### About:
 
-Our idea was to utilize the weather data at yr's API and match it with event-based APIs (concerts, games, whatever) to let users find the weather for the event time + location. For this task we have designed two endpoints and one webhook. The first webhook gives a basic weather report for the location, and the second compares a base location with other locations. The webhook lets a user pass in a location and a holiday, and our API will find out what the weather will be for that date. The webhook will be able to register for a future event and be triggered for example when the weather report for that event changes.
+The idea of this project is to utilize the weather data at yr's API and match it with event-based APIs (concerts, games, whatever) to let users find the weather for the event time + location. There are two endpoints, and one webhook. The first endpoint gives a basic weather report for the location, and the second compares a base location with other locations. The webhook lets a user pass in a location and a holiday, and the service will return the weather report for that date. The webhook gives the option to register for a future event and be notefied when the weather report for that event changes, or is updated for the first time.
 
-In addition to these endpoints we discussed having this endpoint, if we have the time to implement it:
+In addition to these services another webhook may be implemented if there is time for it:
 
-We use the ticketmaster API to register webhooks for a certain id to a concert(or such) there. It should return the location of the event and the date. Additionally the weather could be added in, but the weather report from Yr is typically only 9 days ahead so we would have to notify the user via webhook when the weather report is available. 
+This webhook will allow a user to register an event id, like a concert. It will return the location and date of the event, additionally the weather if it allows for it, although weather is only availale 9 days ahead in time so a notification will be sent when its available. 
 
 #### Progress
 
