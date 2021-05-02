@@ -5,6 +5,7 @@
     - Sindre Eiklid (sindreik@stud.ntnu.no)
     - Rickard Loland (rickarl@stud.ntnu.no)
     - Susanne Skjold Edvardsen (susanse@stud.ntnu.no)
+    - Maren Skårestuen Grindal (marensg@stud.ntnu.no)
 - Root path:
     - Main:     localhost:8080/weather-rest/v1
     - Client:   *TBA*
@@ -223,14 +224,9 @@ The only problem we encounterd so far during development was almost exceeding th
 
 #### Design Decisions
 
-###### Technologies used:
+##### Technologies used
 
-- The technologies we are going to use are Firestore, OpenStack and Docker. 
-- We are using firestore for caching. When a request is sent to an endpoint, we check if a similar request is already stored in the database. If that is the case, we get the data from there. 
-    - The weather data is stored for 6 hours.
-    - The geocoords data depends on the importance of the selected location. If it has a low importance, it is stored for 3 hours. If the importance is high, it is stored in a file.
-    - The data about holidays is stored until the year changes.
-    - Data about countries, capitals and alpha2code is stored locally
+The technologies we are going to use are Firestore, OpenStack and Docker. We are using firestore for caching. The weather data are stored for 6 hours. Whether or not the geocoords are stored depends on the importance of the selected location. If it has a low importance, it is stored for 3 hours. If the importance is high, it is stored in a file. The data about holidays are stored until the year change. Data regarding countries, capitals and alpha2code are stored in files as well.
 
 #### Structure
 
