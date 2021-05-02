@@ -30,8 +30,9 @@ So far we have implemented most of the functionality. All endpoints except webho
 
 #### Experiences
 
-No real issues save for a event where we figured that the data stored from restcountries made it so that when we read from the firebase we requested a lot of inormation. Therefore the information of restcountries are stored locally instead of in firebase to prevent an excesive amount of reads which may make it so we need to pay for the service on firebase.
-No problems with the REST services that we found, but we spent some time finding them.
+The only problem we encounterd so far during development was almost exceeding the free firestore operation quota of 50K reads. We planned to store all of our data in firestore, but realized that each firestore query would read through every ID. This resoluted in each query reading more than 200 times. We ended up using more than 16% of our free quota in 2 days, after fixing this we used less than 0.5% each day.
+
+![Firestore operations reaching 5.8K a day](images/firestore.png)
 
 ### Usage
 
