@@ -226,7 +226,7 @@ The only problem we encounterd so far during development was almost exceeding th
 
 ##### Technologies used
 
-The technologies we are going to use are Firestore, OpenStack and Docker. We are using firestore for caching. The weather data are stored for 6 hours. Whether or not the geocoords are stored depends on the importance of the selected location. If it has a low importance, it is stored for 3 hours. If the importance is high, it is stored in a file. The data about holidays are stored until the year change. Data regarding countries, capitals and alpha2code are stored in files as well.
+The technologies we are going to use are Firestore, OpenStack and Docker. We are using firestore for caching. The weather data is stored for 6 hours. Whether or not the geocoords are stored depends on the importance of the selected location. If it has a low importance, it is stored for 3 hours. If the importance is high, it is saved in a file. The data about holidays are stored until the year change. 
 
 #### Structure
 
