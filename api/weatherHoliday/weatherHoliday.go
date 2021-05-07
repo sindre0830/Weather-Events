@@ -2,10 +2,10 @@ package weatherHoliday
 
 import (
 	"encoding/json"
-	"fmt"
 	"main/api/countryData"
 	"main/api/geocoords"
 	"main/api/holidaysData"
+	"main/db"
 	"main/debug"
 	"net/http"
 	"strings"
@@ -47,9 +47,8 @@ func (weatherHoliday *WeatherHoliday) Handler(w http.ResponseWriter, r *http.Req
 	}
 
 	// Get country and format it correctly
-	address := strings.Split(locationCoords.Address, ",")	// TODO: ", "
+	address := strings.Split(locationCoords.Address, ", ")
 	country := address[len(address)-1]
-	country = country[1:]
 
 	// Get country code
 	countryCode, status, err := getCode(country)
@@ -64,8 +63,6 @@ func (weatherHoliday *WeatherHoliday) Handler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	fmt.Println(countryCode)
-
 	// Get the country's holidays
 	var holidaysMap = make(map[string]interface{})
 	holidaysMap, status, err = holidaysData.Handler(countryCode)
@@ -76,27 +73,42 @@ func (weatherHoliday *WeatherHoliday) Handler(w http.ResponseWriter, r *http.Req
 			err.Error(),
 			"Unknown",
 		)
-	}
-
-	// Check if the holiday exists in the selected country
-	_, ok := holidaysMap[weatherHoliday.Holiday]
-
-	if !ok {
-		debug.ErrorMessage.Update(
-			http.StatusBadRequest,
-			"WeatherHoliday.Handler() -> Checking if holidays exists in country",
-			err.Error(),
-			"The selected holiday is not valid",
-		)
 		debug.ErrorMessage.Print(w)
 		return
 	}
 
+	// Make the first letter of each word uppercase
+	weatherHoliday.Holiday = strings.Title(weatherHoliday.Holiday)
+
+	// Check if the holiday exists in the selected country
+	_, ok := holidaysMap[weatherHoliday.Holiday]
+	if !ok {
+		http.Error(w, "The selected holiday is not valid", http.StatusBadRequest)
+		return
+	}
+
+	// Add webhook to the database
+	var dataDB db.Data
+	dataDB.Container = weatherHoliday
+
+	_, err = db.DB.Add("WeatherHoliday", "", dataDB)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusInternalServerError,
+			"WeatherHoliday.Handler() -> db.Add() -> Adding webhook to the database",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
 }
+
 
 // getCode - Get country's alpha code
 func getCode(countryName string) (string, int, error) {
 	var countryInfo countryData.Information
+
 	status, err, countryCode := countryInfo.Handler(countryName)
 	if err != nil {
 		return "", status, err

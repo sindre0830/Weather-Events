@@ -142,4 +142,6 @@
 
 [3.1.0]     **development**:    Implemented method handler and some basic functionality of WeatherHoliday structure
 
-[3.2.0]     **development**:    Implemeneted function to get a country's alpha code
+[3.2.0]     **development**:    Implemented function to get a country's alpha code
+
+[3.3.0]     **development**:    Implemented function to add weatherHoliday webhooks to the database
