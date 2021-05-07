@@ -141,3 +141,5 @@
 [3.0.0]     **milestone**:      Implemented all main endpoints
 
 [3.1.0]     **development**:    Implemented method handler and some basic functionality of WeatherHoliday structure
+
+[3.2.0]     **development**:    Implemeneted function to get a country's alpha code
