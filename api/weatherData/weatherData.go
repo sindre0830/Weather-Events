@@ -101,64 +101,32 @@ func (weatherData *WeatherData) get(lat string, lon string) (int, error) {
 }
 
 func (weatherData *WeatherData) readData(data interface{}) error {
-    m := data.(map[string]interface{})
-    if data, ok := m["Instant"]; ok {
-		now := data.(map[string]interface{})
-		if field, ok := now["AirTemperature"].(float64); ok {
-			weatherData.Instant.AirTemperature = field
-		}
-		if field, ok := now["CloudAreaFraction"].(float64); ok {
-			weatherData.Instant.CloudAreaFraction = field
-		}
-		if field, ok := now["DewPointTemperature"].(float64); ok {
-			weatherData.Instant.DewPointTemperature = field
-		}
-		if field, ok := now["RelativeHumidity"].(float64); ok {
-			weatherData.Instant.RelativeHumidity = field
-		}
-		if field, ok := now["WindFromDirection"].(float64); ok {
-			weatherData.Instant.WindFromDirection = field
-		}
-		if field, ok := now["WindSpeed"].(float64); ok {
-			weatherData.Instant.WindSpeed = field
-		}
-		if field, ok := now["WindSpeedOfGust"].(float64); ok {
-			weatherData.Instant.WindSpeedOfGust = field
-		}
-		if field, ok := now["PrecipitationAmount"].(float64); ok {
-			weatherData.Instant.PrecipitationAmount = field
-		}
+    rawData := data.(map[string]interface{})
+    if data, ok := rawData["Instant"]; ok {
+		instant := data.(map[string]interface{})
+		weatherData.Instant.AirTemperature = instant["AirTemperature"].(float64)
+		weatherData.Instant.CloudAreaFraction = instant["CloudAreaFraction"].(float64)
+		weatherData.Instant.DewPointTemperature = instant["DewPointTemperature"].(float64)
+		weatherData.Instant.RelativeHumidity = instant["RelativeHumidity"].(float64)
+		weatherData.Instant.WindFromDirection = instant["WindFromDirection"].(float64)
+		weatherData.Instant.WindSpeed = instant["WindSpeed"].(float64)
+		weatherData.Instant.WindSpeedOfGust = instant["WindSpeedOfGust"].(float64)
+		weatherData.Instant.PrecipitationAmount = instant["PrecipitationAmount"].(float64)
     } else {
-		return errors.New("getting data from database: Can't find expected fields")
+		return errors.New("getting data from database: can't find expected fields")
 	}
-    if data, ok := m["Predicted"]; ok {
-		today := data.(map[string]interface{})
-		if field, ok := today["Summary"].(string); ok {
-			weatherData.Predicted.Summary = field
-		}
-		if field, ok := today["Confidence"].(string); ok {
-			weatherData.Predicted.Confidence = field
-		}
-		if field, ok := today["AirTemperatureMax"].(float64); ok {
-			weatherData.Predicted.AirTemperatureMax = field
-		}
-		if field, ok := today["AirTemperatureMin"].(float64); ok {
-			weatherData.Predicted.AirTemperatureMin = field
-		}
-		if field, ok := today["PrecipitationAmount"].(float64); ok {
-			weatherData.Predicted.PrecipitationAmount = field
-		}
-		if field, ok := today["PrecipitationAmountMax"].(float64); ok {
-			weatherData.Predicted.PrecipitationAmountMax = field
-		}
-		if field, ok := today["PrecipitationAmountMin"].(float64); ok {
-			weatherData.Predicted.PrecipitationAmountMin = field
-		}
-		if field, ok := today["ProbabilityOfPrecipitation"].(float64); ok {
-			weatherData.Predicted.ProbabilityOfPrecipitation = field
-		}
+    if data, ok := rawData["Predicted"]; ok {
+		predicted := data.(map[string]interface{})
+		weatherData.Predicted.Summary = predicted["Summary"].(string)
+		weatherData.Predicted.Confidence = predicted["Confidence"].(string)
+		weatherData.Predicted.AirTemperatureMax = predicted["AirTemperatureMax"].(float64)
+		weatherData.Predicted.AirTemperatureMin = predicted["AirTemperatureMin"].(float64)
+		weatherData.Predicted.PrecipitationAmount = predicted["PrecipitationAmount"].(float64)
+		weatherData.Predicted.PrecipitationAmountMax = predicted["PrecipitationAmountMax"].(float64)
+		weatherData.Predicted.PrecipitationAmountMin = predicted["PrecipitationAmountMin"].(float64)
+		weatherData.Predicted.ProbabilityOfPrecipitation = predicted["ProbabilityOfPrecipitation"].(float64)
     } else {
-		return errors.New("getting data from database: Can't find expected fields")
+		return errors.New("getting data from database: can't find expected fields")
 	}
 	return nil
 }

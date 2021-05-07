@@ -147,3 +147,5 @@
 [3.3.0]     **development**:    Implemented function to add weatherHoliday webhooks to the database
 
 [3.4.0]     **development**:    Renamed weather fields Now and Today to Instant and Predicted
+
+[3.5.0]     **development**:    Simplified data reading in WeatherData
