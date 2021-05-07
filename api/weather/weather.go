@@ -115,7 +115,7 @@ func (weather *Weather) get(lat float64, lon float64) (int, error) {
 	}
 	//set data in structure
 	weather.Updated = weatherData.Updated
-	weather.Data.Now = weatherData.Now
-	weather.Data.Today = weatherData.Today
+	weather.Data.Now = weatherData.Instant
+	weather.Data.Today = weatherData.Predicted
 	return http.StatusOK, nil
 }

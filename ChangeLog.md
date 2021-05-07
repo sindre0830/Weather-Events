@@ -145,3 +145,5 @@
 [3.2.0]     **development**:    Implemented function to get a country's alpha code
 
 [3.3.0]     **development**:    Implemented function to add weatherHoliday webhooks to the database
+
+[3.4.0]     **development**:    Renamed weather fields Now and Today to Instant and Predicted

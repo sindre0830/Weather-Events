@@ -17,7 +17,7 @@ type data struct {
 	Latitude  float64 `json:"latitude"`
 	Location  string  `json:"location"`
 	Updated   string  `json:"updated"`
-	Now       struct {
+	Instant   struct {
 		AirTemperature      float64 `json:"air_temperature"`
 		CloudAreaFraction   float64 `json:"cloud_area_fraction"`
 		DewPointTemperature float64 `json:"dew_point_temperature"`
@@ -25,15 +25,15 @@ type data struct {
 		WindSpeed           float64 `json:"wind_speed"`
 		WindSpeedOfGust     float64 `json:"wind_speed_of_gust"`
 		PrecipitationAmount float64 `json:"precipitation_amount"`
-	} `json:"now"`
-	Today struct {
+	} `json:"instant"`
+	Predicted struct {
 		AirTemperatureMax          float64 `json:"air_temperature_max"`
 		AirTemperatureMin          float64 `json:"air_temperature_min"`
 		PrecipitationAmount        float64 `json:"precipitation_amount"`
 		PrecipitationAmountMax     float64 `json:"precipitation_amount_max"`
 		PrecipitationAmountMin     float64 `json:"precipitation_amount_min"`
 		ProbabilityOfPrecipitation float64 `json:"probability_of_precipitation"`
-	} `json:"today"`
+	} `json:"predicted"`
 }
 
 // locationInfo structure stores all comparison locations information.
@@ -89,7 +89,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 			status, 
 			"WeatherCompare.Handler() -> LocationCoords.Handler() -> Getting main location info",
 			err.Error(),
-			"Unknown",
+			"UnkInstantn",
 		)
 		debug.ErrorMessage.Print(w)
 		return
@@ -106,7 +106,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 				status, 
 				"WeatherCompare.Handler() -> LocationCoords.Handler() -> Getting comparison location info",
 				err.Error(),
-				"Unknown",
+				"UnkInstantn",
 			)
 			debug.ErrorMessage.Print(w)
 			return
@@ -123,7 +123,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 			status, 
 			"WeatherCompare.Handler() -> WeatherCompare.get() -> Getting data",
 			err.Error(),
-			"Unknown",
+			"UnkInstantn",
 		)
 		debug.ErrorMessage.Print(w)
 		return
@@ -138,7 +138,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 			http.StatusInternalServerError, 
 			"WeatherCompare.Handler() -> Sending data to user",
 			err.Error(),
-			"Unknown",
+			"UnkInstantn",
 		)
 		debug.ErrorMessage.Print(w)
 	}
@@ -175,20 +175,20 @@ func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinat
 		data.Location = coordinates.Location
 		data.Updated = weatherData.Updated
 
-		data.Now.AirTemperature = fun.LimitDecimals(weatherData.Now.AirTemperature - mainWeatherData.Now.AirTemperature)
-		data.Now.CloudAreaFraction = fun.LimitDecimals(weatherData.Now.CloudAreaFraction - mainWeatherData.Now.CloudAreaFraction)
-		data.Now.DewPointTemperature = fun.LimitDecimals(weatherData.Now.DewPointTemperature - mainWeatherData.Now.DewPointTemperature)
-		data.Now.RelativeHumidity = fun.LimitDecimals(weatherData.Now.RelativeHumidity - mainWeatherData.Now.RelativeHumidity)
-		data.Now.WindSpeed = fun.LimitDecimals(weatherData.Now.WindSpeed - mainWeatherData.Now.WindSpeed)
-		data.Now.WindSpeedOfGust = fun.LimitDecimals(weatherData.Now.WindSpeedOfGust - mainWeatherData.Now.WindSpeedOfGust)
-		data.Now.PrecipitationAmount = fun.LimitDecimals(weatherData.Now.PrecipitationAmount - mainWeatherData.Now.PrecipitationAmount)
+		data.Instant.AirTemperature = fun.LimitDecimals(weatherData.Instant.AirTemperature - mainWeatherData.Instant.AirTemperature)
+		data.Instant.CloudAreaFraction = fun.LimitDecimals(weatherData.Instant.CloudAreaFraction - mainWeatherData.Instant.CloudAreaFraction)
+		data.Instant.DewPointTemperature = fun.LimitDecimals(weatherData.Instant.DewPointTemperature - mainWeatherData.Instant.DewPointTemperature)
+		data.Instant.RelativeHumidity = fun.LimitDecimals(weatherData.Instant.RelativeHumidity - mainWeatherData.Instant.RelativeHumidity)
+		data.Instant.WindSpeed = fun.LimitDecimals(weatherData.Instant.WindSpeed - mainWeatherData.Instant.WindSpeed)
+		data.Instant.WindSpeedOfGust = fun.LimitDecimals(weatherData.Instant.WindSpeedOfGust - mainWeatherData.Instant.WindSpeedOfGust)
+		data.Instant.PrecipitationAmount = fun.LimitDecimals(weatherData.Instant.PrecipitationAmount - mainWeatherData.Instant.PrecipitationAmount)
 
-		data.Today.AirTemperatureMax = fun.LimitDecimals(weatherData.Today.AirTemperatureMax - mainWeatherData.Today.AirTemperatureMax)
-		data.Today.AirTemperatureMin = fun.LimitDecimals(weatherData.Today.AirTemperatureMin - mainWeatherData.Today.AirTemperatureMin)
-		data.Today.PrecipitationAmount = fun.LimitDecimals(weatherData.Today.PrecipitationAmount - mainWeatherData.Today.PrecipitationAmount)
-		data.Today.PrecipitationAmountMax = fun.LimitDecimals(weatherData.Today.PrecipitationAmountMax - mainWeatherData.Today.PrecipitationAmountMax)
-		data.Today.PrecipitationAmountMin = fun.LimitDecimals(weatherData.Today.PrecipitationAmountMin - mainWeatherData.Today.PrecipitationAmountMin)
-		data.Today.ProbabilityOfPrecipitation = fun.LimitDecimals(weatherData.Today.ProbabilityOfPrecipitation - mainWeatherData.Today.ProbabilityOfPrecipitation)
+		data.Predicted.AirTemperatureMax = fun.LimitDecimals(weatherData.Predicted.AirTemperatureMax - mainWeatherData.Predicted.AirTemperatureMax)
+		data.Predicted.AirTemperatureMin = fun.LimitDecimals(weatherData.Predicted.AirTemperatureMin - mainWeatherData.Predicted.AirTemperatureMin)
+		data.Predicted.PrecipitationAmount = fun.LimitDecimals(weatherData.Predicted.PrecipitationAmount - mainWeatherData.Predicted.PrecipitationAmount)
+		data.Predicted.PrecipitationAmountMax = fun.LimitDecimals(weatherData.Predicted.PrecipitationAmountMax - mainWeatherData.Predicted.PrecipitationAmountMax)
+		data.Predicted.PrecipitationAmountMin = fun.LimitDecimals(weatherData.Predicted.PrecipitationAmountMin - mainWeatherData.Predicted.PrecipitationAmountMin)
+		data.Predicted.ProbabilityOfPrecipitation = fun.LimitDecimals(weatherData.Predicted.ProbabilityOfPrecipitation - mainWeatherData.Predicted.ProbabilityOfPrecipitation)
 		//append data to array
 		weatherCompare.Data = append(weatherCompare.Data, data)
 	}
