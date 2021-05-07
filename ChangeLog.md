@@ -137,3 +137,7 @@
 [2.2.1]     **reformatting**:   Moved fields around in Weather and WeatherCompare structure and added comments to structure functors
 
 [2.3.0]     **development**:    Modified information about endpoints
+
+[3.0.0]     **milestone**:      Implemented all main endpoints
+
+[3.1.0]     **development**:    Implemented method handler and some basic functionality of WeatherHoliday structure
