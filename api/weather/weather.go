@@ -8,6 +8,7 @@ import (
 	"main/debug"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // Weather structure stores current and predicted weather data for a day and information about location.
@@ -115,7 +116,7 @@ func (weather *Weather) get(lat float64, lon float64) (int, error) {
 	}
 	//set data in structure
 	weather.Updated = weatherData.Updated
-	weather.Data.Now = weatherData.Instant
-	weather.Data.Today = weatherData.Predicted
+	weather.Data.Now = weatherData.Timeseries[time.Now().Format("2006-01-02")].Instant
+	weather.Data.Today = weatherData.Timeseries[time.Now().Format("2006-01-02")].Predicted
 	return http.StatusOK, nil
 }

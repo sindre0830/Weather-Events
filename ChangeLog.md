@@ -149,3 +149,5 @@
 [3.4.0]     **development**:    Renamed weather fields Now and Today to Instant and Predicted
 
 [3.5.0]     **development**:    Simplified data reading in WeatherData
+
+[3.6.0]     **development**:    Modified WeatherData to store data for all available days 

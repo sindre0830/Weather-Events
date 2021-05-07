@@ -1,16 +1,13 @@
 package weatherData
 
 import (
-	"errors"
 	"main/db"
 	"net/http"
+	"time"
 )
 
-// WeatherData structure stores current and predicted weather data for a day.
-//
-// Functionality: Handler, get
-type WeatherData struct {
-	Updated string `json:"updated"`
+// Timeseries stores current and predicted weather data for a day
+type Timeseries struct {
 	Instant struct {
 		AirTemperature      float64 `json:"air_temperature"`
 		CloudAreaFraction   float64 `json:"cloud_area_fraction"`
@@ -31,6 +28,14 @@ type WeatherData struct {
 		PrecipitationAmountMin      float64 `json:"precipitation_amount_min"`
 		ProbabilityOfPrecipitation	float64 `json:"probability_of_precipitation"`
 	} `json:"predicted"`
+}
+
+// WeatherData structure stores current and predicted weather data for the next 9 days.
+//
+// Functionality: Handler, get
+type WeatherData struct {
+	Updated string `json:"updated"`
+	Timeseries map[string]Timeseries `json:"timeseries"`
 }
 
 // Handler will handle http request for REST service.
@@ -79,54 +84,66 @@ func (weatherData *WeatherData) get(lat string, lon string) (int, error) {
 	if err != nil {
 		return status, err
 	}
-	//set data in structure
-	weatherData.Instant.AirTemperature = yr.Properties.Timeseries[0].Data.Instant.Details.AirTemperature
-	weatherData.Instant.CloudAreaFraction = yr.Properties.Timeseries[0].Data.Instant.Details.CloudAreaFraction
-	weatherData.Instant.DewPointTemperature = yr.Properties.Timeseries[0].Data.Instant.Details.DewPointTemperature
-	weatherData.Instant.RelativeHumidity = yr.Properties.Timeseries[0].Data.Instant.Details.RelativeHumidity
-	weatherData.Instant.WindFromDirection = yr.Properties.Timeseries[0].Data.Instant.Details.WindFromDirection
-	weatherData.Instant.WindSpeed = yr.Properties.Timeseries[0].Data.Instant.Details.WindSpeed
-	weatherData.Instant.WindSpeedOfGust = yr.Properties.Timeseries[0].Data.Instant.Details.WindSpeedOfGust
-	weatherData.Instant.PrecipitationAmount = yr.Properties.Timeseries[0].Data.Next1Hours.Details.PrecipitationAmount
-	
-	weatherData.Predicted.Summary = yr.Properties.Timeseries[0].Data.Next12Hours.Summary.SymbolCode
-	weatherData.Predicted.Confidence = yr.Properties.Timeseries[0].Data.Next12Hours.Summary.SymbolConfidence
-	weatherData.Predicted.AirTemperatureMax = yr.Properties.Timeseries[0].Data.Next6Hours.Details.AirTemperatureMax
-	weatherData.Predicted.AirTemperatureMin = yr.Properties.Timeseries[0].Data.Next6Hours.Details.AirTemperatureMin
-	weatherData.Predicted.PrecipitationAmount = yr.Properties.Timeseries[0].Data.Next6Hours.Details.PrecipitationAmount
-	weatherData.Predicted.PrecipitationAmountMax = yr.Properties.Timeseries[0].Data.Next6Hours.Details.PrecipitationAmountMax
-	weatherData.Predicted.PrecipitationAmountMin = yr.Properties.Timeseries[0].Data.Next6Hours.Details.PrecipitationAmountMin
-	weatherData.Predicted.ProbabilityOfPrecipitation = yr.Properties.Timeseries[0].Data.Next12Hours.Details.ProbabilityOfPrecipitation
+	weatherData.Timeseries = make(map[string]Timeseries)
+	prevDate := ""
+	for _, elem := range yr.Properties.Timeseries {
+		var timeEntry Timeseries
+		rawDate, _ := time.Parse("2006-01-02T15:04:05Z", elem.Time)
+		date := rawDate.Format("2006-01-02")
+		if prevDate != date {
+			//set data in structure
+			timeEntry.Instant.AirTemperature = elem.Data.Instant.Details.AirTemperature
+			timeEntry.Instant.CloudAreaFraction = elem.Data.Instant.Details.CloudAreaFraction
+			timeEntry.Instant.DewPointTemperature = elem.Data.Instant.Details.DewPointTemperature
+			timeEntry.Instant.RelativeHumidity = elem.Data.Instant.Details.RelativeHumidity
+			timeEntry.Instant.WindFromDirection = elem.Data.Instant.Details.WindFromDirection
+			timeEntry.Instant.WindSpeed = elem.Data.Instant.Details.WindSpeed
+			timeEntry.Instant.WindSpeedOfGust = elem.Data.Instant.Details.WindSpeedOfGust
+			timeEntry.Instant.PrecipitationAmount = elem.Data.Next1Hours.Details.PrecipitationAmount
+			
+			timeEntry.Predicted.Summary = elem.Data.Next12Hours.Summary.SymbolCode
+			timeEntry.Predicted.Confidence = elem.Data.Next12Hours.Summary.SymbolConfidence
+			timeEntry.Predicted.AirTemperatureMax = elem.Data.Next6Hours.Details.AirTemperatureMax
+			timeEntry.Predicted.AirTemperatureMin = elem.Data.Next6Hours.Details.AirTemperatureMin
+			timeEntry.Predicted.PrecipitationAmount = elem.Data.Next6Hours.Details.PrecipitationAmount
+			timeEntry.Predicted.PrecipitationAmountMax = elem.Data.Next6Hours.Details.PrecipitationAmountMax
+			timeEntry.Predicted.PrecipitationAmountMin = elem.Data.Next6Hours.Details.PrecipitationAmountMin
+			timeEntry.Predicted.ProbabilityOfPrecipitation = elem.Data.Next12Hours.Details.ProbabilityOfPrecipitation
+			weatherData.Timeseries[date] = timeEntry
+			prevDate = date
+		}
+	}
 	return http.StatusOK, nil
 }
 
 func (weatherData *WeatherData) readData(data interface{}) error {
+	weatherData.Timeseries = make(map[string]Timeseries)
     rawData := data.(map[string]interface{})
-    if data, ok := rawData["Instant"]; ok {
-		instant := data.(map[string]interface{})
-		weatherData.Instant.AirTemperature = instant["AirTemperature"].(float64)
-		weatherData.Instant.CloudAreaFraction = instant["CloudAreaFraction"].(float64)
-		weatherData.Instant.DewPointTemperature = instant["DewPointTemperature"].(float64)
-		weatherData.Instant.RelativeHumidity = instant["RelativeHumidity"].(float64)
-		weatherData.Instant.WindFromDirection = instant["WindFromDirection"].(float64)
-		weatherData.Instant.WindSpeed = instant["WindSpeed"].(float64)
-		weatherData.Instant.WindSpeedOfGust = instant["WindSpeedOfGust"].(float64)
-		weatherData.Instant.PrecipitationAmount = instant["PrecipitationAmount"].(float64)
-    } else {
-		return errors.New("getting data from database: can't find expected fields")
-	}
-    if data, ok := rawData["Predicted"]; ok {
-		predicted := data.(map[string]interface{})
-		weatherData.Predicted.Summary = predicted["Summary"].(string)
-		weatherData.Predicted.Confidence = predicted["Confidence"].(string)
-		weatherData.Predicted.AirTemperatureMax = predicted["AirTemperatureMax"].(float64)
-		weatherData.Predicted.AirTemperatureMin = predicted["AirTemperatureMin"].(float64)
-		weatherData.Predicted.PrecipitationAmount = predicted["PrecipitationAmount"].(float64)
-		weatherData.Predicted.PrecipitationAmountMax = predicted["PrecipitationAmountMax"].(float64)
-		weatherData.Predicted.PrecipitationAmountMin = predicted["PrecipitationAmountMin"].(float64)
-		weatherData.Predicted.ProbabilityOfPrecipitation = predicted["ProbabilityOfPrecipitation"].(float64)
-    } else {
-		return errors.New("getting data from database: can't find expected fields")
+	timeseries := rawData["Timeseries"].(map[string]interface{})
+	for key, elem := range timeseries {
+		var timeEntry Timeseries
+		data := elem.(map[string]interface{})
+
+		instant := data["Instant"].(map[string]interface{})
+		timeEntry.Instant.AirTemperature = instant["AirTemperature"].(float64)
+		timeEntry.Instant.CloudAreaFraction = instant["CloudAreaFraction"].(float64)
+		timeEntry.Instant.DewPointTemperature = instant["DewPointTemperature"].(float64)
+		timeEntry.Instant.RelativeHumidity = instant["RelativeHumidity"].(float64)
+		timeEntry.Instant.WindFromDirection = instant["WindFromDirection"].(float64)
+		timeEntry.Instant.WindSpeed = instant["WindSpeed"].(float64)
+		timeEntry.Instant.WindSpeedOfGust = instant["WindSpeedOfGust"].(float64)
+		timeEntry.Instant.PrecipitationAmount = instant["PrecipitationAmount"].(float64)
+
+		predicted := data["Predicted"].(map[string]interface{})
+		timeEntry.Predicted.Summary = predicted["Summary"].(string)
+		timeEntry.Predicted.Confidence = predicted["Confidence"].(string)
+		timeEntry.Predicted.AirTemperatureMax = predicted["AirTemperatureMax"].(float64)
+		timeEntry.Predicted.AirTemperatureMin = predicted["AirTemperatureMin"].(float64)
+		timeEntry.Predicted.PrecipitationAmount = predicted["PrecipitationAmount"].(float64)
+		timeEntry.Predicted.PrecipitationAmountMax = predicted["PrecipitationAmountMax"].(float64)
+		timeEntry.Predicted.PrecipitationAmountMin = predicted["PrecipitationAmountMin"].(float64)
+		timeEntry.Predicted.ProbabilityOfPrecipitation = predicted["ProbabilityOfPrecipitation"].(float64)
+		weatherData.Timeseries[key] = timeEntry
 	}
 	return nil
 }
