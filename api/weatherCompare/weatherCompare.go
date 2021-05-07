@@ -48,11 +48,11 @@ type locationInfo struct {
 //
 // Functionality: Handler, get
 type WeatherCompare struct {
-	Longitude float64 `json:"longitude"`
-	Latitude  float64 `json:"latitude"`
-	Location  string  `json:"location"`
-	Updated   string  `json:"updated"`
-	Data      []data  `json:"data"`
+	Longitude  float64 			 `json:"longitude"`
+	Latitude   float64 			 `json:"latitude"`
+	Location   string  			 `json:"location"`
+	Updated    string  			 `json:"updated"`
+	Timeseries map[string][]data `json:"timeseries"`
 }
 
 // Handler will handle http request for REST service.
@@ -159,6 +159,9 @@ func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinat
 	//set data in structure
 	weatherCompare.Updated = mainWeatherData.Updated
 	//get weather data for each comparison location and branch if an error occurred
+	weatherCompare.Timeseries = make(map[string][]data)
+	date := time.Now().Format("2006-01-02")
+	var dataRange []data
 	for _, coordinates := range arrCoordinates {
 		//convert coordinates to string
 		strLat := fmt.Sprintf("%f", coordinates.Latitude)
@@ -176,22 +179,23 @@ func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinat
 		data.Location = coordinates.Location
 		data.Updated = weatherData.Updated
 
-		data.Instant.AirTemperature = fun.LimitDecimals(weatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.AirTemperature - mainWeatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.AirTemperature)
-		data.Instant.CloudAreaFraction = fun.LimitDecimals(weatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.CloudAreaFraction - mainWeatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.CloudAreaFraction)
-		data.Instant.DewPointTemperature = fun.LimitDecimals(weatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.DewPointTemperature - mainWeatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.DewPointTemperature)
-		data.Instant.RelativeHumidity = fun.LimitDecimals(weatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.RelativeHumidity - mainWeatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.RelativeHumidity)
-		data.Instant.WindSpeed = fun.LimitDecimals(weatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.WindSpeed - mainWeatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.WindSpeed)
-		data.Instant.WindSpeedOfGust = fun.LimitDecimals(weatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.WindSpeedOfGust - mainWeatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.WindSpeedOfGust)
-		data.Instant.PrecipitationAmount = fun.LimitDecimals(weatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.PrecipitationAmount - mainWeatherData.Timeseries[time.Now().Format("2006-01-02")].Instant.PrecipitationAmount)
+		data.Instant.AirTemperature = fun.LimitDecimals(weatherData.Timeseries[date].Instant.AirTemperature - mainWeatherData.Timeseries[date].Instant.AirTemperature)
+		data.Instant.CloudAreaFraction = fun.LimitDecimals(weatherData.Timeseries[date].Instant.CloudAreaFraction - mainWeatherData.Timeseries[date].Instant.CloudAreaFraction)
+		data.Instant.DewPointTemperature = fun.LimitDecimals(weatherData.Timeseries[date].Instant.DewPointTemperature - mainWeatherData.Timeseries[date].Instant.DewPointTemperature)
+		data.Instant.RelativeHumidity = fun.LimitDecimals(weatherData.Timeseries[date].Instant.RelativeHumidity - mainWeatherData.Timeseries[date].Instant.RelativeHumidity)
+		data.Instant.WindSpeed = fun.LimitDecimals(weatherData.Timeseries[date].Instant.WindSpeed - mainWeatherData.Timeseries[date].Instant.WindSpeed)
+		data.Instant.WindSpeedOfGust = fun.LimitDecimals(weatherData.Timeseries[date].Instant.WindSpeedOfGust - mainWeatherData.Timeseries[date].Instant.WindSpeedOfGust)
+		data.Instant.PrecipitationAmount = fun.LimitDecimals(weatherData.Timeseries[date].Instant.PrecipitationAmount - mainWeatherData.Timeseries[date].Instant.PrecipitationAmount)
 
-		data.Predicted.AirTemperatureMax = fun.LimitDecimals(weatherData.Timeseries[time.Now().Format("2006-01-02")].Predicted.AirTemperatureMax - mainWeatherData.Timeseries[time.Now().Format("2006-01-02")].Predicted.AirTemperatureMax)
-		data.Predicted.AirTemperatureMin = fun.LimitDecimals(weatherData.Timeseries[time.Now().Format("2006-01-02")].Predicted.AirTemperatureMin - mainWeatherData.Timeseries[time.Now().Format("2006-01-02")].Predicted.AirTemperatureMin)
-		data.Predicted.PrecipitationAmount = fun.LimitDecimals(weatherData.Timeseries[time.Now().Format("2006-01-02")].Predicted.PrecipitationAmount - mainWeatherData.Timeseries[time.Now().Format("2006-01-02")].Predicted.PrecipitationAmount)
-		data.Predicted.PrecipitationAmountMax = fun.LimitDecimals(weatherData.Timeseries[time.Now().Format("2006-01-02")].Predicted.PrecipitationAmountMax - mainWeatherData.Timeseries[time.Now().Format("2006-01-02")].Predicted.PrecipitationAmountMax)
-		data.Predicted.PrecipitationAmountMin = fun.LimitDecimals(weatherData.Timeseries[time.Now().Format("2006-01-02")].Predicted.PrecipitationAmountMin - mainWeatherData.Timeseries[time.Now().Format("2006-01-02")].Predicted.PrecipitationAmountMin)
-		data.Predicted.ProbabilityOfPrecipitation = fun.LimitDecimals(weatherData.Timeseries[time.Now().Format("2006-01-02")].Predicted.ProbabilityOfPrecipitation - mainWeatherData.Timeseries[time.Now().Format("2006-01-02")].Predicted.ProbabilityOfPrecipitation)
+		data.Predicted.AirTemperatureMax = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.AirTemperatureMax - mainWeatherData.Timeseries[date].Predicted.AirTemperatureMax)
+		data.Predicted.AirTemperatureMin = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.AirTemperatureMin - mainWeatherData.Timeseries[date].Predicted.AirTemperatureMin)
+		data.Predicted.PrecipitationAmount = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.PrecipitationAmount - mainWeatherData.Timeseries[date].Predicted.PrecipitationAmount)
+		data.Predicted.PrecipitationAmountMax = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.PrecipitationAmountMax - mainWeatherData.Timeseries[date].Predicted.PrecipitationAmountMax)
+		data.Predicted.PrecipitationAmountMin = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.PrecipitationAmountMin - mainWeatherData.Timeseries[date].Predicted.PrecipitationAmountMin)
+		data.Predicted.ProbabilityOfPrecipitation = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.ProbabilityOfPrecipitation - mainWeatherData.Timeseries[date].Predicted.ProbabilityOfPrecipitation)
 		//append data to array
-		weatherCompare.Data = append(weatherCompare.Data, data)
+		dataRange = append(dataRange, data)
 	}
+	weatherCompare.Timeseries[date] = dataRange
 	return http.StatusOK, nil
 }
