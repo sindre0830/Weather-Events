@@ -2,11 +2,13 @@ package weather
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"main/api/geocoords"
 	"main/api/weatherData"
 	"main/debug"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -50,8 +52,49 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 		return
 	}
+	//get all parameters from URL and branch if an error occurred
+	arrParam, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusInternalServerError, 
+			"Weather.Handler() -> Validating URL parameters",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//branch if any parameters exist
+	date := time.Now().Format("2006-01-02")
+	if len(arrParam) > 0 {
+		//branch if field 'date' exist otherwise return an error
+		if targetParameter, ok := arrParam["date"]; ok {
+			date = targetParameter[0]
+			//validate date
+			_, err = time.Parse("2006-01-02", date)
+			if err != nil {
+				debug.ErrorMessage.Update(
+					http.StatusBadRequest, 
+					"Weather.Handler() -> Validating URL parameters",
+					err.Error(),
+					"Date doesn't match YYYY-MM-DD format. Example: 2021-04-26",
+				)
+				debug.ErrorMessage.Print(w)
+				return
+			}
+		} else {
+			debug.ErrorMessage.Update(
+				http.StatusBadRequest, 
+				"Weather.Handler() -> Validating URL parameters",
+				"url validation: unknown parameter",
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+	}
 	//get weather data and branch if an error occurred
-	status, err = weather.get(locationCoords.Latitude, locationCoords.Longitude)
+	status, err = weather.get(locationCoords.Latitude, locationCoords.Longitude, date)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			status, 
@@ -83,7 +126,7 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 // get will get data for structure.
-func (weather *Weather) get(lat float64, lon float64) (int, error) {
+func (weather *Weather) get(lat float64, lon float64, date string) (int, error) {
 	//convert coordinates to string
 	strLat := fmt.Sprintf("%f", lat)
 	strLon := fmt.Sprintf("%f", lon)
@@ -93,10 +136,13 @@ func (weather *Weather) get(lat float64, lon float64) (int, error) {
 	if err != nil {
 		return status, err
 	}
-	date := time.Now().Format("2006-01-02")
 	weather.Timeseries = make(map[string]weatherData.Timeseries)
 	//set data in structure
 	weather.Updated = weatherDataRange.Updated
-	weather.Timeseries[date] = weatherDataRange.Timeseries[date]
+	if data, ok := weatherDataRange.Timeseries[date]; ok {
+		weather.Timeseries[date] = data
+	} else {
+		return http.StatusBadRequest, errors.New("invalid date: can't find weather data for inputted date")
+	}
 	return http.StatusOK, nil
 }

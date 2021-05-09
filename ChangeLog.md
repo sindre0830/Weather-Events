@@ -153,3 +153,5 @@
 [3.6.0]     **development**:    Modified WeatherData to store data for all available days 
 
 [3.7.0]     **development**:    Initial modification of Weather and WeatherCompare to handle inputted dates
+
+[3.8.0]     **development**:    Added handling of inputted date for weather structure
