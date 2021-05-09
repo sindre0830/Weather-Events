@@ -154,4 +154,6 @@
 
 [3.7.0]     **development**:    Initial modification of Weather and WeatherCompare to handle inputted dates
 
-[3.8.0]     **development**:    Added handling of inputted date for weather structure
+[3.8.0]     **development**:    Added handling of inputted date for Weather structure
+
+[3.9.0]     **development**:    Added handling of inputted date for WeatherCompare structure

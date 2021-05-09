@@ -2,12 +2,14 @@ package compare
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"main/api/geocoords"
 	"main/api/weatherData"
 	"main/debug"
 	"main/fun"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -118,7 +120,49 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 		coordinates.Location = locationCoords.Address
 		arrCoordinates = append(arrCoordinates, coordinates)
 	}
-	status, err = weatherCompare.get(mainLocationCoords.Latitude, mainLocationCoords.Longitude, arrCoordinates)
+	//get all parameters from URL and branch if an error occurred
+	arrParam, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusInternalServerError, 
+			"WeatherCompare.Handler() -> Validating URL parameters",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//branch if any parameters exist
+	date := time.Now().Format("2006-01-02")
+	if len(arrParam) > 0 {
+		//branch if field 'date' exist otherwise return an error
+		if targetParameter, ok := arrParam["date"]; ok {
+			date = targetParameter[0]
+			//validate date
+			_, err = time.Parse("2006-01-02", date)
+			if err != nil {
+				debug.ErrorMessage.Update(
+					http.StatusBadRequest, 
+					"WeatherCompare.Handler() -> Validating URL parameters",
+					err.Error(),
+					"Date doesn't match YYYY-MM-DD format. Example: 2021-04-26",
+				)
+				debug.ErrorMessage.Print(w)
+				return
+			}
+		} else {
+			debug.ErrorMessage.Update(
+				http.StatusBadRequest, 
+				"WeatherCompare.Handler() -> Validating URL parameters",
+				"url validation: unknown parameter",
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+	}
+	//get weather data and branch if an error occurred
+	status, err = weatherCompare.get(mainLocationCoords.Latitude, mainLocationCoords.Longitude, arrCoordinates, date)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			status, 
@@ -146,7 +190,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 }
 
 // get will get data for structure.
-func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinates []locationInfo) (int, error) {
+func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinates []locationInfo, date string) (int, error) {
 	//convert coordinates to string
 	strLat := fmt.Sprintf("%f", lat)
 	strLon := fmt.Sprintf("%f", lon)
@@ -158,9 +202,12 @@ func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinat
 	}
 	//set data in structure
 	weatherCompare.Updated = mainWeatherData.Updated
+	//validate date
+	if _, ok := mainWeatherData.Timeseries[date]; !ok {
+		return http.StatusBadRequest, errors.New("invalid date: can't find weather data for inputted date")
+	}
 	//get weather data for each comparison location and branch if an error occurred
 	weatherCompare.Timeseries = make(map[string][]data)
-	date := time.Now().Format("2006-01-02")
 	var dataRange []data
 	for _, coordinates := range arrCoordinates {
 		//convert coordinates to string
