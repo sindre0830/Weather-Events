@@ -49,6 +49,7 @@ func main() {
 	http.HandleFunc(dict.DIAG_PATH, diag.MethodHandler)
 	//handle holiday webhook
 	http.HandleFunc(dict.HOLIDAY_PATH, weatherHoliday.MethodHandler)
+	http.HandleFunc(dict.HOLIDAY_PATH + "/", weatherHoliday.MethodHandler)
 	//handle weather webhook
 	http.HandleFunc(dict.WEATHERHOOK_PATH, weatherHook.MethodHandler)
 	//ends program if it can't open port

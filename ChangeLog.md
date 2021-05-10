@@ -194,3 +194,6 @@
 
 [3.23.0]    **development**:    Added function to get one or all WeatherHoliday webhooks
 
+[3.23.1]    **fix**:    Solved issue with Postman seeing POST requests as GET
+
+

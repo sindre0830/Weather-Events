@@ -7,7 +7,7 @@ var WEATHERCOMPARE_PATH = URL + "/weather-rest/v1/weather/compare/"
 var WEATHEREVENT_PATH = URL + "/weather-rest/v1/event/date/"
 var EVENT_PATH = URL + "/weather-rest/v1/weather/event/"
 var DIAG_PATH = URL + "/weather-rest/v1/weather/diag/"
-var HOLIDAY_PATH = URL + "/weather-rest/v1/notification/weather/holiday/"
+var HOLIDAY_PATH = URL + "/weather-rest/v1/notification/weather/holiday"
 var WEATHERHOOK_PATH = URL + "/weather-rest/v1/notification/weather"
 
 // Secret used for hashing
