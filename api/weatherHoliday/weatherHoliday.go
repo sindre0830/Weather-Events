@@ -94,7 +94,7 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 	}
 
 	// Check if the frequency field is valid
-	if weatherHoliday.Frequency != "ON_DATE" || weatherHoliday.Frequency != "EVERY_DAY" {
+	if weatherHoliday.Frequency != "ON_DATE" && weatherHoliday.Frequency != "EVERY_DAY" {
 		http.Error(w, "The selected frequency is not valid. Try writing either 'ON_DATE' or 'EVERY_DAY'", http.StatusBadRequest)
 		return
 	}
