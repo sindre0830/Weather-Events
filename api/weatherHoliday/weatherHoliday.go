@@ -1,10 +1,13 @@
 package weatherHoliday
 
 import (
+	"bytes"
 	"encoding/json"
 	"main/api/holidaysData"
+	"main/api/notification/weatherEvent"
 	"main/db"
 	"main/debug"
+	"main/dict"
 	"net/http"
 	"strings"
 )
@@ -51,7 +54,7 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 	weatherHoliday.Holiday = strings.Title(strings.ToLower(weatherHoliday.Holiday))
 
 	// Check if the holiday exists in the selected country
-	_, ok := holidaysMap[weatherHoliday.Holiday]
+	key, ok := holidaysMap[weatherHoliday.Holiday]
 	if !ok {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
@@ -63,15 +66,25 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Add webhook to the database
-	var dataDB db.Data
-	dataDB.Container = weatherHoliday
+	// Save data to weatherEvent struct
+	var data weatherEvent.WeatherEventInput
 
-	_, id, err := db.DB.Add("WeatherHoliday", "", dataDB)
+	data.Date = key.(string)
+	data.Location = weatherHoliday.Location
+	data.URL = weatherHoliday.URL
+	data.Frequency = weatherHoliday.Frequency
+	data.Timeout = weatherHoliday.Timeout
+
+	// Convert struct to json
+	jsonData, err := json.Marshal(data)
+
+	// Send data to weatherEvent endpoint
+	var weatherEvent weatherEvent.WeatherEvent
+	req, err := http.NewRequest("POST", dict.WEATHEREVENT_PATH, bytes.NewBuffer(jsonData))
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
-			"WeatherHoliday.Register() -> db.Add() -> Adding webhook to the database",
+			"WeatherHoliday.Register() -> Sending request to weatherEvent",
 			err.Error(),
 			"Unknown",
 		)
@@ -79,7 +92,7 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	http.Error(w, "Webhook registered with ID " + id, http.StatusCreated)
+	weatherEvent.POST(w, req)
 }
 
 // Delete a webhook
