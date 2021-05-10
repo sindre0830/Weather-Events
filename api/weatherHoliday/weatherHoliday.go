@@ -42,7 +42,7 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		debug.ErrorMessage.Update(
 			status,
-			"WeatherHoliday.Handler() -> LocationCoords.Handler() -> Getting location info",
+			"WeatherHoliday.Register() -> LocationCoords.Handler() -> Getting location info",
 			err.Error(),
 			"Unknown",
 		)
@@ -61,7 +61,7 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		debug.ErrorMessage.Update(
 			status,
-			"WeatherHoliday.Handler() -> CountryData.handler() -> Getting country code",
+			"WeatherHoliday.Register() -> CountryData.handler() -> Getting country code",
 			err.Error(),
 			"Selected country is not valid",
 		)
@@ -75,7 +75,7 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		debug.ErrorMessage.Update(
 			status,
-			"WeatherHoliday.Handler() -> holidaysData.Handler() - > Getting information about the country's holidays",
+			"WeatherHoliday.Register() -> holidaysData.Handler() - > Getting information about the country's holidays",
 			err.Error(),
 			"Unknown",
 		)
@@ -107,7 +107,7 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
-			"WeatherHoliday.Handler() -> db.Add() -> Adding webhook to the database",
+			"WeatherHoliday.Register() -> db.Add() -> Adding webhook to the database",
 			err.Error(),
 			"Unknown",
 		)
