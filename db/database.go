@@ -12,7 +12,7 @@ import (
 )
 
 type Data struct {
-	Time string `json:"time"`
+	Time      string      `json:"time"`
 	Container interface{} `json:"container"`
 }
 
@@ -25,7 +25,7 @@ var DB Database
 //
 // Functionality: Setup, Add, Get, Delete
 type Database struct {
-	Ctx context.Context
+	Ctx    context.Context
 	Client *firestore.Client
 }
 
@@ -157,4 +157,15 @@ func CheckDate(dataTime string, expectedHours int) (bool, error) {
 	//convert the difference to integer of hours
 	diffHours := int(math.Floor(diffTime.Hours()))
 	return diffHours <= expectedHours, nil
+}
+
+//CheckIfDateOfEventPassed checks if the date of the event has passed, and if so returns true
+func CheckIfDateOfEventPassed(dateOfEvent time.Time) bool {
+	currentTime := time.Now()
+
+	if currentTime.Before(dateOfEvent) {
+		return false
+	} else {
+		return true
+	}
 }
