@@ -30,9 +30,9 @@ func main() {
 	//set URL with port
 	dict.URL = dict.URL + ":" + port
 	//handle weather data
-	http.HandleFunc("/weather-rest/v1/weather/location/", weather.MethodHandler)
+	http.HandleFunc(dict.WEATHER_PATH, weather.MethodHandler)
 	//handle weather comparison data
-	http.HandleFunc("/weather-rest/v1/weather/compare/", compare.MethodHandler)
+	http.HandleFunc(dict.WEATHERCOMPARE_PATH, compare.MethodHandler)
 	//ends program if it can't open port
 	log.Fatal(http.ListenAndServe(":" + port, nil))
 }

@@ -164,3 +164,5 @@
 
 [3.12.0]    **development**:    Added getWeatherURL in dictionary
 
+[3.13.0]    **development**:    Added getWeatherCompareURL in dictionary
+
