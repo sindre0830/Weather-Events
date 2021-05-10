@@ -10,6 +10,9 @@ var DIAG_PATH = URL + "/weather-rest/v1/weather/diag/"
 var HOLIDAY_PATH = URL + "/weather-rest/v1/notification/weather/holiday"
 var WEATHERHOOK_PATH = URL + "/weather-rest/v1/notification/weather"
 
+// Secret used for hashing
+var Secret = []byte{43, 123, 65, 232, 4, 42, 35, 234, 21, 122, 214}
+
 // GetWeatherURL generates Weather URL according to parameters
 func GetWeatherURL(location string, date string) string {
 	if date != "" {

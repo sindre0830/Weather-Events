@@ -189,3 +189,5 @@
 [3.20.0]    **development**:    Added diag endpoint and restructured eventData
 
 [3.21.0]    **development**:    Added WeatherEvent DELETE method
+
+[3.22.0]    **development**:    Added WeatherEvent callLoop after a POST request

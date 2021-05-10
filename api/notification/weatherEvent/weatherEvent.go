@@ -1,7 +1,12 @@
 package weatherEvent
 
 import (
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"main/api/notification"
 	"main/api/weather"
 	"main/db"
@@ -11,6 +16,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type WeatherEventInput struct {
@@ -28,6 +34,85 @@ type WeatherEvent struct {
 	URL       string `json:"url"`
 	Frequency string `json:"frequency"`
 	Timeout   int64  `json:"timeout"`
+}
+
+func (weatherEvent *WeatherEvent) callLoop() {
+	nextTime := time.Now().Truncate(time.Second)
+	nextTime = nextTime.Add(time.Duration(weatherEvent.Timeout) * time.Second)
+	time.Sleep(time.Until(nextTime))
+	url := dict.GetWeatherURL(weatherEvent.Location, weatherEvent.Date)
+	var weather weather.Weather
+	//create new GET request and branch if an error occurred
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		fmt.Printf(
+			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tRaw error: %v\n}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+		)
+		go weatherEvent.callLoop()
+	}
+	//call the policy handler and branch if the status code is not OK
+	//this stops timed out request being sent to the webhook
+	recorder := httptest.NewRecorder()
+	weather.Handler(recorder, req)
+	if recorder.Result().StatusCode != http.StatusOK {
+		fmt.Printf(
+			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tStatus code: %v\n}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), recorder.Result().StatusCode,
+		)
+		go weatherEvent.callLoop()
+	}
+	//convert from structure to bytes and branch if an error occurred
+	output, err := json.Marshal(weather)
+	if err != nil {
+		fmt.Printf(
+			"%v {\n\tError when parsing Weather structure.\n\tRaw error: %v\n}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+		)
+		go weatherEvent.callLoop()
+	}
+	//create new POST request and branch if an error occurred
+	req, err = http.NewRequest(http.MethodPost, weatherEvent.URL, bytes.NewBuffer(output))
+	if err != nil {
+		fmt.Printf(
+			"%v {\n\tError when creating new POST request.\n\tRaw error: %v\n}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+		)
+		go weatherEvent.callLoop()
+	}
+	//hash structure and branch if an error occurred
+	mac := hmac.New(sha256.New, dict.Secret)
+	_, err = mac.Write([]byte(output))
+	if err != nil {
+		fmt.Printf(
+			"%v {\n\tError when hashing content before POST request.\n\tRaw error: %v\n}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+		)
+		go weatherEvent.callLoop()
+	}
+	//convert hashed structure to string and add to header
+	req.Header.Add("Signature", hex.EncodeToString(mac.Sum(nil)))
+	//update header to JSON
+	req.Header.Set("Content-Type", "application/json")
+	//send request to client and branch if an error occured
+	client := http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Printf(
+			"%v {\n\tError when sending HTTP content to webhook.\n\tRaw error: %v\n}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+		)
+		go weatherEvent.callLoop()
+	}
+	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusServiceUnavailable {
+		fmt.Printf(
+			"%v {\n\tWebhook URL is not valid. Deleting webhook...\n\tStatus code: %v\n}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), res.StatusCode,
+		)
+		db.DB.Delete("weatherEvent", weatherEvent.ID)
+		return
+	}
+	go weatherEvent.callLoop()
 }
 
 func (weatherEvent *WeatherEvent) DELETE(w http.ResponseWriter, r *http.Request) {
@@ -269,12 +354,15 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 		return
 	}
+	weatherEvent.ID = id
+	//start loop
+	go weatherEvent.callLoop()
 	//create feedback message to send to client and branch if an error occurred
 	var feedback notification.Feedback
 	feedback.Update(
 		http.StatusCreated, 
 		"Webhook successfully created for '" + weatherEvent.URL + "'",
-		id,
+		weatherEvent.ID,
 	)
 	err = feedback.Print(w)
 	if err != nil {
