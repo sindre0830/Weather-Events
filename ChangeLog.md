@@ -176,3 +176,4 @@
 
 [3.17.0]    **development**:    Added passing of data from weatherHoliday to weatherEvent
 
+[3.18.2]    **development**:    Slight cleanup of db.Delete, more work on weatherHook
