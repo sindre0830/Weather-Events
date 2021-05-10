@@ -18,7 +18,7 @@ type WeatherHoliday struct {
 	Location string `json:"location"`
 	URL string `json:"url"`
 	Frequency string `json:"frequency"`		// Every day or on date
-	Timeout int `json:"timeout"`			// Hours
+	Timeout int64 `json:"timeout"`			// Hours
 }
 
 // Register a webhook

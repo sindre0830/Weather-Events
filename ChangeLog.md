@@ -181,3 +181,5 @@
 [3.18.1]    **fix**:            Fixed weatherHook to work with new database.Get()
 
 [3.18.2]    **development**:    Slight cleanup of db.Delete, more work on weatherHook
+
+[3.18.3]    **fix**:            Fixed WeatherHoliday to work with new database.Get()
