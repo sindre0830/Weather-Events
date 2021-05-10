@@ -97,7 +97,7 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 
 		if overdue {
 			//delete the entry in the firebase
-			err = db.DB.Delete(id)
+			err = db.DB.Delete("notifications", id)
 			if err != nil {
 				debug.ErrorMessage.Update(
 					http.StatusInternalServerError,

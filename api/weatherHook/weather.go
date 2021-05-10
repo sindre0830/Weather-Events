@@ -36,7 +36,7 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 	// How do we want to handle ID, getting/passing to user? Currently getting but not checking dupes.
 	var data db.Data
 	data.Container = weatherHook
-	_, id, err := db.DB.Add("notification", "", data)
+	_, id, err := db.DB.Add("notifications", "", data)
 	// Return ID if successful, otherwise error
 	if err != nil {
 		debug.ErrorMessage.Update(
@@ -74,7 +74,7 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 	id := params["id"][0]
 
 	// check for ID in firestore - DB function
-	data, exist, err := db.DB.Get("notification", id)		// all hooks in one db?
+	data, exist, err := db.DB.Get("notifications", id)		// all hooks in one db?
 	if err != nil && exist {
 		debug.ErrorMessage.Update(
 			http.StatusNotFound, 
@@ -122,7 +122,7 @@ func (weatherHook *WeatherHook) HandlerDelete(w http.ResponseWriter, r *http.Req
 	params, _ := url.ParseQuery(r.URL.RawQuery)
 	id := params["id"][0]
 	// delete
-	err := db.DB.Delete(id)
+	err := db.DB.Delete("notifications", id)
 
 	if err != nil {
 		debug.ErrorMessage.Update(

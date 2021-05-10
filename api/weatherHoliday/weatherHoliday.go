@@ -100,7 +100,7 @@ func (weatherHoliday *WeatherHoliday) Delete(w http.ResponseWriter, r *http.Requ
 	// Get webhook ID
 	id := path[len(path)-1]
 
-	err := db.DB.Delete(id)
+	err := db.DB.Delete("notifications", id)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
