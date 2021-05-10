@@ -191,3 +191,6 @@
 [3.21.0]    **development**:    Added WeatherEvent DELETE method
 
 [3.22.0]    **development**:    Added WeatherEvent callLoop after a POST request
+
+[3.23.0]    **development**:    Added function to get one or all WeatherHoliday webhooks
+
