@@ -1,29 +1,26 @@
 package weatherHoliday
 
 import (
-	"bytes"
 	"encoding/json"
 	"main/api/holidaysData"
-	"main/api/notification/weatherEvent"
 	"main/db"
 	"main/debug"
-	"main/dict"
 	"net/http"
 	"strings"
 )
 
-// Request
+// WeatherHoliday structure, stores information from the user about the webhook
 type WeatherHoliday struct {
 	Holiday string `json:"holiday"`
 	Location string `json:"location"`
 	URL string `json:"url"`
 	Frequency string `json:"frequency"`		// Every day or on date
-	Timeout int64 `json:"timeout"`			// Hours
+	Timeout int64 `json:"timeout"`
 }
 
 // Register a webhook
 func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Request) {
-	// Decode body into struct
+	// Decode body into weatherHoliday struct
 	err := json.NewDecoder(r.Body).Decode(&weatherHoliday)
 	if err != nil {
 		debug.ErrorMessage.Update(
@@ -36,7 +33,7 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Get the country's holidays
+	// Get a map of all the country's holidays
 	var holidaysMap = make(map[string]interface{})
 	holidaysMap, status, err := holidaysData.Handler(weatherHoliday.Location)
 	if err != nil {
@@ -50,11 +47,11 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Make the first letter of each word uppercase
+	// Make the first letter of each word uppercase to match the format in holidaysMap
 	weatherHoliday.Holiday = strings.Title(strings.ToLower(weatherHoliday.Holiday))
 
 	// Check if the holiday exists in the selected country
-	key, ok := holidaysMap[weatherHoliday.Holiday]
+	_, ok := holidaysMap[weatherHoliday.Holiday]
 	if !ok {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
@@ -65,34 +62,6 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 		debug.ErrorMessage.Print(w)
 		return
 	}
-
-	// Save data to weatherEvent struct
-	var data weatherEvent.WeatherEventInput
-
-	data.Date = key.(string)
-	data.Location = weatherHoliday.Location
-	data.URL = weatherHoliday.URL
-	data.Frequency = weatherHoliday.Frequency
-	data.Timeout = weatherHoliday.Timeout
-
-	// Convert struct to json
-	jsonData, err := json.Marshal(data)
-
-	// Send data to weatherEvent endpoint
-	var weatherEvent weatherEvent.WeatherEvent
-	req, err := http.NewRequest("POST", dict.WEATHEREVENT_PATH, bytes.NewBuffer(jsonData))
-	if err != nil {
-		debug.ErrorMessage.Update(
-			http.StatusInternalServerError,
-			"WeatherHoliday.Register() -> Sending request to weatherEvent",
-			err.Error(),
-			"Unknown",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
-
-	weatherEvent.POST(w, req)
 }
 
 // Delete a webhook

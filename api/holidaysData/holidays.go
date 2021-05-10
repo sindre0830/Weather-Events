@@ -21,16 +21,15 @@ type Holiday []struct {
 // Handler that gets data about a country's holidaysData from either the API or the database
 func Handler(location string) (map[string]interface{}, int, error) {
 	var holidaysMap = make(map[string]interface{})
-	var holidays Holiday
 
-	// Get the geocoords of the location
+	// Get the coordinates of the location
 	var locationCoords geoCoords.LocationCoords
 	status, err := locationCoords.Handler(location)
 	if err != nil {
 		return holidaysMap, http.StatusBadRequest, err
 	}
 
-	// Get country and format it correctly
+	// Get location's country and format it correctly
 	address := strings.Split(locationCoords.Address, ", ")
 	country := address[len(address)-1]
 
@@ -50,7 +49,7 @@ func Handler(location string) (map[string]interface{}, int, error) {
 		savedYear := strings.Fields(data["Time"].(string))[2]
 		currentYear := strings.Fields(time.Now().Format(time.RFC822))[2]
 
-		// If the years are the same, format the data received from the database. If not, get new data from the current year and add to the database
+		// If the years are the same, put data received in the map. If not, get new data from the current year
 		if savedYear == currentYear {
 			// Convert the data received to a map
 			holidaysMap = data["Container"].(interface{}).(map[string]interface{})
@@ -60,12 +59,13 @@ func Handler(location string) (map[string]interface{}, int, error) {
 	}
 
 	// Get data from the API and add to the database
+	var holidays Holiday
 	status, err = holidays.get(country)
 	if err != nil {
 		return holidaysMap, status, err
 	}
 
-	// Put the holidaysData data in a map where the key is the name and the value is the date
+	// Put struct data in a map where the key is the name of the holiday and the value is the key
 	for i := 0; i < len(holidays); i++ {
 		holidaysMap[holidays[i].Name] = holidays[i].Date
 	}
@@ -88,10 +88,10 @@ func (holidays *Holiday) get(country string) (int, error) {
 	t := time.Now()
 	year := t.String()[:4]
 
-	// Format the URL
+	// Add year and country code as URL path
 	url := "https://date.nager.at/api/v2/PublicHolidays/" + year + "/" + country
 
-	// Gets data from the request URL
+	// Get data from the request URL
 	res, status, err := api.RequestData(url)
 	if err != nil {
 		return status, err
