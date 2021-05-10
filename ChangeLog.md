@@ -158,7 +158,9 @@
 
 [3.9.0]     **development**:    Added handling of inputted date for WeatherCompare structure
 
-[3.10.0]     **development**:    Added function to delete weatherHoliday webhook
+[3.10.0]    **development**:    Added function to delete weatherHoliday webhook
 
-[3.11.0]     **development**:    Changed adding to database function to return the documents ID
+[3.11.0]    **development**:    Changed adding to database function to return the documents ID
+
+[3.12.0]    **development**:    Added getWeatherURL in dictionary
 
