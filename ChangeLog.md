@@ -170,3 +170,5 @@
 
 [3.15.0]    **development**:    Moved code from holiday webhook to holiday data
 
+[3.15.1]    **fix**:            Fixed a bug when formatting holiday name wrong
+

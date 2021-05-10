@@ -48,7 +48,7 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 	}
 
 	// Make the first letter of each word uppercase
-	weatherHoliday.Holiday = strings.Title(weatherHoliday.Holiday)
+	weatherHoliday.Holiday = strings.Title(strings.ToLower(weatherHoliday.Holiday))
 
 	// Check if the holiday exists in the selected country
 	_, ok := holidaysMap[weatherHoliday.Holiday]
