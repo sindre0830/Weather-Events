@@ -170,9 +170,10 @@
 
 [3.15.0]    **development**:    Moved code from holiday webhook to holiday data
 
-[3.15.1]    **fix**:            Fixed a bug when formatting holiday name wrong
+[3.15.1]    **fix**:            Fixed an error when formatting holiday name wrong
 
 [3.16.0]    **development**:    Added WeatherEvent POST method and a feedback pipeline to handle webhook feedback
 
-[3.17.0]    **development**:    Added WeatherEvent GET method and modified database.Get() to return map of interfaces
+[3.17.0]    **development**:    Added passing of data from weatherHoliday to weatherEvent
 
+[3.18.0]    **development**:    Added WeatherEvent GET method and modified database.Get() to return map of interfaces

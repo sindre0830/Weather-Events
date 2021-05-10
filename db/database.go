@@ -142,23 +142,12 @@ func (database *Database) GetAll(name string) ([]map[string]interface{}, error) 
 // }
 
 // Delete deletes specific webhook.
-func (database *Database) Delete(id string) error {
-	//get only element that has the same ID as specified and branch if an error occurred
-	iter := database.Client.Collection("notification").Where("ID", "==", id).Documents(database.Ctx)
-	elem, err := iter.Next()
+func (database *Database) Delete(webhookdb string, id string) error {
+	_, err := database.Client.Collection(webhookdb).Doc(id).Delete(database.Ctx)
 	if err != nil {
 		return err
 	}
-	//delete webhook and branch if an error occurred
-	_, err = elem.Ref.Delete(database.Ctx)
-	if err != nil {
-		return err
-	}
-	// //update Notifications with data from database and branch if and error occurred
-	// err = database.Get()
-	// if err != nil {
-	// 	return err
-	// }
+
 	return nil
 }
 
