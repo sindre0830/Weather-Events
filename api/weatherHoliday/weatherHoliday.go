@@ -11,14 +11,23 @@ import (
 	"strings"
 )
 
+// Request
 type WeatherHoliday struct {
 	Holiday string `json:"holiday"`
 	Location string `json:"location"`
-	Frequency int `json:"frequency"`
+	URL string `json:"url"`
+	Frequency string `json:"frequency"`		// Every day or on date
+	Timeout int `json:"timeout"`			// Hours
+	ID string `json:"id"`
 }
 
-// Handler for the weather holiday webhook endpoint
-func (weatherHoliday *WeatherHoliday) Handler(w http.ResponseWriter, r *http.Request) {
+// Response
+type Holiday struct {
+
+}
+
+// Register a webhook
+func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Request) {
 	// Decode body into struct
 	err := json.NewDecoder(r.Body).Decode(&weatherHoliday)
 	if err != nil {
@@ -51,11 +60,13 @@ func (weatherHoliday *WeatherHoliday) Handler(w http.ResponseWriter, r *http.Req
 	country := address[len(address)-1]
 
 	// Get country code
-	countryCode, status, err := getCode(country)
+	var countryInfo countryData.Information
+
+	status, err, countryCode := countryInfo.Handler(country)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			status,
-			"WeatherHoliday.Handler() -> WeatherHoliday.getCode() -> Getting country code",
+			"WeatherHoliday.Handler() -> CountryData.handler() -> Getting country code",
 			err.Error(),
 			"Selected country is not valid",
 		)
@@ -87,6 +98,12 @@ func (weatherHoliday *WeatherHoliday) Handler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	// Check if the frequency field is valid
+	if weatherHoliday.Frequency != "ON_DATE" || weatherHoliday.Frequency != "EVERY_DAY" {
+		http.Error(w, "The selected frequency is not valid. Try writing either 'ON_DATE' or 'EVERY_DAY'", http.StatusBadRequest)
+		return
+	}
+
 	// Add webhook to the database
 	var dataDB db.Data
 	dataDB.Container = weatherHoliday
@@ -102,18 +119,36 @@ func (weatherHoliday *WeatherHoliday) Handler(w http.ResponseWriter, r *http.Req
 		debug.ErrorMessage.Print(w)
 		return
 	}
+
+	http.Error(w, "Webhook registered", http.StatusOK)
 }
 
-
-// getCode - Get country's alpha code
-func getCode(countryName string) (string, int, error) {
-	var countryInfo countryData.Information
-
-	status, err, countryCode := countryInfo.Handler(countryName)
-	if err != nil {
-		return "", status, err
+// Delete a webhook
+func (weatherHoliday *WeatherHoliday) Delete(w http.ResponseWriter, r *http.Request) {
+	// TODO: how to get id
+	// Parse URL path and ensure that the formatting is correct
+	path := strings.Split(r.URL.Path, "/")
+	if len(path) != 6 {
+		debug.ErrorMessage.Update(
+			http.StatusBadRequest,
+			"WeatherHoliday.Handler() -> Parsing URL",
+			"url validation: either too many or too few arguments in url path",
+			"URL format. Remember to add an ID at the end of the path",
+		)
+		debug.ErrorMessage.Print(w)
+		return
 	}
 
-	return countryCode, status, err
+	// Get webhook ID
+	id := path[len(path)-1]
+
+	err := db.DB.Delete(id)
+	if err != nil {
+		// TODO: handle error
+		return
+	}
+
+	http.Error(w, "Webhook succesfully deleted", http.StatusOK)
 }
+
 

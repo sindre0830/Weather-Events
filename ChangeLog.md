@@ -157,3 +157,6 @@
 [3.8.0]     **development**:    Added handling of inputted date for Weather structure
 
 [3.9.0]     **development**:    Added handling of inputted date for WeatherCompare structure
+
+[3.10.0]     **development**:    Added function to delete weatherHoliday webhook
+
