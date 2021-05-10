@@ -30,6 +30,52 @@ type WeatherEvent struct {
 	Timeout   int64  `json:"timeout"`
 }
 
+func (weatherEvent *WeatherEvent) DELETE(w http.ResponseWriter, r *http.Request) {
+	//split URL path by '/' and branch if there aren't enough elements
+	arrPath := strings.Split(r.URL.Path, "/")
+	if len(arrPath) != 6 {
+		debug.ErrorMessage.Update(
+			http.StatusBadRequest, 
+			"WeatherEvent.DELETE() -> Checking length of URL",
+			"URL validation: either too many or too few arguments in URL path",
+			"URL format. Expected format: '.../id'. Example: '.../1ab24db3",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//set id and check if it's specified by client
+	id := arrPath[5]
+	err := db.DB.Delete("weatherEvent", id)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusBadRequest, 
+			"WeatherEvent.DELETE() -> Database.Delete() -> Deleting document based on ID",
+			err.Error(),
+			"ID doesn't exist. Expected format: '.../id'. Example: '.../1ab24Db3",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//create feedback message to send to client and branch if an error occurred
+	var feedback notification.Feedback
+	feedback.Update(
+		http.StatusOK, 
+		"Webhook successfully deleted",
+		id,
+	)
+	err = feedback.Print(w)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusInternalServerError, 
+			"WeatherEvent.DELETE() -> Feedback.print() -> Sending feedback to client",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+}
+
 func (weatherEvent *WeatherEvent) GET(w http.ResponseWriter, r *http.Request) {
 	//split URL path by '/' and branch if there aren't enough elements
 	arrPath := strings.Split(r.URL.Path, "/")

@@ -186,4 +186,6 @@
 
 [3.19.0]    **development**:    Finished WeatherHoliday POST function 
 
-[3.20.0]    **development**:            Added diag endpoint and restructured eventData
+[3.20.0]    **development**:    Added diag endpoint and restructured eventData
+
+[3.21.0]    **development**:    Added WeatherEvent DELETE method

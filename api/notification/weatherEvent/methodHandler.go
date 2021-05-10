@@ -14,6 +14,9 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 		case http.MethodGet:
 			var weatherEvent WeatherEvent
 			weatherEvent.GET(w, r)
+		case http.MethodDelete:
+			var weatherEvent WeatherEvent
+			weatherEvent.DELETE(w, r)
 		default:
 			debug.ErrorMessage.Update(
 				http.StatusMethodNotAllowed, 
