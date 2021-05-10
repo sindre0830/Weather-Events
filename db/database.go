@@ -148,6 +148,16 @@ func (database *Database) Delete(id string) error {
 	return nil
 }
 
+//
+func (database *Database) CountWebhooks(collection string) (int, error) {
+	docrefs, err := database.Client.Collection(collection).DocumentRefs(context.Background()).GetAll()
+	if err != nil {
+		return 0, err
+	}
+	return len(docrefs), nil
+
+}
+
 func CheckDate(dataTime string, expectedHours int) (bool, error) {
 	then, err := time.Parse(time.RFC822, dataTime)
 	if err != nil {

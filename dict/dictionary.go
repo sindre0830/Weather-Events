@@ -5,6 +5,7 @@ var URL = "localhost"
 var WEATHER_PATH = URL + "/weather-rest/v1/weather/location/"
 var WEATHERCOMPARE_PATH = URL + "/weather-rest/v1/weather/compare/"
 var EVENT_PATH = URL + "/weather-rest/v1/weather/event/"
+var DIAG_PATH = URL + "/weather-rest/v1/weather/diag/"
 
 // GetWeatherURL generates Weather URL according to parameters
 func GetWeatherURL(location string, date string) string {
