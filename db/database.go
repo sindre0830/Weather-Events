@@ -137,11 +137,8 @@ func (database *Database) Get(name string, id string) (Data, bool, error) {
 // Delete deletes specific webhook.
 func (database *Database) Delete(webhookdb string, id string) error {
 	_, err := database.Client.Collection(webhookdb).Doc(id).Delete(database.Ctx)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func CheckDate(dataTime string, expectedHours int) (bool, error) {

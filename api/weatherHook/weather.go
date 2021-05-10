@@ -15,6 +15,8 @@ type WeatherHook struct {
 	Timeout		int64	  `json:"timeout"`
 }
 
+var hookdb = "weatherHookDB"
+
 /**
 * HandlerPost
 * Handles POST method requests from client.
@@ -36,7 +38,7 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 	// How do we want to handle ID, getting/passing to user? Currently getting but not checking dupes.
 	var data db.Data
 	data.Container = weatherHook
-	_, id, err := db.DB.Add("notifications", "", data)
+	_, id, err := db.DB.Add(hookdb, "", data)
 	// Return ID if successful, otherwise error
 	if err != nil {
 		debug.ErrorMessage.Update(
@@ -74,7 +76,7 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 	id := params["id"][0]
 
 	// check for ID in firestore - DB function
-	data, exist, err := db.DB.Get("notifications", id)		// all hooks in one db?
+	data, exist, err := db.DB.Get(hookdb, id)		// all hooks in one db?
 	if err != nil && exist {
 		debug.ErrorMessage.Update(
 			http.StatusNotFound, 
@@ -122,7 +124,7 @@ func (weatherHook *WeatherHook) HandlerDelete(w http.ResponseWriter, r *http.Req
 	params, _ := url.ParseQuery(r.URL.RawQuery)
 	id := params["id"][0]
 	// delete
-	err := db.DB.Delete("notifications", id)
+	err := db.DB.Delete(hookdb, id)
 
 	if err != nil {
 		debug.ErrorMessage.Update(
@@ -157,6 +159,11 @@ func (weatherHook *WeatherHook) readData(data interface{}) error {
 }
 
 // Currently only runs til the program goes down
+// How to check deletion time?
+/**
+* trigger
+* This function handles triggering each weatherHook every timeout hours. It's run as a go-routine
+**/
 func (weatherHook *WeatherHook) trigger () {
 	nextTime := time.Now().Truncate(time.Second)	// change to hour
 	nextTime = nextTime.Add(time.Duration(weatherHook.Timeout) * time.Second)
@@ -166,7 +173,7 @@ func (weatherHook *WeatherHook) trigger () {
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Set("Content-Type", "application/json")
 	if err != nil {
-	fmt.Printf("\nError when creating new POST request.\nRaw error: %v\n", err.Error())
+		fmt.Printf("\nError when creating new POST request.\nRaw error: %v\n", err.Error())
 	} else {
 		fmt.Printf("\nPassed webhook to user!")
 	}
