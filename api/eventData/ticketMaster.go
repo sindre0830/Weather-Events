@@ -145,7 +145,7 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 		var dataDB db.Data
 		dataDB.Container = data
 
-		_, err = db.DB.Add("Events", id, dataDB)
+		_, _, err = db.DB.Add("Events", id, dataDB)
 		if err != nil {
 			debug.ErrorMessage.Update(
 				status,

@@ -60,7 +60,7 @@ func Handler(country string) (map[string]interface{}, int, error) {
 	var dataDB db.Data
 	dataDB.Container = holidaysMap
 
-	_, err = db.DB.Add("Holidays", country, dataDB)
+	_, _, err = db.DB.Add("Holidays", country, dataDB)
 	if err != nil {
 		return holidaysMap, http.StatusInternalServerError, err
 	}

@@ -2,44 +2,26 @@ package weather
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"main/api/geocoords"
 	"main/api/weatherData"
 	"main/debug"
 	"net/http"
+	"net/url"
 	"strings"
+	"time"
 )
 
 // Weather structure stores current and predicted weather data for a day and information about location.
 //
 // Functionality: Handler, get
 type Weather struct {
-	Longitude float64 `json:"longitude"`
-	Latitude  float64 `json:"latitude"`
-	Location  string  `json:"location"`
-	Updated   string  `json:"updated"`
-	Data      struct {
-		Now struct {
-			AirTemperature      float64 `json:"air_temperature"`
-			CloudAreaFraction   float64 `json:"cloud_area_fraction"`
-			DewPointTemperature float64 `json:"dew_point_temperature"`
-			RelativeHumidity    float64 `json:"relative_humidity"`
-			WindFromDirection   float64 `json:"wind_from_direction"`
-			WindSpeed           float64 `json:"wind_speed"`
-			WindSpeedOfGust     float64 `json:"wind_speed_of_gust"`
-			PrecipitationAmount float64 `json:"precipitation_amount"`
-		} `json:"now"`
-		Today struct {
-			Summary                    string  `json:"summary"`
-			Confidence                 string  `json:"confidence"`
-			AirTemperatureMax          float64 `json:"air_temperature_max"`
-			AirTemperatureMin          float64 `json:"air_temperature_min"`
-			PrecipitationAmount        float64 `json:"precipitation_amount"`
-			PrecipitationAmountMax     float64 `json:"precipitation_amount_max"`
-			PrecipitationAmountMin     float64 `json:"precipitation_amount_min"`
-			ProbabilityOfPrecipitation float64 `json:"probability_of_precipitation"`
-		} `json:"today"`
-	} `json:"data"`
+	Longitude  float64 `json:"longitude"`
+	Latitude   float64 `json:"latitude"`
+	Location   string  `json:"location"`
+	Updated    string  `json:"updated"`
+	Timeseries map[string]weatherData.Timeseries `json:"timeseries"`
 }
 
 // Handler will handle http request for REST service.
@@ -70,8 +52,49 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 		return
 	}
+	//get all parameters from URL and branch if an error occurred
+	arrParam, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusInternalServerError, 
+			"Weather.Handler() -> Validating URL parameters",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//branch if any parameters exist
+	date := time.Now().Format("2006-01-02")
+	if len(arrParam) > 0 {
+		//branch if field 'date' exist otherwise return an error
+		if targetParameter, ok := arrParam["date"]; ok {
+			date = targetParameter[0]
+			//validate date
+			_, err = time.Parse("2006-01-02", date)
+			if err != nil {
+				debug.ErrorMessage.Update(
+					http.StatusBadRequest, 
+					"Weather.Handler() -> Validating URL parameters",
+					err.Error(),
+					"Date doesn't match YYYY-MM-DD format. Example: 2021-04-26",
+				)
+				debug.ErrorMessage.Print(w)
+				return
+			}
+		} else {
+			debug.ErrorMessage.Update(
+				http.StatusBadRequest, 
+				"Weather.Handler() -> Validating URL parameters",
+				"url validation: unknown parameter",
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+	}
 	//get weather data and branch if an error occurred
-	status, err = weather.get(locationCoords.Latitude, locationCoords.Longitude)
+	status, err = weather.get(locationCoords.Latitude, locationCoords.Longitude, date)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			status, 
@@ -103,19 +126,23 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 // get will get data for structure.
-func (weather *Weather) get(lat float64, lon float64) (int, error) {
+func (weather *Weather) get(lat float64, lon float64, date string) (int, error) {
 	//convert coordinates to string
 	strLat := fmt.Sprintf("%f", lat)
 	strLon := fmt.Sprintf("%f", lon)
 	//get weather data and branch if an error occurred
-	var weatherData weatherData.WeatherData
-	status, err := weatherData.Handler(strLat, strLon)
+	var weatherDataRange weatherData.WeatherData
+	status, err := weatherDataRange.Handler(strLat, strLon)
 	if err != nil {
 		return status, err
 	}
+	weather.Timeseries = make(map[string]weatherData.Timeseries)
 	//set data in structure
-	weather.Updated = weatherData.Updated
-	weather.Data.Now = weatherData.Now
-	weather.Data.Today = weatherData.Today
+	weather.Updated = weatherDataRange.Updated
+	if data, ok := weatherDataRange.Timeseries[date]; ok {
+		weather.Timeseries[date] = data
+	} else {
+		return http.StatusBadRequest, errors.New("invalid date: can't find weather data for inputted date")
+	}
 	return http.StatusOK, nil
 }

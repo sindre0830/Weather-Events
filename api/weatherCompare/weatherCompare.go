@@ -2,13 +2,16 @@ package compare
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"main/api/geocoords"
 	"main/api/weatherData"
 	"main/debug"
 	"main/fun"
 	"net/http"
+	"net/url"
 	"strings"
+	"time"
 )
 
 // data structure stores weather data for a location.
@@ -17,7 +20,7 @@ type data struct {
 	Latitude  float64 `json:"latitude"`
 	Location  string  `json:"location"`
 	Updated   string  `json:"updated"`
-	Now       struct {
+	Instant   struct {
 		AirTemperature      float64 `json:"air_temperature"`
 		CloudAreaFraction   float64 `json:"cloud_area_fraction"`
 		DewPointTemperature float64 `json:"dew_point_temperature"`
@@ -25,15 +28,15 @@ type data struct {
 		WindSpeed           float64 `json:"wind_speed"`
 		WindSpeedOfGust     float64 `json:"wind_speed_of_gust"`
 		PrecipitationAmount float64 `json:"precipitation_amount"`
-	} `json:"now"`
-	Today struct {
+	} `json:"instant"`
+	Predicted struct {
 		AirTemperatureMax          float64 `json:"air_temperature_max"`
 		AirTemperatureMin          float64 `json:"air_temperature_min"`
 		PrecipitationAmount        float64 `json:"precipitation_amount"`
 		PrecipitationAmountMax     float64 `json:"precipitation_amount_max"`
 		PrecipitationAmountMin     float64 `json:"precipitation_amount_min"`
 		ProbabilityOfPrecipitation float64 `json:"probability_of_precipitation"`
-	} `json:"today"`
+	} `json:"predicted"`
 }
 
 // locationInfo structure stores all comparison locations information.
@@ -47,11 +50,11 @@ type locationInfo struct {
 //
 // Functionality: Handler, get
 type WeatherCompare struct {
-	Longitude float64 `json:"longitude"`
-	Latitude  float64 `json:"latitude"`
-	Location  string  `json:"location"`
-	Updated   string  `json:"updated"`
-	Data      []data  `json:"data"`
+	Longitude  float64 			 `json:"longitude"`
+	Latitude   float64 			 `json:"latitude"`
+	Location   string  			 `json:"location"`
+	Updated    string  			 `json:"updated"`
+	Timeseries map[string][]data `json:"timeseries"`
 }
 
 // Handler will handle http request for REST service.
@@ -89,7 +92,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 			status, 
 			"WeatherCompare.Handler() -> LocationCoords.Handler() -> Getting main location info",
 			err.Error(),
-			"Unknown",
+			"UnkInstantn",
 		)
 		debug.ErrorMessage.Print(w)
 		return
@@ -106,7 +109,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 				status, 
 				"WeatherCompare.Handler() -> LocationCoords.Handler() -> Getting comparison location info",
 				err.Error(),
-				"Unknown",
+				"UnkInstantn",
 			)
 			debug.ErrorMessage.Print(w)
 			return
@@ -117,13 +120,55 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 		coordinates.Location = locationCoords.Address
 		arrCoordinates = append(arrCoordinates, coordinates)
 	}
-	status, err = weatherCompare.get(mainLocationCoords.Latitude, mainLocationCoords.Longitude, arrCoordinates)
+	//get all parameters from URL and branch if an error occurred
+	arrParam, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusInternalServerError, 
+			"WeatherCompare.Handler() -> Validating URL parameters",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//branch if any parameters exist
+	date := time.Now().Format("2006-01-02")
+	if len(arrParam) > 0 {
+		//branch if field 'date' exist otherwise return an error
+		if targetParameter, ok := arrParam["date"]; ok {
+			date = targetParameter[0]
+			//validate date
+			_, err = time.Parse("2006-01-02", date)
+			if err != nil {
+				debug.ErrorMessage.Update(
+					http.StatusBadRequest, 
+					"WeatherCompare.Handler() -> Validating URL parameters",
+					err.Error(),
+					"Date doesn't match YYYY-MM-DD format. Example: 2021-04-26",
+				)
+				debug.ErrorMessage.Print(w)
+				return
+			}
+		} else {
+			debug.ErrorMessage.Update(
+				http.StatusBadRequest, 
+				"WeatherCompare.Handler() -> Validating URL parameters",
+				"url validation: unknown parameter",
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+	}
+	//get weather data and branch if an error occurred
+	status, err = weatherCompare.get(mainLocationCoords.Latitude, mainLocationCoords.Longitude, arrCoordinates, date)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			status, 
 			"WeatherCompare.Handler() -> WeatherCompare.get() -> Getting data",
 			err.Error(),
-			"Unknown",
+			"UnkInstantn",
 		)
 		debug.ErrorMessage.Print(w)
 		return
@@ -138,14 +183,14 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 			http.StatusInternalServerError, 
 			"WeatherCompare.Handler() -> Sending data to user",
 			err.Error(),
-			"Unknown",
+			"UnkInstantn",
 		)
 		debug.ErrorMessage.Print(w)
 	}
 }
 
 // get will get data for structure.
-func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinates []locationInfo) (int, error) {
+func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinates []locationInfo, date string) (int, error) {
 	//convert coordinates to string
 	strLat := fmt.Sprintf("%f", lat)
 	strLon := fmt.Sprintf("%f", lon)
@@ -157,7 +202,13 @@ func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinat
 	}
 	//set data in structure
 	weatherCompare.Updated = mainWeatherData.Updated
+	//validate date
+	if _, ok := mainWeatherData.Timeseries[date]; !ok {
+		return http.StatusBadRequest, errors.New("invalid date: can't find weather data for inputted date")
+	}
 	//get weather data for each comparison location and branch if an error occurred
+	weatherCompare.Timeseries = make(map[string][]data)
+	var dataRange []data
 	for _, coordinates := range arrCoordinates {
 		//convert coordinates to string
 		strLat := fmt.Sprintf("%f", coordinates.Latitude)
@@ -175,22 +226,23 @@ func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinat
 		data.Location = coordinates.Location
 		data.Updated = weatherData.Updated
 
-		data.Now.AirTemperature = fun.LimitDecimals(weatherData.Now.AirTemperature - mainWeatherData.Now.AirTemperature)
-		data.Now.CloudAreaFraction = fun.LimitDecimals(weatherData.Now.CloudAreaFraction - mainWeatherData.Now.CloudAreaFraction)
-		data.Now.DewPointTemperature = fun.LimitDecimals(weatherData.Now.DewPointTemperature - mainWeatherData.Now.DewPointTemperature)
-		data.Now.RelativeHumidity = fun.LimitDecimals(weatherData.Now.RelativeHumidity - mainWeatherData.Now.RelativeHumidity)
-		data.Now.WindSpeed = fun.LimitDecimals(weatherData.Now.WindSpeed - mainWeatherData.Now.WindSpeed)
-		data.Now.WindSpeedOfGust = fun.LimitDecimals(weatherData.Now.WindSpeedOfGust - mainWeatherData.Now.WindSpeedOfGust)
-		data.Now.PrecipitationAmount = fun.LimitDecimals(weatherData.Now.PrecipitationAmount - mainWeatherData.Now.PrecipitationAmount)
+		data.Instant.AirTemperature = fun.LimitDecimals(weatherData.Timeseries[date].Instant.AirTemperature - mainWeatherData.Timeseries[date].Instant.AirTemperature)
+		data.Instant.CloudAreaFraction = fun.LimitDecimals(weatherData.Timeseries[date].Instant.CloudAreaFraction - mainWeatherData.Timeseries[date].Instant.CloudAreaFraction)
+		data.Instant.DewPointTemperature = fun.LimitDecimals(weatherData.Timeseries[date].Instant.DewPointTemperature - mainWeatherData.Timeseries[date].Instant.DewPointTemperature)
+		data.Instant.RelativeHumidity = fun.LimitDecimals(weatherData.Timeseries[date].Instant.RelativeHumidity - mainWeatherData.Timeseries[date].Instant.RelativeHumidity)
+		data.Instant.WindSpeed = fun.LimitDecimals(weatherData.Timeseries[date].Instant.WindSpeed - mainWeatherData.Timeseries[date].Instant.WindSpeed)
+		data.Instant.WindSpeedOfGust = fun.LimitDecimals(weatherData.Timeseries[date].Instant.WindSpeedOfGust - mainWeatherData.Timeseries[date].Instant.WindSpeedOfGust)
+		data.Instant.PrecipitationAmount = fun.LimitDecimals(weatherData.Timeseries[date].Instant.PrecipitationAmount - mainWeatherData.Timeseries[date].Instant.PrecipitationAmount)
 
-		data.Today.AirTemperatureMax = fun.LimitDecimals(weatherData.Today.AirTemperatureMax - mainWeatherData.Today.AirTemperatureMax)
-		data.Today.AirTemperatureMin = fun.LimitDecimals(weatherData.Today.AirTemperatureMin - mainWeatherData.Today.AirTemperatureMin)
-		data.Today.PrecipitationAmount = fun.LimitDecimals(weatherData.Today.PrecipitationAmount - mainWeatherData.Today.PrecipitationAmount)
-		data.Today.PrecipitationAmountMax = fun.LimitDecimals(weatherData.Today.PrecipitationAmountMax - mainWeatherData.Today.PrecipitationAmountMax)
-		data.Today.PrecipitationAmountMin = fun.LimitDecimals(weatherData.Today.PrecipitationAmountMin - mainWeatherData.Today.PrecipitationAmountMin)
-		data.Today.ProbabilityOfPrecipitation = fun.LimitDecimals(weatherData.Today.ProbabilityOfPrecipitation - mainWeatherData.Today.ProbabilityOfPrecipitation)
+		data.Predicted.AirTemperatureMax = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.AirTemperatureMax - mainWeatherData.Timeseries[date].Predicted.AirTemperatureMax)
+		data.Predicted.AirTemperatureMin = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.AirTemperatureMin - mainWeatherData.Timeseries[date].Predicted.AirTemperatureMin)
+		data.Predicted.PrecipitationAmount = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.PrecipitationAmount - mainWeatherData.Timeseries[date].Predicted.PrecipitationAmount)
+		data.Predicted.PrecipitationAmountMax = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.PrecipitationAmountMax - mainWeatherData.Timeseries[date].Predicted.PrecipitationAmountMax)
+		data.Predicted.PrecipitationAmountMin = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.PrecipitationAmountMin - mainWeatherData.Timeseries[date].Predicted.PrecipitationAmountMin)
+		data.Predicted.ProbabilityOfPrecipitation = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.ProbabilityOfPrecipitation - mainWeatherData.Timeseries[date].Predicted.ProbabilityOfPrecipitation)
 		//append data to array
-		weatherCompare.Data = append(weatherCompare.Data, data)
+		dataRange = append(dataRange, data)
 	}
+	weatherCompare.Timeseries[date] = dataRange
 	return http.StatusOK, nil
 }

@@ -137,3 +137,34 @@
 [2.2.1]     **reformatting**:   Moved fields around in Weather and WeatherCompare structure and added comments to structure functors
 
 [2.3.0]     **development**:    Modified information about endpoints
+
+[3.0.0]     **milestone**:      Implemented all main endpoints
+
+[3.1.0]     **development**:    Implemented method handler and some basic functionality of WeatherHoliday structure
+
+[3.2.0]     **development**:    Implemented function to get a country's alpha code
+
+[3.3.0]     **development**:    Implemented function to add weatherHoliday webhooks to the database
+
+[3.4.0]     **development**:    Renamed weather fields Now and Today to Instant and Predicted
+
+[3.5.0]     **development**:    Simplified data reading in WeatherData
+
+[3.6.0]     **development**:    Modified WeatherData to store data for all available days 
+
+[3.7.0]     **development**:    Initial modification of Weather and WeatherCompare to handle inputted dates
+
+[3.8.0]     **development**:    Added handling of inputted date for Weather structure
+
+[3.9.0]     **development**:    Added handling of inputted date for WeatherCompare structure
+
+[3.10.0]    **development**:    Added function to delete weatherHoliday webhook
+
+[3.11.0]    **development**:    Changed adding to database function to return the documents ID
+
+[3.12.0]    **development**:    Added getWeatherURL in dictionary
+
+[3.13.0]    **development**:    Added getWeatherCompareURL in dictionary
+
+[3.14.0]    **development**:    Added ticketmaster endpoint
+

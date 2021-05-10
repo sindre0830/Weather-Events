@@ -119,7 +119,7 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 		var data db.Data
 		data.Time = time.Now().String()
 		data.Container = locationCoords
-		_, err = db.DB.Add("GeoCoords", id, data)
+		_, _, err = db.DB.Add("GeoCoords", id, data)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}

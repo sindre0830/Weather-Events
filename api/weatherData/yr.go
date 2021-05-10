@@ -67,6 +67,7 @@ type Data struct {
 type Yr struct {
 	Properties struct {
 		Timeseries []struct {
+			Time string `json:"time"`
 			Data Data `json:"data"`
 		} `json:"timeseries"`
 	} `json:"properties"`
