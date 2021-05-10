@@ -60,23 +60,13 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 	id := parts[5]
 
 	//Check if it is already in firebase
-	data, exist, err := db.DB.Get("Events", id)
-	if err != nil {
-		debug.ErrorMessage.Update(
-			http.StatusInternalServerError,
-			"TicketMaster.Handler() -> Database.get() -> Trying to get data",
-			err.Error(),
-			"Unknown",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
+	data, exist := db.DB.Get("Events", id)
 
 	if exist { //If in firebase, fetch data from firebase
 
 		//Storing locally
 		var info FirebaseStore
-		info.readData(data.Container)
+		info.readData(data["Container"].(interface{}))
 
 		//Convert the date string
 		layOut := "2006-01-02"

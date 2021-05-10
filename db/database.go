@@ -2,12 +2,12 @@ package db
 
 import (
 	"context"
-	"encoding/json"
 	"math"
 	"time"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
 
@@ -84,22 +84,29 @@ func (database *Database) Add(name string, id string, data Data) (string, string
 	return data.Time, id, nil
 }
 
-func (database *Database) Get(name string, id string) (Data, bool, error) {
-	var data Data
+func (database *Database) Get(name string, id string) (map[string]interface{}, bool) {
 	iter, err := database.Client.Collection(name).Doc(id).Get(database.Ctx)
 	if err != nil {
-		return data, false, nil
+		return nil, false
 	}
-	test := iter.Data()
-	output, err := json.Marshal(test)
-	if err != nil {
-		return data, true, err
+	data := iter.Data()
+	return data, true
+}
+
+func (database *Database) GetAll(name string) ([]map[string]interface{}, error) {
+	var arrData []map[string]interface{}
+	iter := database.Client.Collection(name).Documents(database.Ctx)
+	for {
+		//go to next element in array and break loop if there are no elements, branch if an error occurred
+		elem, err := iter.Next()
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+		arrData = append(arrData, elem.Data())
 	}
-	err = json.Unmarshal(output, &data)
-	if err != nil {
-		return data, true, err
-	}
-	return data, true, nil
+	return arrData, nil
 }
 
 // // Get gets all webhooks from database

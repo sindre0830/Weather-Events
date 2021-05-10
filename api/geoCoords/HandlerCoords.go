@@ -1,4 +1,4 @@
-package geocoords
+package geoCoords
 
 import (
 	"encoding/json"
@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"main/api"
 	"main/db"
-	"main/debug"
 	"math"
 	"net/http"
 	"os"
@@ -45,8 +44,8 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	// We read our local DB, if one exists, into LocalCoords map.
 	var file []byte
 	if _, err := os.Stat("GeoCoords.json"); err == nil {
-		file, err = ioutil.ReadFile("GeoCoords.json")
-		err = json.Unmarshal([]byte(file), &LocalCoords)
+		file, _ = ioutil.ReadFile("GeoCoords.json")
+		_ = json.Unmarshal([]byte(file), &LocalCoords)
 	}
 
 	// Check LocalCoords if location data for this location exists
@@ -63,27 +62,18 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	}
 
 	// If not, we check in firestoreDB if location data for this location exists
-	data, exist, err := db.DB.Get("GeoCoords", id)
-	if err != nil && exist {
-		debug.ErrorMessage.Update(
-			http.StatusInternalServerError,
-			"GeoCoords.HandlerCoords() -> Database.get() -> Trying to get data",
-			err.Error(),
-			"Unknown",
-		)
-		return http.StatusInternalServerError, err
-	}
+	data, exist := db.DB.Get("GeoCoords", id)
 
 	// We check whether data on firestore is deprecated or not.
 	// For locations that are not countries/capitals, we don't want to keep our data more than 3 hours.
 	// Data saved in local files should be kept indefinitely, so we don't check it.
-	withinTimeframe, err := db.CheckDate(data.Time, 3)
+	withinTimeframe, err := db.CheckDate(data["Time"].(string), 3)
 	if exist && withinTimeframe {
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
 
-		err = readData(locationCoords, data.Container)
+		err = readData(locationCoords, data["Container"].(interface{}))
 
 		if err != nil {
 			return http.StatusInternalServerError, err
@@ -108,7 +98,7 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	if locationCoords.Importance > 0.7 {
 		// Save locally if it's an important place
 		LocalCoords[id] = *locationCoords
-		file, err := json.MarshalIndent(LocalCoords, "", " ")
+		file, _ := json.MarshalIndent(LocalCoords, "", " ")
 
 		err = ioutil.WriteFile("GeoCoords.json", file, 0644)
 		if err != nil {
@@ -140,7 +130,7 @@ func getCoords(coords *LocationCoords, location map[string]interface{}) error {
 	var err error
 
 	coords.Address = location["display_name"].(string)
-	latitude, err := strconv.ParseFloat(location["lat"].(string), 64)
+	latitude, _ := strconv.ParseFloat(location["lat"].(string), 64)
 	coords.Latitude = math.Round(latitude*100) / 100
 	longitude, err := strconv.ParseFloat(location["lon"].(string), 64)
 	coords.Longitude = math.Round(longitude*100) / 100

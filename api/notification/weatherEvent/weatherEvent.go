@@ -18,7 +18,7 @@ type WeatherEventInput struct {
 	Location  string `json:"location"`
 	URL       string `json:"url"`
 	Frequency string `json:"frequency"`
-	Timeout   int    `json:"timeout"`
+	Timeout   int64  `json:"timeout"`
 }
 
 type WeatherEvent struct {
@@ -27,7 +27,97 @@ type WeatherEvent struct {
 	Location  string `json:"location"`
 	URL       string `json:"url"`
 	Frequency string `json:"frequency"`
-	Timeout   int    `json:"timeout"`
+	Timeout   int64  `json:"timeout"`
+}
+
+func (weatherEvent *WeatherEvent) GET(w http.ResponseWriter, r *http.Request) {
+	//split URL path by '/' and branch if there aren't enough elements
+	arrPath := strings.Split(r.URL.Path, "/")
+	if len(arrPath) != 6 {
+		debug.ErrorMessage.Update(
+			http.StatusBadRequest, 
+			"WeatherEvent.GET() -> Checking length of URL",
+			"URL validation: either too many or too few arguments in URL path",
+			"URL format. Expected format: '.../id'. Example: '.../1ab24db3",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//set id and check if it's specified by client
+	id := arrPath[5]
+	if id != "" {
+		data, exist := db.DB.Get("weatherEvent", id)
+		if !exist {
+			debug.ErrorMessage.Update(
+				http.StatusBadRequest, 
+				"WeatherEvent.GET() -> Database.Get() -> finding document based on ID",
+				"getting webhook: can't find id",
+				"ID doesn't exist. Expected format: '.../id'. Example: '.../1ab24db3",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+		weatherEvent.readData(data["Container"].(interface{}))
+		//update header to JSON and set HTTP code
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		//send output to user and branch if an error occured
+		err := json.NewEncoder(w).Encode(&weatherEvent)
+		if err != nil {
+			debug.ErrorMessage.Update(
+				http.StatusInternalServerError, 
+				"WeatherEvent.GET() -> Sending data to user",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+	} else {
+		arrData, err := db.DB.GetAll("weatherEvent")
+		if err != nil {
+			debug.ErrorMessage.Update(
+				http.StatusInternalServerError, 
+				"WeatherEvent.GET() -> Database.GetAll() -> Getting all documents",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+		var arrWeatherEvent []WeatherEvent
+		for _, rawData := range arrData {
+			data := rawData["Container"].(interface{})
+			weatherEvent.readData(data)
+			arrWeatherEvent = append(arrWeatherEvent, *weatherEvent)
+		}
+		//update header to JSON and set HTTP code
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		//send output to user and branch if an error occured
+		err = json.NewEncoder(w).Encode(&arrWeatherEvent)
+		if err != nil {
+			debug.ErrorMessage.Update(
+				http.StatusInternalServerError, 
+				"WeatherEvent.GET() -> Sending data to user",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+		}
+	}
+}
+
+func (weatherEvent *WeatherEvent) readData(data interface{}) error {
+    rawData := data.(map[string]interface{})
+	weatherEvent.ID = rawData["ID"].(string)
+	weatherEvent.Date = rawData["Date"].(string)
+	weatherEvent.Location = rawData["Location"].(string)
+	weatherEvent.URL = rawData["URL"].(string)
+	weatherEvent.Frequency = rawData["Frequency"].(string)
+	weatherEvent.Timeout = rawData["Timeout"].(int64)
+	return nil
 }
 
 // POST handles a POST request from the http request.

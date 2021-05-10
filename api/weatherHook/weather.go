@@ -76,20 +76,10 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 	id := params["id"][0]
 
 	// check for ID in firestore - DB function
-	data, exist, err := db.DB.Get(hookdb, id)		// all hooks in one db?
-	if err != nil && exist {
-		debug.ErrorMessage.Update(
-			http.StatusNotFound, 
-			"WeatherHook -> MethodHandler() -> weatherHook.HandlerGet() -> Getting data from firestore.",
-			"Database error: Failed when getting data from Firestore!",
-			"",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
+	data, exist := db.DB.Get("notifications", id)		// all hooks in one db?
 	// Extract from data
 	if exist {
-		err = weatherHook.readData(data.Container)
+		err := weatherHook.readData(data["Container"].(interface{}))
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusNotFound, 
