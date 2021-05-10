@@ -60,8 +60,15 @@ func (database *Database) Add(name string, id string, data Data) (string, string
 		if err != nil {
 			return "", "", err
 		}
-
 		id = docRef.ID
+		//update webhook ID in database with UUID and branch if an error occurred
+		_, err = database.Client.Collection(name).Doc(id).Update(database.Ctx, []firestore.Update {{
+			Path: "Container.ID",
+			Value: id,
+		}})
+		if err != nil {
+			return "", "", err
+		}
 	} else {
 		//add data to database and get a UUID from firebase and branch if an error occurred
 		_, err := database.Client.Collection(name).Doc(id).Set(database.Ctx, data)

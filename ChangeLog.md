@@ -166,3 +166,4 @@
 
 [3.13.0]    **development**:    Added getWeatherCompareURL in dictionary
 
+[3.14.0]    **development**:    Added WeatherEvent POST method and a feedback pipeline to handle webhook feedback

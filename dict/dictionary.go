@@ -4,6 +4,7 @@ package dict
 var URL = "localhost"
 var WEATHER_PATH = URL + "/weather-rest/v1/weather/location/"
 var WEATHERCOMPARE_PATH = URL + "/weather-rest/v1/weather/compare/"
+var WEATHEREVENT_PATH = URL + "/weather-rest/v1/event/date/"
 
 // GetWeatherURL generates Weather URL according to parameters
 func GetWeatherURL(location string, date string) string {

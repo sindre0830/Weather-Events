@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"main/api/notification/weatherEvent"
 	"main/api/weather"
 	compare "main/api/weatherCompare"
 	"main/db"
@@ -33,6 +34,8 @@ func main() {
 	http.HandleFunc(dict.WEATHER_PATH, weather.MethodHandler)
 	//handle weather comparison data
 	http.HandleFunc(dict.WEATHERCOMPARE_PATH, compare.MethodHandler)
+	//handle weather event
+	http.HandleFunc(dict.WEATHEREVENT_PATH, weatherEvent.MethodHandler)
 	//ends program if it can't open port
 	log.Fatal(http.ListenAndServe(":" + port, nil))
 }
