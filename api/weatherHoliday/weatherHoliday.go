@@ -2,8 +2,6 @@ package weatherHoliday
 
 import (
 	"encoding/json"
-	"main/api/countryData"
-	"main/api/geocoords"
 	"main/api/holidaysData"
 	"main/db"
 	"main/debug"
@@ -18,7 +16,6 @@ type WeatherHoliday struct {
 	URL string `json:"url"`
 	Frequency string `json:"frequency"`		// Every day or on date
 	Timeout int `json:"timeout"`			// Hours
-	ID string `json:"id"`
 }
 
 // Register a webhook
@@ -36,42 +33,9 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Get the geocoords of the location
-	var locationCoords geocoords.LocationCoords
-	status, err := locationCoords.Handler(weatherHoliday.Location)
-	if err != nil {
-		debug.ErrorMessage.Update(
-			status,
-			"WeatherHoliday.Register() -> LocationCoords.Handler() -> Getting location info",
-			err.Error(),
-			"Unknown",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
-
-	// Get country and format it correctly
-	address := strings.Split(locationCoords.Address, ", ")
-	country := address[len(address)-1]
-
-	// Get country code
-	var countryInfo countryData.Information
-
-	status, err, countryCode := countryInfo.Handler(country)
-	if err != nil {
-		debug.ErrorMessage.Update(
-			status,
-			"WeatherHoliday.Register() -> CountryData.handler() -> Getting country code",
-			err.Error(),
-			"Selected country is not valid",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
-
 	// Get the country's holidays
 	var holidaysMap = make(map[string]interface{})
-	holidaysMap, status, err = holidaysData.Handler(countryCode)
+	holidaysMap, status, err := holidaysData.Handler(weatherHoliday.Location)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			status,
@@ -89,13 +53,13 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 	// Check if the holiday exists in the selected country
 	_, ok := holidaysMap[weatherHoliday.Holiday]
 	if !ok {
-		http.Error(w, "The selected holiday is not valid", http.StatusBadRequest)
-		return
-	}
-
-	// Check if the frequency field is valid
-	if weatherHoliday.Frequency != "ON_DATE" && weatherHoliday.Frequency != "EVERY_DAY" {
-		http.Error(w, "The selected frequency is not valid. Try writing either 'ON_DATE' or 'EVERY_DAY'", http.StatusBadRequest)
+		debug.ErrorMessage.Update(
+			http.StatusBadRequest,
+			"WeatherHoliday.Register() -> Checking if a holiday exists in a country",
+			"invalid holiday: the holiday is not valid in the selected country",
+			"Not a real holiday. Check your spelling and make sure it is the english name.",
+		)
+		debug.ErrorMessage.Print(w)
 		return
 	}
 
@@ -115,16 +79,14 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	weatherHoliday.ID = id
-
-	http.Error(w, "Webhook registered", http.StatusCreated)
+	http.Error(w, "Webhook registered with ID " + id, http.StatusCreated)
 }
 
 // Delete a webhook
 func (weatherHoliday *WeatherHoliday) Delete(w http.ResponseWriter, r *http.Request) {
 	// Parse URL path and ensure that the formatting is correct
 	path := strings.Split(r.URL.Path, "/")
-	if len(path) != 6 {
+	if len(path) != 7 {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
 			"WeatherHoliday.Delete() -> Parsing URL",
