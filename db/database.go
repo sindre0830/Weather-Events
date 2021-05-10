@@ -2,12 +2,12 @@ package db
 
 import (
 	"context"
-	"encoding/json"
 	"math"
 	"time"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
 
@@ -60,8 +60,15 @@ func (database *Database) Add(name string, id string, data Data) (string, string
 		if err != nil {
 			return "", "", err
 		}
-
 		id = docRef.ID
+		//update webhook ID in database with UUID and branch if an error occurred
+		_, err = database.Client.Collection(name).Doc(id).Update(database.Ctx, []firestore.Update{{
+			Path:  "Container.ID",
+			Value: id,
+		}})
+		if err != nil {
+			return "", "", err
+		}
 	} else {
 		//add data to database and get a UUID from firebase and branch if an error occurred
 		_, err := database.Client.Collection(name).Doc(id).Set(database.Ctx, data)
@@ -77,22 +84,29 @@ func (database *Database) Add(name string, id string, data Data) (string, string
 	return data.Time, id, nil
 }
 
-func (database *Database) Get(name string, id string) (Data, bool, error) {
-	var data Data
+func (database *Database) Get(name string, id string) (map[string]interface{}, bool) {
 	iter, err := database.Client.Collection(name).Doc(id).Get(database.Ctx)
 	if err != nil {
-		return data, false, nil
+		return nil, false
 	}
-	test := iter.Data()
-	output, err := json.Marshal(test)
-	if err != nil {
-		return data, true, err
+	data := iter.Data()
+	return data, true
+}
+
+func (database *Database) GetAll(name string) ([]map[string]interface{}, error) {
+	var arrData []map[string]interface{}
+	iter := database.Client.Collection(name).Documents(database.Ctx)
+	for {
+		//go to next element in array and break loop if there are no elements, branch if an error occurred
+		elem, err := iter.Next()
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+		arrData = append(arrData, elem.Data())
 	}
-	err = json.Unmarshal(output, &data)
-	if err != nil {
-		return data, true, err
-	}
-	return data, true, nil
+	return arrData, nil
 }
 
 // // Get gets all webhooks from database
@@ -128,9 +142,16 @@ func (database *Database) Get(name string, id string) (Data, bool, error) {
 // }
 
 // Delete deletes specific webhook.
-func (database *Database) Delete(id string) error {
+func (database *Database) Delete(webhookdb string, id string) error {
+	_, err := database.Client.Collection(webhookdb).Doc(id).Delete(database.Ctx)
+
+	return err
+}
+
+// Delete deletes specific event.
+func (database *Database) DeleteEvent(id string) error {
 	//get only element that has the same ID as specified and branch if an error occurred
-	iter := database.Client.Collection("notification").Where("ID", "==", id).Documents(database.Ctx)
+	iter := database.Client.Collection("Events").Where("ID", "==", id).Documents(database.Ctx)
 	elem, err := iter.Next()
 	if err != nil {
 		return err
@@ -140,11 +161,7 @@ func (database *Database) Delete(id string) error {
 	if err != nil {
 		return err
 	}
-	// //update Notifications with data from database and branch if and error occurred
-	// err = database.Get()
-	// if err != nil {
-	// 	return err
-	// }
+
 	return nil
 }
 

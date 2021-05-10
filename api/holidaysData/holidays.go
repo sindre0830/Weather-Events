@@ -3,6 +3,8 @@ package holidaysData
 import (
 	"encoding/json"
 	"main/api"
+	"main/api/countryData"
+	"main/api/geoCoords"
 	"main/db"
 	"net/http"
 	"strings"
@@ -17,36 +19,48 @@ type Holiday []struct {
 
 
 // Handler that gets data about a country's holidaysData from either the API or the database
-func Handler(country string) (map[string]interface{}, int, error) {
+func Handler(location string) (map[string]interface{}, int, error) {
 	var holidaysMap = make(map[string]interface{})
 	var holidays Holiday
 
-	// Check if country is already stored in the database
-	data, exist, err := db.DB.Get("Holidays", country)
-	if err != nil && exist {
-		return holidaysMap, http.StatusInternalServerError, err
+	// Get the geocoords of the location
+	var locationCoords geoCoords.LocationCoords
+	status, err := locationCoords.Handler(location)
+	if err != nil {
+		return holidaysMap, http.StatusBadRequest, err
 	}
+
+	// Get country and format it correctly
+	address := strings.Split(locationCoords.Address, ", ")
+	country := address[len(address)-1]
+
+	// Get country code
+	var countryInfo countryData.Information
+
+	status, err, countryCode := countryInfo.Handler(country)
+	if err != nil {
+		return holidaysMap, http.StatusBadRequest, err
+	}
+
+	// Check if country is already stored in the database
+	data, exist := db.DB.Get("Holidays", countryCode)
 
 	if exist {
 		// Finds the year the data was saved and the current year
-		savedYear := strings.Fields(data.Time)[2]
+		savedYear := strings.Fields(data["Time"].(string))[2]
 		currentYear := strings.Fields(time.Now().Format(time.RFC822))[2]
 
 		// If the years are the same, format the data received from the database. If not, get new data from the current year and add to the database
 		if savedYear == currentYear {
 			// Convert the data received to a map
-			holidaysMap = data.Container.(map[string]interface{})
+			holidaysMap = data["Container"].(interface{}).(map[string]interface{})
 
-			// Assign the values to the output map
-			for key, elem := range holidaysMap {
-				holidaysMap[key] = elem
-			}
 			return holidaysMap, http.StatusOK, err
 		}
 	}
 
 	// Get data from the API and add to the database
-	status, err := holidays.get(country)
+	status, err = holidays.get(country)
 	if err != nil {
 		return holidaysMap, status, err
 	}

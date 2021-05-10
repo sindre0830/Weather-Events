@@ -4,8 +4,11 @@ import (
 	"log"
 	"main/api/diag"
 	"main/api/eventData"
+	"main/api/notification/weatherEvent"
 	"main/api/weather"
 	compare "main/api/weatherCompare"
+	"main/api/weatherHoliday"
+	"main/api/weatherHook"
 	"main/db"
 	"main/dict"
 	"net/http"
@@ -38,10 +41,16 @@ func main() {
 	http.HandleFunc(dict.WEATHER_PATH, weather.MethodHandler)
 	//handle weather comparison data
 	http.HandleFunc(dict.WEATHERCOMPARE_PATH, compare.MethodHandler)
+	//handle weather event
+	http.HandleFunc(dict.WEATHEREVENT_PATH, weatherEvent.MethodHandler)
 	//handle event data
 	http.HandleFunc(dict.EVENT_PATH, eventData.MethodHandler)
 	//Diag endpoint
 	http.HandleFunc(dict.DIAG_PATH, diag.MethodHandler)
+	//handle holiday webhook
+	http.HandleFunc(dict.HOLIDAY_PATH, weatherHoliday.MethodHandler)
+	//handle weather webhook
+	http.HandleFunc(dict.WEATHERHOOK_PATH, weatherHook.MethodHandler)
 	//ends program if it can't open port
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

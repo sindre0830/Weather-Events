@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"main/api/geocoords"
+	"main/api/geoCoords"
 	"main/api/weatherData"
 	"main/debug"
 	"net/http"
@@ -40,7 +40,7 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 	//get location information and branch if an error occurred
 	location := arrPath[5]
-	var locationCoords geocoords.LocationCoords
+	var locationCoords geoCoords.LocationCoords
 	status, err := locationCoords.Handler(location)
 	if err != nil {
 		debug.ErrorMessage.Update(

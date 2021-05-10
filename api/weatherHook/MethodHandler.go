@@ -1,19 +1,20 @@
-package weatherHoliday
+package weatherHook
 
 import (
 	"main/debug"
 	"net/http"
 )
 
-// MethodHandler handles the method of a http request.
+// MethodHandler - handles the method of a http request.
 func MethodHandler(w http.ResponseWriter, r *http.Request) {
-	var weatherHoliday WeatherHoliday
-
+	var weatherHook WeatherHook
 	switch r.Method {
 	case http.MethodPost:
-		weatherHoliday.Register(w, r)
+		weatherHook.HandlerPost(w,r)
+	case http.MethodGet:
+		weatherHook.HandlerGet(w,r)
 	case http.MethodDelete:
-		weatherHoliday.Delete(w, r)
+		weatherHook.HandlerDelete(w,r)
 	default:
 		debug.ErrorMessage.Update(
 			http.StatusMethodNotAllowed,

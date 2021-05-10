@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"main/api/geocoords"
+	"main/api/geoCoords"
 	"main/api/weatherData"
 	"main/debug"
 	"main/fun"
@@ -85,7 +85,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	var mainLocationCoords geocoords.LocationCoords
+	var mainLocationCoords geoCoords.LocationCoords
 	status, err := mainLocationCoords.Handler(mainLocation)
 	if err != nil {
 		debug.ErrorMessage.Update(
@@ -102,7 +102,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 	weatherCompare.Location = mainLocationCoords.Address
 	var arrCoordinates []locationInfo
 	for _, location := range arrCompareLocations {
-		var locationCoords geocoords.LocationCoords
+		var locationCoords geoCoords.LocationCoords
 		status, err := locationCoords.Handler(location)
 		if err != nil {
 			debug.ErrorMessage.Update(
