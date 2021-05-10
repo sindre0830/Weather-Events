@@ -177,3 +177,5 @@
 [3.17.0]    **development**:    Added passing of data from weatherHoliday to weatherEvent
 
 [3.18.0]    **development**:    Added WeatherEvent GET method and modified database.Get() to return map of interfaces
+
+[3.18.1]    **fix**:            Fixed weatherHook to work with new database.Get()
