@@ -52,19 +52,21 @@ func (database *Database) Setup() error {
 }
 
 // Add adds a new webhook to database.
-func (database *Database) Add(name string, id string, data Data) (string, error) {
+func (database *Database) Add(name string, id string, data Data) (string, string, error) {
 	data.Time = time.Now().Format(time.RFC822)
 	if id == "" {
 		//add data to database and get a UUID from firebase and branch if an error occurred
-		_, _, err := database.Client.Collection(name).Add(database.Ctx, data)
+		docRef, _, err := database.Client.Collection(name).Add(database.Ctx, data)
 		if err != nil {
-			return "", err
+			return "", "", err
 		}
+
+		id = docRef.ID
 	} else {
 		//add data to database and get a UUID from firebase and branch if an error occurred
 		_, err := database.Client.Collection(name).Doc(id).Set(database.Ctx, data)
 		if err != nil {
-			return "", err
+			return "", "", err
 		}
 	}
 	// //update Notifications with data from database and branch if and error occurred
@@ -72,7 +74,7 @@ func (database *Database) Add(name string, id string, data Data) (string, error)
 	// if err != nil {
 	// 	return err
 	// }
-	return data.Time, nil
+	return data.Time, id, nil
 }
 
 func (database *Database) Get(name string, id string) (Data, bool, error) {

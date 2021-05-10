@@ -67,7 +67,7 @@ func (weatherData *WeatherData) Handler(lat string, lon string) (int, error) {
 		//send data to database
 		var data db.Data
 		data.Container = weatherData
-		date, err := db.DB.Add("WeatherData", id, data)
+		date, _, err := db.DB.Add("WeatherData", id, data)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}

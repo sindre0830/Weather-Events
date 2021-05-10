@@ -160,3 +160,5 @@
 
 [3.10.0]     **development**:    Added function to delete weatherHoliday webhook
 
+[3.11.0]     **development**:    Changed adding to database function to return the documents ID
+

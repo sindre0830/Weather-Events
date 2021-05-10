@@ -21,11 +21,6 @@ type WeatherHoliday struct {
 	ID string `json:"id"`
 }
 
-// Response
-type Holiday struct {
-
-}
-
 // Register a webhook
 func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Request) {
 	// Decode body into struct
@@ -108,7 +103,7 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 	var dataDB db.Data
 	dataDB.Container = weatherHoliday
 
-	_, err = db.DB.Add("WeatherHoliday", "", dataDB)
+	_, id, err := db.DB.Add("WeatherHoliday", "", dataDB)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
@@ -120,18 +115,19 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	http.Error(w, "Webhook registered", http.StatusOK)
+	weatherHoliday.ID = id
+
+	http.Error(w, "Webhook registered", http.StatusCreated)
 }
 
 // Delete a webhook
 func (weatherHoliday *WeatherHoliday) Delete(w http.ResponseWriter, r *http.Request) {
-	// TODO: how to get id
 	// Parse URL path and ensure that the formatting is correct
 	path := strings.Split(r.URL.Path, "/")
 	if len(path) != 6 {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
-			"WeatherHoliday.Handler() -> Parsing URL",
+			"WeatherHoliday.Delete() -> Parsing URL",
 			"url validation: either too many or too few arguments in url path",
 			"URL format. Remember to add an ID at the end of the path",
 		)
@@ -144,11 +140,17 @@ func (weatherHoliday *WeatherHoliday) Delete(w http.ResponseWriter, r *http.Requ
 
 	err := db.DB.Delete(id)
 	if err != nil {
-		// TODO: handle error
+		debug.ErrorMessage.Update(
+			http.StatusInternalServerError,
+			"WeatherHoliday.Delete() -> db.Delete() -> Deleting webhook from the database",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
 		return
 	}
 
-	http.Error(w, "Webhook succesfully deleted", http.StatusOK)
+	http.Error(w, "Webhook successfully deleted", http.StatusNoContent)
 }
 
 
