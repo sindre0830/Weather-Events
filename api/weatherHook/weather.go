@@ -69,14 +69,13 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 * This method should post the webhook itself to the client.
 **/
 func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Get func")
 	w.Header().Set("Content-Type", "application/json")
 	// get query with ID
 	params, _ := url.ParseQuery(r.URL.RawQuery)
 	id := params["id"][0]
 
 	// check for ID in firestore - DB function
-	data, exist := db.DB.Get("notifications", id)		// all hooks in one db?
+	data, exist := db.DB.Get(hookdb, id)		// all hooks in one db?
 	// Extract from data
 	if exist {
 		err := weatherHook.readData(data["Container"].(interface{}))
@@ -108,7 +107,6 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 * Handles DELETE method requests from client.
 **/
 func (weatherHook *WeatherHook) HandlerDelete(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Delete func")
 	w.Header().Set("Content-Type", "application/json")
 	// get query with ID
 	params, _ := url.ParseQuery(r.URL.RawQuery)
@@ -144,7 +142,7 @@ func (weatherHook *WeatherHook) HandlerDelete(w http.ResponseWriter, r *http.Req
 func (weatherHook *WeatherHook) readData(data interface{}) error {
 	m := data.(map[string]interface{})
 	weatherHook.Location = m["Location"].(string)
-	weatherHook.Timeout = int64(m["Timeout"].(float64))
+	weatherHook.Timeout = m["Timeout"].(int64)
 	return nil
 }
 
