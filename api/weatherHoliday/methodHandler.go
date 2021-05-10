@@ -7,10 +7,15 @@ import (
 
 // MethodHandler handles the method of a http request.
 func MethodHandler(w http.ResponseWriter, r *http.Request) {
+	var weatherHoliday WeatherHoliday
+
 	switch r.Method {
 	case http.MethodPost:
-		var weatherHoliday WeatherHoliday
-		weatherHoliday.Handler(w, r)
+		weatherHoliday.Register(w, r)
+	case http.MethodDelete:
+		weatherHoliday.Delete(w, r)
+	case http.MethodGet:
+		//weatherHoliday.get(w, r)
 	default:
 		debug.ErrorMessage.Update(
 			http.StatusMethodNotAllowed,
