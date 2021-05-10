@@ -166,4 +166,11 @@
 
 [3.13.0]    **development**:    Added getWeatherCompareURL in dictionary
 
-[3.14.0]    **development**:    Added WeatherEvent POST method and a feedback pipeline to handle webhook feedback
+[3.14.0]    **development**:    Added ticketmaster endpoint
+
+[3.15.0]    **development**:    Moved code from holiday webhook to holiday data
+
+[3.15.1]    **fix**:            Fixed a bug when formatting holiday name wrong
+
+[3.16.0]    **development**:    Added WeatherEvent POST method and a feedback pipeline to handle webhook feedback
+

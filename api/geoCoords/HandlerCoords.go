@@ -19,10 +19,10 @@ import (
 *	Holds our latitude and longitude data for one location
 **/
 type LocationCoords struct {
-	Address 	string	`json:"address"`
-	Importance	float64 `json:"importance"`
-	Latitude	float64	`json:"lat"`
-	Longitude	float64 `json:"lon"`
+	Address    string  `json:"address"`
+	Importance float64 `json:"importance"`
+	Latitude   float64 `json:"lat"`
+	Longitude  float64 `json:"lon"`
 }
 
 var baseURL = "https://us1.locationiq.com/v1/search.php?key="
@@ -58,7 +58,7 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 		locationCoords.Importance = localData.Importance
 		locationCoords.Latitude = localData.Latitude
 		locationCoords.Longitude = localData.Longitude
-		
+
 		return http.StatusOK, nil
 	}
 
@@ -66,7 +66,7 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	data, exist, err := db.DB.Get("GeoCoords", id)
 	if err != nil && exist {
 		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
+			http.StatusInternalServerError,
 			"GeoCoords.HandlerCoords() -> Database.get() -> Trying to get data",
 			err.Error(),
 			"Unknown",
@@ -78,19 +78,19 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	// For locations that are not countries/capitals, we don't want to keep our data more than 3 hours.
 	// Data saved in local files should be kept indefinitely, so we don't check it.
 	withinTimeframe, err := db.CheckDate(data.Time, 3)
-	if exist && withinTimeframe{
+	if exist && withinTimeframe {
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-		
+
 		err = readData(locationCoords, data.Container)
 
 		if err != nil {
 			return http.StatusInternalServerError, err
-		} 
+		}
 
 		return http.StatusOK, nil
-	} 
+	}
 
 	// If the location is not stored in firestore OR locally, We get the data from the locationiq api
 	var locations []map[string]interface{}
@@ -140,12 +140,12 @@ func getCoords(coords *LocationCoords, location map[string]interface{}) error {
 	var err error
 
 	coords.Address = location["display_name"].(string)
-	latitude, err := strconv.ParseFloat(location["lat"].(string), 64) 
-	coords.Latitude = math.Round(latitude*100)/100
-	longitude, err := strconv.ParseFloat(location["lon"].(string), 64) 
-	coords.Longitude = math.Round(longitude*100)/100
+	latitude, err := strconv.ParseFloat(location["lat"].(string), 64)
+	coords.Latitude = math.Round(latitude*100) / 100
+	longitude, err := strconv.ParseFloat(location["lon"].(string), 64)
+	coords.Longitude = math.Round(longitude*100) / 100
 	importance := location["importance"].(float64)
-	coords.Importance = math.Round(importance*100)/100
+	coords.Importance = math.Round(importance*100) / 100
 
 	return err
 }
@@ -194,7 +194,7 @@ func readData(coords *LocationCoords, data interface{}) error {
 		coords.Longitude = field
 	} else {
 		return errors.New("getting data from database: Can't find expected field Longitude")
-	}	
+	}
 	if field, ok := m["Importance"].(float64); ok {
 		coords.Importance = field
 	} else {

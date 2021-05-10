@@ -14,8 +14,6 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 		weatherHoliday.Register(w, r)
 	case http.MethodDelete:
 		weatherHoliday.Delete(w, r)
-	case http.MethodGet:
-		//weatherHoliday.get(w, r)
 	default:
 		debug.ErrorMessage.Update(
 			http.StatusMethodNotAllowed,
