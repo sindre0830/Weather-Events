@@ -174,3 +174,5 @@
 
 [3.16.0]    **development**:    Added WeatherEvent POST method and a feedback pipeline to handle webhook feedback
 
+[3.17.0]    **development**:    Added WeatherEvent GET method and modified database.Get() to return map of interfaces
+

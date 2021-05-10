@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"main/api"
 	"main/api/countryData"
-	"main/api/geocoords"
+	"main/api/geoCoords"
 	"main/db"
 	"net/http"
 	"strings"
@@ -24,7 +24,7 @@ func Handler(location string) (map[string]interface{}, int, error) {
 	var holidays Holiday
 
 	// Get the geocoords of the location
-	var locationCoords geocoords.LocationCoords
+	var locationCoords geoCoords.LocationCoords
 	status, err := locationCoords.Handler(location)
 	if err != nil {
 		return holidaysMap, http.StatusBadRequest, err
@@ -43,20 +43,17 @@ func Handler(location string) (map[string]interface{}, int, error) {
 	}
 
 	// Check if country is already stored in the database
-	data, exist, err := db.DB.Get("Holidays", countryCode)
-	if err != nil && exist {
-		return holidaysMap, http.StatusInternalServerError, err
-	}
+	data, exist := db.DB.Get("Holidays", countryCode)
 
 	if exist {
 		// Finds the year the data was saved and the current year
-		savedYear := strings.Fields(data.Time)[2]
+		savedYear := strings.Fields(data["Time"].(string))[2]
 		currentYear := strings.Fields(time.Now().Format(time.RFC822))[2]
 
 		// If the years are the same, format the data received from the database. If not, get new data from the current year and add to the database
 		if savedYear == currentYear {
 			// Convert the data received to a map
-			holidaysMap = data.Container.(map[string]interface{})
+			holidaysMap = data["Container"].(interface{}).(map[string]interface{})
 
 			return holidaysMap, http.StatusOK, err
 		}
