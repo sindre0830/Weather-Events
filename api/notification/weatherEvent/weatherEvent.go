@@ -37,6 +37,10 @@ type WeatherEvent struct {
 }
 
 func (weatherEvent *WeatherEvent) callLoop() {
+	_, exist := db.DB.Get("weatherEvent", weatherEvent.ID)
+	if !exist {
+		return
+	}
 	nextTime := time.Now().Truncate(time.Second)
 	nextTime = nextTime.Add(time.Duration(weatherEvent.Timeout) * time.Second)
 	time.Sleep(time.Until(nextTime))

@@ -194,6 +194,8 @@
 
 [3.23.0]    **development**:    Added function to get one or all WeatherHoliday webhooks
 
-[3.23.1]    **fix**:    Solved issue with Postman seeing POST requests as GET
+[3.23.1]    **fix**:            Solved issue with Postman seeing POST requests as GET
+
+[3.24.0]    **development**:    Modified WeatherEvent callLoop to terminate when it is deleted
 
 
