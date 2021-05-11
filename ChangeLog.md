@@ -196,4 +196,6 @@
 
 [3.23.1]    **fix**:    Solved issue with Postman seeing POST requests as GET
 
+[3.23.2]    **fix**:    Fixed WeatherHoliday Get so the output is JSON
+
 
