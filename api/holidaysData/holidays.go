@@ -60,7 +60,7 @@ func Handler(location string) (map[string]interface{}, int, error) {
 
 	// Get data from the API and add to the database
 	var holidays Holiday
-	status, err = holidays.get(country)
+	status, err = holidays.get(countryCode)
 	if err != nil {
 		return holidaysMap, status, err
 	}
@@ -74,7 +74,7 @@ func Handler(location string) (map[string]interface{}, int, error) {
 	var dataDB db.Data
 	dataDB.Container = holidaysMap
 
-	_, _, err = db.DB.Add("Holidays", country, dataDB)
+	_, _, err = db.DB.Add("Holidays", countryCode, dataDB)
 	if err != nil {
 		return holidaysMap, http.StatusInternalServerError, err
 	}
