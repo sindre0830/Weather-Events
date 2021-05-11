@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"main/api/diag"
-	"main/api/eventData"
 	"main/api/notification/weatherEvent"
 	"main/api/notification/weatherHoliday"
 	"main/api/weather"
@@ -45,13 +44,11 @@ func main() {
 	http.HandleFunc(dict.WEATHERCOMPARE_PATH, compare.MethodHandler)
 	//handle weather event
 	http.HandleFunc(dict.WEATHEREVENT_PATH, weatherEvent.MethodHandler)
-	//handle event data
-	http.HandleFunc(dict.EVENT_PATH, eventData.MethodHandler)
 	//Diag endpoint
 	http.HandleFunc(dict.DIAG_PATH, diag.MethodHandler)
 	//handle holiday webhook
 	http.HandleFunc(dict.HOLIDAY_PATH, weatherHoliday.MethodHandler)
-	http.HandleFunc(dict.HOLIDAY_PATH + "/", weatherHoliday.MethodHandler)
+	http.HandleFunc(dict.HOLIDAY_PATH+"/", weatherHoliday.MethodHandler)
 	//handle weather webhook
 	http.HandleFunc(dict.WEATHERHOOK_PATH, weatherHook.MethodHandler)
 	//ends program if it can't open port

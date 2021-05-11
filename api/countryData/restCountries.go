@@ -10,20 +10,8 @@ import (
 	"strings"
 )
 
-//Information -Struct containing all necessary information from restcountries
-type Information []struct {
-	Name       string `json:"name"`
-	Alpha2Code string `json:"alpha2Code"`
-	Capital    string `json:"capital"`
-}
-
-//MyError -Struct containing custom error message
-type MyError struct {
-	What string
-}
-
 //Handler - Class function will be called and handle all requests and fetches
-func (data *Information) Handler(country string) (int, error, string) {
+func (data Information) Handler(country string) (int, error, string) {
 
 	//Check if document exists, if it does not exist run this code:
 	if _, err := os.Stat("./data/countries.json"); os.IsNotExist(err) {
