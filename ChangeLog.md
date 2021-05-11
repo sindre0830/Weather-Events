@@ -215,3 +215,5 @@
 [3.28.0]    **development**:    Moved weatherHook, changed trigger to callUrl.
 
 [3.29.0]    **development**:    Added date validation in weatherEvent.POST()
+
+[3.30.0]    **development**:    Added date validation in weatherEvent.callLoop()
