@@ -5,9 +5,9 @@ import (
 	"main/api/diag"
 	"main/api/notification/weatherEvent"
 	"main/api/notification/weatherHoliday"
+	"main/api/notification/weatherHook"
 	"main/api/weather"
 	compare "main/api/weatherCompare"
-	"main/api/weatherHook"
 	"main/db"
 	"main/dict"
 	"net/http"
@@ -35,7 +35,7 @@ func main() {
 		port = "8080"
 	}
 
-	weatherHook.StartTrigger(&db.DB) // Can't do this in database.go - cycling imports
+	weatherHook.StartCall(&db.DB) // Can't do this in database.go - cycling imports
 	//set URL with port
 	dict.URL = dict.URL + ":" + port
 	//handle weather data
