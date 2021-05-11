@@ -3,12 +3,13 @@ package weatherData
 import (
 	"encoding/json"
 	"main/api"
+	"main/dict"
 	"net/http"
 )
 
 // get will get data for structure.
 func (yr *Yr) get(lat string, lon string) (int, error) {
-	url := "https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=" + lat + "&lon=" + lon
+	url := dict.GetYrURL(lat, lon)
 	//gets json output from API and branch if an error occurred
 	status, err := yr.req(url)
 	if err != nil {

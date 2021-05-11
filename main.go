@@ -37,7 +37,7 @@ func main() {
 
 	weatherHook.StartCall(&db.DB) // Can't do this in database.go - cycling imports
 	//set URL with port
-	dict.URL = dict.URL + ":" + port
+	dict.MAIN_URL = dict.MAIN_URL + ":" + port
 	//handle weather data
 	http.HandleFunc(dict.WEATHER_PATH, weather.MethodHandler)
 	//handle weather comparison data

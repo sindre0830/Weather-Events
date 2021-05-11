@@ -221,3 +221,5 @@
 [3.31.0]    **development**:    Added date validation in weatherEvent.callLoop()
 
 [3.31.1]    **formatting**:     Reformatted structures in WeatherData package
+
+[3.31.2]    **formatting**:     Reformatted dict package
