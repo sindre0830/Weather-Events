@@ -25,9 +25,15 @@ func (weatherEvent *WeatherEvent) callLoop() {
 	if !exist {
 		return
 	}
+	//check if date is within 
+	date, _ := time.Parse("2006-01-02", weatherEvent.Date)
+	date = date.AddDate(0, 0, -8)
+	time.Sleep(time.Until(date))
+	//check if program should sleep on timeout value
 	nextTime := time.Now().Truncate(time.Second)
 	nextTime = nextTime.Add(time.Duration(weatherEvent.Timeout) * time.Second)
 	time.Sleep(time.Until(nextTime))
+	//get url based on webhook data
 	url := dict.GetWeatherURL(weatherEvent.Location, weatherEvent.Date)
 	var weather weather.Weather
 	//create new GET request and branch if an error occurred
