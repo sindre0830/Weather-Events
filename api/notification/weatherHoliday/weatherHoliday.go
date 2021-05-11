@@ -1,14 +1,23 @@
 package weatherHoliday
 
 import (
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"main/api/holidaysData"
 	"main/api/notification"
+	"main/api/weather"
 	"main/db"
 	"main/debug"
+	"main/dict"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // WeatherHolidayInput structure, stores information from the user about the webhook
@@ -61,7 +70,7 @@ func (weatherHoliday *WeatherHoliday) Delete(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// Create feedback message to send to client
+	/*/ Create feedback message to send to client
 	var feedback notification.Feedback
 	feedback.Update(
 		http.StatusNoContent,
@@ -78,11 +87,10 @@ func (weatherHoliday *WeatherHoliday) Delete(w http.ResponseWriter, r *http.Requ
 			"Unknown",
 		)
 		debug.ErrorMessage.Print(w)
-		return
-	}
+	}*/
 }
 
-// Get a registered webhook
+// Get one or all registered webhook
 func (weatherHoliday *WeatherHoliday) Get(w http.ResponseWriter, r *http.Request) {
 	var holidayMap = make(map[string]interface{})
 
@@ -120,20 +128,22 @@ func (weatherHoliday *WeatherHoliday) Get(w http.ResponseWriter, r *http.Request
 		// Parse data into map
 		holidayMap = data["Container"].(interface{}).(map[string]interface{})
 
-		// Convert to json
-		jsonData, err := json.Marshal(holidayMap)
+		// Update header to JSON and set HTTP code
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		// Send output to user
+		err := json.NewEncoder(w).Encode(&holidayMap)
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError,
-				"WeatherHoliday.Get() -> Converting to json",
+				"WeatherHoliday.Get() -> Sending data to user",
 				err.Error(),
 				"Unknown",
 			)
 			debug.ErrorMessage.Print(w)
 			return
 		}
-
-		http.Error(w, string(jsonData), http.StatusOK)
 	} else {
 		// Get all documents in the collection
 		arrData, err := db.DB.GetAll("weatherHoliday")
@@ -188,7 +198,7 @@ func (weatherHoliday *WeatherHoliday) readData(data interface{}) error {
 	return nil
 }
 
-// POST handles a POST request from the http request.
+// Register a webhook
 func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Request) {
 	var weatherHolidayInput WeatherHolidayInput
 
@@ -309,6 +319,10 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	weatherHoliday.ID = id
+	// Start calling of the webhook
+	go weatherHoliday.callLoop()
+
 	// Create feedback message and print it to the user
 	var feedback notification.Feedback
 	feedback.Update(
@@ -328,6 +342,96 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 		debug.ErrorMessage.Print(w)
 		return
 	}
+}
+
+// callLoop to invoke webhooks
+func (weatherHoliday *WeatherHoliday) callLoop() {
+	nextTime := time.Now().Truncate(time.Second)
+	nextTime = nextTime.Add(time.Duration(weatherHoliday.Timeout) * time.Second)
+	time.Sleep(time.Until(nextTime))
+
+	url := dict.GetWeatherURL(weatherHoliday.Location, weatherHoliday.Date)
+
+	var weather weather.Weather
+
+	// Create new GET request and branch if an error occurred
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		fmt.Printf(
+			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tRaw error: %v\n}\n",
+			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+		)
+		go weatherHoliday.callLoop()
+	}
+
+	// Call the policy handler and branch if the status code is not OK
+	// This stops timed out request being sent to the webhook
+	recorder := httptest.NewRecorder()
+	weather.Handler(recorder, req)
+	if recorder.Result().StatusCode != http.StatusOK {
+		fmt.Printf(
+			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tStatus code: %v\n}\n",
+			time.Now().Format("2006-01-02 15:04:05"), recorder.Result().StatusCode,
+		)
+		go weatherHoliday.callLoop()
+	}
+
+	// Convert from structure to bytes and branch if an error occurred
+	output, err := json.Marshal(weather)
+	if err != nil {
+		fmt.Printf(
+			"%v {\n\tError when parsing Weather structure.\n\tRaw error: %v\n}\n",
+			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+		)
+		go weatherHoliday.callLoop()
+	}
+
+	// Create new POST request and branch if an error occurred
+	req, err = http.NewRequest(http.MethodPost, weatherHoliday.URL, bytes.NewBuffer(output))
+	if err != nil {
+		fmt.Printf(
+			"%v {\n\tError when creating new POST request.\n\tRaw error: %v\n}\n",
+			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+		)
+		go weatherHoliday.callLoop()
+	}
+
+	// Hash structure and branch if an error occurred
+	mac := hmac.New(sha256.New, dict.Secret)
+	_, err = mac.Write([]byte(output))
+	if err != nil {
+		fmt.Printf(
+			"%v {\n\tError when hashing content before POST request.\n\tRaw error: %v\n}\n",
+			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+		)
+		go weatherHoliday.callLoop()
+	}
+
+	// Convert hashed structure to string and add to header
+	req.Header.Add("Signature", hex.EncodeToString(mac.Sum(nil)))
+	// Update header to JSON
+	req.Header.Set("Content-Type", "application/json")
+	// Send request to client and branch if an error occurred
+
+	client := http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Printf(
+			"%v {\n\tError when sending HTTP content to webhook.\n\tRaw error: %v\n}\n",
+			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+		)
+		go weatherHoliday.callLoop()
+	}
+
+	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusServiceUnavailable {
+		fmt.Printf(
+			"%v {\n\tWebhook URL is not valid. Deleting webhook...\n\tStatus code: %v\n}\n",
+			time.Now().Format("2006-01-02 15:04:05"), res.StatusCode,
+		)
+		db.DB.Delete("weatherEvent", weatherHoliday.ID)
+		return
+	}
+	go weatherHoliday.callLoop()
 }
 
 

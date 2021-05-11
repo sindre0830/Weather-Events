@@ -198,4 +198,9 @@
 
 [3.24.0]    **development**:    Modified WeatherEvent callLoop to terminate when it is deleted
 
+[3.23.2]    **fix**:    Fixed WeatherHoliday Get so the output is JSON
+
+[3.23.3]    **fix**:    Fixed HandlerCoord's Handler to check if "Time" key exists
+
+
 

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -41,6 +42,8 @@ var LocalCoords = make(map[string]LocationCoords)
 *	@see	getLocations
 **/
 func (locationCoords *LocationCoords) Handler(id string) (int, error) {
+	id = strings.ToLower(id)
+
 	// We read our local DB, if one exists, into LocalCoords map.
 	var file []byte
 	if _, err := os.Stat("GeoCoords.json"); err == nil {
@@ -67,33 +70,35 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	// We check whether data on firestore is deprecated or not.
 	// For locations that are not countries/capitals, we don't want to keep our data more than 3 hours.
 	// Data saved in local files should be kept indefinitely, so we don't check it.
-	withinTimeframe, err := db.CheckDate(data["Time"].(string), 3)
+	withinTimeframe := false
+
+	if _, ok := data["Time"].(string); ok {
+		withinTimeframe, _ = db.CheckDate(data["Time"].(string), 3)
+	}
+
 	if exist && withinTimeframe {
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
+			err := readData(locationCoords, data["Container"].(interface{}))
 
-		err = readData(locationCoords, data["Container"].(interface{}))
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
 
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-
-		return http.StatusOK, nil
+			return http.StatusOK, nil
 	}
 
 	// If the location is not stored in firestore OR locally, We get the data from the locationiq api
 	var locations []map[string]interface{}
 	status, err := getLocations(&locations, id)
-
 	if err != nil {
 		return status, err
 	}
 	// We get lat and lon from the first json object in our locations array
+
 	err = getCoords(locationCoords, locations[0])
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+
 	// We store our fresh data
 	if locationCoords.Importance > 0.7 {
 		// Save locally if it's an important place
