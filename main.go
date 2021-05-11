@@ -35,6 +35,8 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
+	weatherHook.StartTrigger(&db.DB)	// Can't do this in database.go - cycling imports
 	//set URL with port
 	dict.URL = dict.URL + ":" + port
 	//handle weather data
