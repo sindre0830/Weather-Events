@@ -328,6 +328,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 			"Unknown",
 		)
 		debug.ErrorMessage.Print(w)
+		return
 	}
 	recorder := httptest.NewRecorder()
 	weather.Handler(recorder, req)
@@ -339,17 +340,28 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 			"Location not found. Example: 'Oslo'",
 		)
 		debug.ErrorMessage.Print(w)
+		return
 	}
-
+	//convert holiday to date if it is inputted
 	weatherEventInput.checkIfHoliday()
-
+	//check if date is valid
+	if !weatherEventInput.checkDate() {
+		debug.ErrorMessage.Update(
+			http.StatusNotFound,
+			"WeatherEvent.POST() -> WeatherEvent.checkDate() -> Checking if date is valid",
+			"invalid date: date is either wrong format or not within scope",
+			"Check that the format of the date is YYYY-MM-DD and that it is within timeframe.",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
 	//set data
 	weatherEvent.Date = weatherEventInput.Date
 	weatherEvent.Location = weatherEventInput.Location
 	weatherEvent.URL = weatherEventInput.URL
 	weatherEvent.Frequency = weatherEventInput.Frequency
 	weatherEvent.Timeout = weatherEventInput.Timeout
-
+	//send data to database
 	var data db.Data
 	data.Container = weatherEvent
 	_, id, err := db.DB.Add("weatherEvent", "", data)
@@ -364,8 +376,6 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	weatherEvent.ID = id
-	//start loop
-	go weatherEvent.callLoop()
 	//create feedback message to send to client and branch if an error occurred
 	var feedback notification.Feedback
 	feedback.Update(
@@ -383,6 +393,20 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 		)
 		debug.ErrorMessage.Print(w)
 		return
+	}
+	//start loop
+	go weatherEvent.callLoop()
+}
+
+func (weatherEventInput *WeatherEventInput) checkDate() bool {
+	date, err := time.Parse("2006-01-02", weatherEventInput.Date)
+	if err != nil {
+		return false
+	}
+	if weatherEventInput.Date == time.Now().Format("2006-01-02") {
+		return true
+	} else {
+		return time.Now().Before(date)
 	}
 }
 
