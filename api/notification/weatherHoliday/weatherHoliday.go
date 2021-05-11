@@ -22,22 +22,22 @@ import (
 
 // WeatherHolidayInput structure, stores information from the user about the webhook
 type WeatherHolidayInput struct {
-	Holiday 	string `json:"holiday"`
-	Location 	string `json:"location"`
-	URL 		string `json:"url"`
-	Frequency 	string `json:"frequency"`
-	Timeout 	int64 `json:"timeout"`
+	Holiday   string `json:"holiday"`
+	Location  string `json:"location"`
+	URL       string `json:"url"`
+	Frequency string `json:"frequency"`
+	Timeout   int64  `json:"timeout"`
 }
 
 // WeatherHoliday structure, stores information about the webhook added to the database
 type WeatherHoliday struct {
-	ID        	string `json:"id"`
-	Date 		string `json:"date"`
-	Holiday 	string `json:"holiday"`
-	Location 	string `json:"location"`
-	URL 		string `json:"url"`
-	Frequency 	string `json:"frequency"`
-	Timeout 	int64 `json:"timeout"`
+	ID        string `json:"id"`
+	Date      string `json:"date"`
+	Holiday   string `json:"holiday"`
+	Location  string `json:"location"`
+	URL       string `json:"url"`
+	Frequency string `json:"frequency"`
+	Timeout   int64  `json:"timeout"`
 }
 
 // Delete a webhook
@@ -73,7 +73,7 @@ func (weatherHoliday *WeatherHoliday) Delete(w http.ResponseWriter, r *http.Requ
 	/*/ Create feedback message to send to client
 	var feedback notification.Feedback
 	feedback.Update(
-		http.StatusNoContent,
+		http.StausOK,
 		"Webhook successfully deleted",
 		id,
 	)
@@ -110,11 +110,11 @@ func (weatherHoliday *WeatherHoliday) Get(w http.ResponseWriter, r *http.Request
 	// Get webhook ID
 	id := path[len(path)-1]
 
-	if id != ""  {
+	if id != "" {
 		// Get webhook from the database if it exists
 		data, exists := db.DB.Get("weatherHoliday", id)
 
-		if  !exists {
+		if !exists {
 			debug.ErrorMessage.Update(
 				http.StatusBadRequest,
 				"WeatherHoliday.Get() -> Database.Get() -> finding document based on ID",
@@ -278,7 +278,7 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	
+
 	// Make the first letter of each word uppercase to match the format in holidaysMap
 	weatherHolidayInput.Holiday = strings.Title(strings.ToLower(weatherHolidayInput.Holiday))
 
@@ -327,7 +327,7 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 	var feedback notification.Feedback
 	feedback.Update(
 		http.StatusCreated,
-		"Webhook successfully created for '" + weatherHoliday.URL + "'",
+		"Webhook successfully created for '"+weatherHoliday.URL+"'",
 		id,
 	)
 
@@ -433,8 +433,3 @@ func (weatherHoliday *WeatherHoliday) callLoop() {
 	}
 	go weatherHoliday.callLoop()
 }
-
-
-
-
-
