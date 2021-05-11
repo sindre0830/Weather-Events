@@ -389,7 +389,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 // checkIfHoliday, checks if Date field is date or holiday
 func (weatherEventInput *WeatherEventInput) checkIfHoliday() {
 	// Parse date to see if it is a date or a holiday
-	_, err := time.Parse("2006-01-02 15:04:05", weatherEventInput.Date)
+	_, err := time.Parse("2006-01-02", weatherEventInput.Date)
 	if err != nil {
 		// It is a holiday, replace holiday with date
 		// Get a map of all the country's holidays

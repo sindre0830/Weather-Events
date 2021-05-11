@@ -208,3 +208,6 @@
 
 [3.26.0]    **development**:    Added function to check if Date field is date or holiday
 
+[3.26.1]    **fix**:    Fixed formatting of date
+
+
