@@ -194,11 +194,20 @@
 
 [3.23.0]    **development**:    Added function to get one or all WeatherHoliday webhooks
 
-[3.23.1]    **fix**:    Solved issue with Postman seeing POST requests as GET
+[3.23.1]    **fix**:            Solved issue with Postman seeing POST requests as GET
 
-[3.23.2]    **fix**:    Fixed WeatherHoliday Get so the output is JSON
+[3.23.2]    **fix**:            Fixed WeatherHoliday Get so the output is JSON
 
-[3.23.3]    **fix**:    Fixed HandlerCoord's Handler to check if "Time" key exists
+[3.23.3]    **fix**:            Fixed HandlerCoord's Handler to check if "Time" key exists
 
+[3.24.0]    **development**:    Modified WeatherEvent callLoop to terminate when it is deleted
+
+[3.25.0]    **development**:    Added StartTrigger to weatherHook for initiating webhooks from DB on program start
+
+[3.25.1]    **fix**:    Fixed WeatherData's Handler to check if "Time" key exists
+
+[3.26.0]    **development**:    Added function to check if Date field is date or holiday
+
+[3.26.1]    **fix**:    Fixed formatting of date
 
 

@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"google.golang.org/api/iterator"
 )
 
 type WeatherHook struct {
@@ -50,8 +52,8 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 		debug.ErrorMessage.Print(w)
 		return
 	}
-
-	weatherHook.trigger()
+	// Start as go routine, else system will hang for the sleep time!
+	go weatherHook.Trigger()
 	debug.ErrorMessage.Update(
 		http.StatusCreated, 
 		"WeatherHook -> MethodHandler() -> weatherHook.HandlerPost() -> Adding webhook to database.",
@@ -78,7 +80,7 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 	data, exist := db.DB.Get(hookdb, id)		// all hooks in one db?
 	// Extract from data
 	if exist {
-		err := weatherHook.readData(data["Container"].(interface{}))
+		err := weatherHook.ReadData(data["Container"].(interface{}))
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusNotFound, 
@@ -139,21 +141,21 @@ func (weatherHook *WeatherHook) HandlerDelete(w http.ResponseWriter, r *http.Req
 * readData
 * Reads data from a Data struct.
 **/
-func (weatherHook *WeatherHook) readData(data interface{}) error {
+func (weatherHook *WeatherHook) ReadData(data interface{}) error {
 	m := data.(map[string]interface{})
 	weatherHook.Location = m["Location"].(string)
 	weatherHook.Timeout = m["Timeout"].(int64)
 	return nil
 }
 
-// Currently only runs til the program goes down
 // How to check deletion time?
+// Remember to change to hour
 /**
 * trigger
 * This function handles triggering each weatherHook every timeout hours. It's run as a go-routine
 **/
-func (weatherHook *WeatherHook) trigger () {
-	nextTime := time.Now().Truncate(time.Second)	// change to hour
+func (weatherHook *WeatherHook) Trigger () {
+	nextTime := time.Now().Truncate(time.Second)	// change to hour!!!!!!!
 	nextTime = nextTime.Add(time.Duration(weatherHook.Timeout) * time.Second)
 	time.Sleep(time.Until(nextTime))
 
@@ -166,5 +168,30 @@ func (weatherHook *WeatherHook) trigger () {
 		fmt.Printf("\nPassed webhook to user!")
 	}
 	
-	go weatherHook.trigger()
+	go weatherHook.Trigger()
+}
+
+// Can't put in database due to cyclic import
+func StartTrigger(database *db.Database) error {
+	iter := database.Client.Collection("weatherHookDB").Documents(database.Ctx)
+	for {
+        doc, err := iter.Next()
+        if err == iterator.Done {
+            break
+        }
+        if err != nil {
+            return err
+		}
+		// Create dummy variables
+		var temp WeatherHook
+		var dbMap = doc.Data()
+		// Extract data from iterator
+		err = temp.ReadData(dbMap["Container"].(interface{}))
+		if err != nil {
+            return err
+		}
+		// Start as go routine, else system will hang for the sleep time!
+		go temp.Trigger()
+	}
+	return nil
 }
