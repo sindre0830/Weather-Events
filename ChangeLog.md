@@ -225,3 +225,5 @@
 [3.31.2]    **formatting**:     Reformatted dict package
 
 [3.31.3]    **formatting**:     Reformatted weatherData package
+
+[3.31.4]    **formatting**:     Reformatted weather package

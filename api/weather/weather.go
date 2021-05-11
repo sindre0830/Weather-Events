@@ -41,6 +41,9 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 		return
 	}
+	weather.Longitude = locationCoords.Longitude
+	weather.Latitude = locationCoords.Latitude
+	weather.Location = locationCoords.Address
 	//get all parameters from URL and branch if an error occurred
 	arrParam, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
@@ -83,7 +86,7 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	//get weather data and branch if an error occurred
-	status, err = weather.get(locationCoords.Latitude, locationCoords.Longitude, date)
+	status, err = weather.get(weather.Latitude, weather.Longitude, date)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			status,
@@ -94,14 +97,8 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	//set data in structure
-	weather.Longitude = locationCoords.Longitude
-	weather.Latitude = locationCoords.Latitude
-	weather.Location = locationCoords.Address
-	//update header to JSON and set HTTP code
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 	//send output to user and branch if an error occured
+	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(weather)
 	if err != nil {
 		debug.ErrorMessage.Update(
@@ -126,7 +123,7 @@ func (weather *Weather) get(lat float64, lon float64, date string) (int, error) 
 		return status, err
 	}
 	weather.Timeseries = make(map[string]weatherData.Timeseries)
-	//set data in structure
+	//set data in structure and branch if data can't be found
 	weather.Updated = weatherDataRange.Updated
 	if data, ok := weatherDataRange.Timeseries[date]; ok {
 		weather.Timeseries[date] = data
