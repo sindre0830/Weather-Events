@@ -43,14 +43,17 @@ func (weatherData *WeatherData) Handler(lat string, lon string) (int, error) {
 	//try to get data from database and branch if an error occurred
 	id := lat + "&" + lon
 	data, exist := db.DB.Get("WeatherData", id)
-	//get status on timeframe and branch if an error occurred
-	withinTimeframe, err := db.CheckDate(data["Time"].(string), 6)
+	withinTimeframe := false
+
+	// Check if "Time" key exists
+	if _, ok := data["Time"].(string); ok {
+		//get status on timeframe and branch if an error occurred
+		withinTimeframe, _ = db.CheckDate(data["Time"].(string), 3)
+	}
+
 	//check if data is in database and if it's usable then either read data or get new data
 	if exist && withinTimeframe {
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-		err = weatherData.readData(data["Container"].(interface{}))
+		err := weatherData.readData(data["Container"].(interface{}))
 		weatherData.Updated = data["Time"].(string)
 		if err != nil {
 			return http.StatusInternalServerError, err
