@@ -61,18 +61,6 @@ type Data struct {
 	} `json:"next_6_hours"`
 }
 
-// Yr structure stores weather data for the next 10 days.
-//
-// Functionality: get, req
-type Yr struct {
-	Properties struct {
-		Timeseries []struct {
-			Time string `json:"time"`
-			Data Data `json:"data"`
-		} `json:"timeseries"`
-	} `json:"properties"`
-}
-
 // get will get data for structure.
 func (yr *Yr) get(lat string, lon string) (int, error) {
 	url := "https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=" + lat + "&lon=" + lon

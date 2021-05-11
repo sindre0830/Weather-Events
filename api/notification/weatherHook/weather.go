@@ -20,19 +20,6 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-type WeatherHook struct {
-	ID        	string 	  `json:"id"`
-	Location 	string    `json:"location"`
-	Timeout		int64	  `json:"timeout"`
-	URL			string	  `json:"url"`
-}
-
-type WeatherHookInput struct {
-	Location 	string    `json:"location"`
-	Timeout		int64	  `json:"timeout"`
-	URL			string	  `json:"url"`
-}
-
 var hookdb = "weatherHookDB"
 
 /**
@@ -121,7 +108,7 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 	// Return ID if successful, otherwise error
 	if err != nil {
 		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
+			http.StatusInternalServerError,
 			"WeatherHook -> MethodHandler() -> weatherHook.HandlerPost() -> Adding webhook to database.",
 			"Database error: failed to add webhook!",
 			"Improper formatting of webhook.",
@@ -135,14 +122,14 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 	//create feedback message to send to client and branch if an error occurred
 	var feedback notification.Feedback
 	feedback.Update(
-		http.StatusCreated, 
-		"Webhook successfully created for '" + weatherHook.URL + "'",
+		http.StatusCreated,
+		"Webhook successfully created for '"+weatherHook.URL+"'",
 		weatherHook.ID,
 	)
 	err = feedback.Print(w)
 	if err != nil {
 		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
+			http.StatusInternalServerError,
 			"WeatherEvent.POST() -> Feedback.print() -> Sending feedback to client",
 			err.Error(),
 			"Unknown",
@@ -153,7 +140,7 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 	// // Start as go routine, else system will hang for the sleep time!
 	// go weatherHook.Trigger()
 	// debug.ErrorMessage.Update(
-	// 	http.StatusCreated, 
+	// 	http.StatusCreated,
 	// 	"WeatherHook -> MethodHandler() -> weatherHook.HandlerPost() -> Adding webhook to database.",
 	// 	"Webhook successfully added to database! Your ID: " + id,
 	// 	"",				// We have to add ID here!
@@ -161,7 +148,6 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 	// debug.ErrorMessage.Print(w)
 	// return
 }
-
 
 /**
 * HandlerGet
@@ -175,13 +161,13 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 	id := params["id"][0]
 
 	// check for ID in firestore - DB function
-	data, exist := db.DB.Get(hookdb, id)		// all hooks in one db?
+	data, exist := db.DB.Get(hookdb, id) // all hooks in one db?
 	// Extract from data
 	if exist {
 		err := weatherHook.ReadData(data["Container"].(interface{}))
 		if err != nil {
 			debug.ErrorMessage.Update(
-				http.StatusNotFound, 
+				http.StatusNotFound,
 				"WeatherHook -> MethodHandler() -> weatherHook.HandlerGet() -> Reading data from firebase.",
 				"Database error: Failed when reading from database!",
 				"",
@@ -194,7 +180,7 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 		//send output to user and branch if an error occured
 		if err != nil {
 			debug.ErrorMessage.Update(
-				http.StatusInternalServerError, 
+				http.StatusInternalServerError,
 				"WeatherEvent.GET() -> Sending data to user",
 				err.Error(),
 				"Unknown",
@@ -204,7 +190,7 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 		}
 	} else {
 		debug.ErrorMessage.Update(
-			http.StatusNotFound, 
+			http.StatusNotFound,
 			"WeatherHook -> MethodHandler() -> weatherHook.HandlerGet() -> Finding ID",
 			"Database error: ID not found!",
 			"Bad ID entered OR wrong method: GET.",
@@ -228,7 +214,7 @@ func (weatherHook *WeatherHook) HandlerDelete(w http.ResponseWriter, r *http.Req
 
 	if err != nil {
 		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
+			http.StatusInternalServerError,
 			"WeatherHook -> MethodHandler() -> weatherHook.HandlerDelete() -> Deleting webhook",
 			"Database error on deleting webhook! Bad ID entered OR wrong method: DELETE.",
 			"",
@@ -237,7 +223,7 @@ func (weatherHook *WeatherHook) HandlerDelete(w http.ResponseWriter, r *http.Req
 		return
 	} else {
 		debug.ErrorMessage.Update(
-			http.StatusOK, 
+			http.StatusOK,
 			"WeatherHook -> MethodHandler() -> weatherHook.HandlerGet() -> Deleting Webhook",
 			"Webhook successfully deleted!",
 			"",
@@ -247,14 +233,13 @@ func (weatherHook *WeatherHook) HandlerDelete(w http.ResponseWriter, r *http.Req
 	}
 }
 
-
 func (weatherHook *WeatherHook) callLoop() {
 	_, exist := db.DB.Get("weatherHook", weatherHook.ID)
 	if !exist {
 		return
 	}
 	nextTime := time.Now().Truncate(time.Second)
-	nextTime = nextTime.Add(time.Duration(weatherHook.Timeout) * time.Second)		// Change to hour!
+	nextTime = nextTime.Add(time.Duration(weatherHook.Timeout) * time.Second) // Change to hour!
 	time.Sleep(time.Until(nextTime))
 	url := dict.GetWeatherURL(weatherHook.Location, "")
 	var weather weather.Weather
@@ -262,7 +247,7 @@ func (weatherHook *WeatherHook) callLoop() {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		fmt.Printf(
-			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tRaw error: %v\n}\n", 
+			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
 		go weatherHook.callLoop()
@@ -273,7 +258,7 @@ func (weatherHook *WeatherHook) callLoop() {
 	weather.Handler(recorder, req)
 	if recorder.Result().StatusCode != http.StatusOK {
 		fmt.Printf(
-			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tStatus code: %v\n}\n", 
+			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tStatus code: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), recorder.Result().StatusCode,
 		)
 		go weatherHook.callLoop()
@@ -282,7 +267,7 @@ func (weatherHook *WeatherHook) callLoop() {
 	output, err := json.Marshal(weather)
 	if err != nil {
 		fmt.Printf(
-			"%v {\n\tError when parsing Weather structure.\n\tRaw error: %v\n}\n", 
+			"%v {\n\tError when parsing Weather structure.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
 		go weatherHook.callLoop()
@@ -291,7 +276,7 @@ func (weatherHook *WeatherHook) callLoop() {
 	req, err = http.NewRequest(http.MethodPost, weatherHook.URL, bytes.NewBuffer(output))
 	if err != nil {
 		fmt.Printf(
-			"%v {\n\tError when creating new POST request.\n\tRaw error: %v\n}\n", 
+			"%v {\n\tError when creating new POST request.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
 		go weatherHook.callLoop()
@@ -301,7 +286,7 @@ func (weatherHook *WeatherHook) callLoop() {
 	_, err = mac.Write([]byte(output))
 	if err != nil {
 		fmt.Printf(
-			"%v {\n\tError when hashing content before POST request.\n\tRaw error: %v\n}\n", 
+			"%v {\n\tError when hashing content before POST request.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
 		go weatherHook.callLoop()
@@ -315,14 +300,14 @@ func (weatherHook *WeatherHook) callLoop() {
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Printf(
-			"%v {\n\tError when sending HTTP content to webhook.\n\tRaw error: %v\n}\n", 
+			"%v {\n\tError when sending HTTP content to webhook.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
 		go weatherHook.callLoop()
 	}
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusServiceUnavailable {
 		fmt.Printf(
-			"%v {\n\tWebhook URL is not valid. Deleting webhook...\n\tStatus code: %v\n}\n", 
+			"%v {\n\tWebhook URL is not valid. Deleting webhook...\n\tStatus code: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), res.StatusCode,
 		)
 		db.DB.Delete("weatherEvent", weatherHook.ID)
@@ -330,7 +315,6 @@ func (weatherHook *WeatherHook) callLoop() {
 	}
 	go weatherHook.callLoop()
 }
-
 
 /**
 * readData
@@ -348,12 +332,12 @@ func (weatherHook *WeatherHook) ReadData(data interface{}) error {
 func StartCall(database *db.Database) error {
 	iter := database.Client.Collection("weatherHookDB").Documents(database.Ctx)
 	for {
-        doc, err := iter.Next()
-        if err == iterator.Done {
-            break
-        }
-        if err != nil {
-            return err
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return err
 		}
 		// Create dummy variables
 		var temp WeatherHook
@@ -361,7 +345,7 @@ func StartCall(database *db.Database) error {
 		// Extract data from iterator
 		err = temp.ReadData(dbMap["Container"].(interface{}))
 		if err != nil {
-            return err
+			return err
 		}
 		// Start as go routine, else system will hang for the sleep time!
 		go temp.callLoop()
