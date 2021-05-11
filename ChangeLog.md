@@ -229,3 +229,5 @@
 [3.31.4]    **formatting**:     Reformatted weather package
 
 [3.31.5]    **fix**:            Fixed CheckDate to subtract hours instead of minutes
+
+[3.31.6]    **formatting**:     Reformatted weatherCompare package
