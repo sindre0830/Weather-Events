@@ -11,13 +11,6 @@ import (
 	"time"
 )
 
-// Struct for information about one holiday, used when getting data from the API
-type Holiday []struct {
-	Date string `json:"date"`
-	Name string `json:"name"`
-}
-
-
 // Handler that gets data about a country's holidaysData from either the API or the database
 func Handler(location string) (map[string]interface{}, int, error) {
 	var holidaysMap = make(map[string]interface{})

@@ -7,12 +7,6 @@ import (
 	"time"
 )
 
-//FirebaseStore -simple struct containing ticketmaster information
-type FirebaseStore struct {
-	Localdate string `json:"localDate"`
-	Name      string `json:"name"`
-}
-
 //Handler - Class function will be called and handle all requests and fetches
 func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 

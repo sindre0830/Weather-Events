@@ -10,11 +10,11 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 	var weatherHook WeatherHook
 	switch r.Method {
 	case http.MethodPost:
-		weatherHook.HandlerPost(w,r)
+		weatherHook.HandlerPost(w, r)
 	case http.MethodGet:
-		weatherHook.HandlerGet(w,r)
+		weatherHook.HandlerGet(w, r)
 	case http.MethodDelete:
-		weatherHook.HandlerDelete(w,r)
+		weatherHook.HandlerDelete(w, r)
 	default:
 		debug.ErrorMessage.Update(
 			http.StatusMethodNotAllowed,
