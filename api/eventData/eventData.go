@@ -1,71 +1,38 @@
 package eventData
 
 import (
-	"encoding/json"
 	"errors"
 	"main/db"
-	"main/debug"
 	"net/http"
-	"strings"
 	"time"
 )
 
 //FirebaseStore -simple struct containing ticketmaster information
 type FirebaseStore struct {
 	Localdate string `json:"localDate"`
-	Longitude string `json:"longitude"`
-	Latitude  string `json:"latitude"`
+	Name      string `json:"name"`
 }
 
 //Handler - Class function will be called and handle all requests and fetches
-func MethodHandler(w http.ResponseWriter, r *http.Request) {
-
-	//URL parsing
-	parts := strings.Split(r.URL.Path, "/")
-	if len(parts) != 7 {
-		debug.ErrorMessage.Update(
-			http.StatusBadRequest,
-			"TicketMaster.Handler() -> Parsing URL",
-			"url validation: either too many or too few arguments in url path",
-			"URL format. Expected format: '.../event_id'. Example: '.../oslo'",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
-
-	id := parts[5]
+func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 
 	//Check if it is already in firebase
-	data, exist := db.DB.Get("Events", id)
+	data, exist := db.DB.Get("Events", eventId)
 
 	if exist { //If in firebase, fetch data from firebase
 
-		//Storing locally
+		//Storing it locally temporarily
 		var info FirebaseStore
 		err := info.readData(data["Container"].(interface{}))
 		if err != nil {
-			debug.ErrorMessage.Update(
-				http.StatusInternalServerError,
-				"TicketMaster.Handler() -> Converting String Date to time.Time format",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-			return
+			return http.StatusInternalServerError, err
 		}
 
 		//Convert the date string
 		layOut := "2006-01-02"
 		dateStamp, err := time.Parse(layOut, info.Localdate)
 		if err != nil {
-			debug.ErrorMessage.Update(
-				http.StatusInternalServerError,
-				"TicketMaster.Handler() -> Converting String Date to time.Time format",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-			return
+			return http.StatusInternalServerError, err
 		}
 
 		//Check if the eventdata should be deleted
@@ -73,80 +40,33 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 
 		if overdue {
 			//delete the entry in the firebase
-			err = db.DB.DeleteEvent(id)
+			err = db.DB.DeleteEvent(eventId)
 			if err != nil {
-				debug.ErrorMessage.Update(
-					http.StatusInternalServerError,
-					"TicketMaster.Handler() -> Database.Delete() -> Deleting specific event",
-					err.Error(),
-					"Unknown",
-				)
-				debug.ErrorMessage.Print(w)
-				return
+				return http.StatusInternalServerError, err
 			}
 		}
 
-		//update header to JSON and set HTTP code
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		//send output to user and branch if an error occured
-		err = json.NewEncoder(w).Encode(info)
-		if err != nil {
-			debug.ErrorMessage.Update(
-				http.StatusInternalServerError,
-				"TicketMaster.Handler() -> Sending data to user",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-		}
+		return http.StatusOK, nil
 
 	} else { //If not in firebase, fetch information and store it in firebase
 
 		//Fetch Info:
 		var data FirebaseStore
-		status, err := data.get(baseURL + id + padding + key)
+		status, err := data.get(baseURL + eventId + padding + key)
 		if err != nil {
-			debug.ErrorMessage.Update(
-				status,
-				"TicketMaster.Handler() -> TicketMaster.req() -> Getting data",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-			return
+			return status, err
 		}
 
 		// Add data to the database
 		var dataDB db.Data
 		dataDB.Container = data
 
-		_, _, err = db.DB.Add("Events", id, dataDB)
+		_, _, err = db.DB.Add("Events", eventId, dataDB)
 		if err != nil {
-			debug.ErrorMessage.Update(
-				status,
-				"TicketMaster.Handler() -> TicketMaster.req() -> Getting data",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-			return
+			return http.StatusInternalServerError, err
 		}
 
-		//update header to JSON and set HTTP code
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		//send output to user and branch if an error occured
-		err = json.NewEncoder(w).Encode(data)
-		if err != nil {
-			debug.ErrorMessage.Update(
-				http.StatusInternalServerError,
-				"WeatherCompare.Handler() -> Sending data to user",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-		}
+		return http.StatusOK, nil
 	}
 }
 
@@ -160,8 +80,7 @@ func (data *FirebaseStore) get(url string) (int, error) {
 
 	//For ease store that information in a more readable format
 	data.Localdate = eventData.Dates.Start.Localdate
-	data.Latitude = eventData.Embedded.Venues[0].Location.Latitude
-	data.Longitude = eventData.Embedded.Venues[0].Location.Longitude
+	data.Name = eventData.Embedded.Venues[0].City.Name
 	return status, nil
 }
 
@@ -173,15 +92,11 @@ func (data *FirebaseStore) readData(storage interface{}) error {
 	} else {
 		return errors.New("getting data from database: Can't find expected field Localdate")
 	}
-	if field, ok := m["Latitude"].(string); ok {
-		data.Latitude = field
+	if field, ok := m["Name"].(string); ok {
+		data.Name = field
 	} else {
-		return errors.New("getting data from database: Can't find expected field Latitude")
+		return errors.New("getting data from database: Can't find expected field Name")
 	}
-	if field, ok := m["Longitude"].(string); ok {
-		data.Longitude = field
-	} else {
-		return errors.New("getting data from database: Can't find expected field Latitude")
-	}
+
 	return nil
 }
