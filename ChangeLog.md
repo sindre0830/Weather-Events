@@ -181,3 +181,5 @@
 [3.18.1]    **fix**:            Fixed weatherHook to work with new database.Get()
 
 [3.18.2]    **development**:    Slight cleanup of db.Delete, more work on weatherHook
+
+[3.19.0]    **development**:    Added StartTrigger to weatherHook for initiating webhooks from DB on program start

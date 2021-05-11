@@ -52,8 +52,8 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 		debug.ErrorMessage.Print(w)
 		return
 	}
-
-	weatherHook.Trigger()
+	// Start as go routine, else system will hang for the sleep time!
+	go weatherHook.Trigger()
 	debug.ErrorMessage.Update(
 		http.StatusCreated, 
 		"WeatherHook -> MethodHandler() -> weatherHook.HandlerPost() -> Adding webhook to database.",
@@ -149,12 +149,13 @@ func (weatherHook *WeatherHook) ReadData(data interface{}) error {
 }
 
 // How to check deletion time?
+// Remember to change to hour
 /**
 * trigger
 * This function handles triggering each weatherHook every timeout hours. It's run as a go-routine
 **/
 func (weatherHook *WeatherHook) Trigger () {
-	nextTime := time.Now().Truncate(time.Second)	// change to hour
+	nextTime := time.Now().Truncate(time.Second)	// change to hour!!!!!!!
 	nextTime = nextTime.Add(time.Duration(weatherHook.Timeout) * time.Second)
 	time.Sleep(time.Until(nextTime))
 
@@ -171,7 +172,6 @@ func (weatherHook *WeatherHook) Trigger () {
 }
 
 // Can't put in database due to cyclic import
-// Really slow because the program hangs while waiting on it - improvement?
 func StartTrigger(database *db.Database) error {
 	iter := database.Client.Collection("weatherHookDB").Documents(database.Ctx)
 	for {
@@ -190,7 +190,8 @@ func StartTrigger(database *db.Database) error {
 		if err != nil {
             return err
 		}
-		temp.Trigger()
+		// Start as go routine, else system will hang for the sleep time!
+		go temp.Trigger()
 	}
 	return nil
 }

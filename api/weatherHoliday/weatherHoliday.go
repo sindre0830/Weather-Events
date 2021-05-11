@@ -73,7 +73,7 @@ func (weatherHoliday *WeatherHoliday) Register(w http.ResponseWriter, r *http.Re
 	data.Location = weatherHoliday.Location
 	data.URL = weatherHoliday.URL
 	data.Frequency = weatherHoliday.Frequency
-	data.Timeout = weatherHoliday.Timeout
+	//data.Timeout = weatherHoliday.Timeout
 
 	// Convert struct to json
 	jsonData, err := json.Marshal(data)
