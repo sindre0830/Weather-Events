@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"main/api/holidaysData"
 	"main/api/notification"
 	"main/api/weather"
 	"main/db"
@@ -339,12 +340,16 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 		)
 		debug.ErrorMessage.Print(w)
 	}
+
+	weatherEventInput.checkIfHoliday()
+
 	//set data
 	weatherEvent.Date = weatherEventInput.Date
 	weatherEvent.Location = weatherEventInput.Location
 	weatherEvent.URL = weatherEventInput.URL
 	weatherEvent.Frequency = weatherEventInput.Frequency
 	weatherEvent.Timeout = weatherEventInput.Timeout
+
 	var data db.Data
 	data.Container = weatherEvent
 	_, id, err := db.DB.Add("weatherEvent", "", data)
@@ -378,5 +383,31 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 		)
 		debug.ErrorMessage.Print(w)
 		return
+	}
+}
+
+// checkIfHoliday, checks if Date field is date or holiday
+func (weatherEventInput *WeatherEventInput) checkIfHoliday() {
+	// Parse date to see if it is a date or a holiday
+	_, err := time.Parse("2006-01-02 15:04:05", weatherEventInput.Date)
+	if err != nil {
+		// It is a holiday, replace holiday with date
+		// Get a map of all the country's holidays
+		var holidaysMap = make(map[string]interface{})
+		holidaysMap, _, err := holidaysData.Handler(weatherEventInput.Location)
+		if err != nil {
+			return
+		}
+
+		// Make the first letter of each word uppercase to match the format in holidaysMap
+		weatherEventInput.Date = strings.Title(strings.ToLower(weatherEventInput.Date))
+
+		// Check if the holiday exists in the selected country
+		date, ok := holidaysMap[weatherEventInput.Date]
+		if !ok {
+			return
+		}
+
+		weatherEventInput.Date = date.(string)
 	}
 }

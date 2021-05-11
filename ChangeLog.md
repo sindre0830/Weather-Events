@@ -205,3 +205,6 @@
 [3.25.0]    **development**:    Added StartTrigger to weatherHook for initiating webhooks from DB on program start
 
 [3.25.1]    **fix**:    Fixed WeatherData's Handler to check if "Time" key exists
+
+[3.26.0]    **development**:    Added function to check if Date field is date or holiday
+
