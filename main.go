@@ -2,20 +2,24 @@ package main
 
 import (
 	"log"
+	"main/api/diag"
 	"main/api/eventData"
 	"main/api/notification/weatherEvent"
+	"main/api/notification/weatherHoliday"
 	"main/api/weather"
 	compare "main/api/weatherCompare"
-	"main/api/weatherHoliday"
 	"main/api/weatherHook"
 	"main/db"
 	"main/dict"
 	"net/http"
 	"os"
+	"time"
 )
 
 // init runs once at startup.
 func init() {
+	//start timer
+	diag.StartTime = time.Now()
 	//setup connection with firebase and branch if an error occured
 	err := db.DB.Setup()
 	if err != nil {
@@ -43,8 +47,11 @@ func main() {
 	http.HandleFunc(dict.WEATHEREVENT_PATH, weatherEvent.MethodHandler)
 	//handle event data
 	http.HandleFunc(dict.EVENT_PATH, eventData.MethodHandler)
+	//Diag endpoint
+	http.HandleFunc(dict.DIAG_PATH, diag.MethodHandler)
 	//handle holiday webhook
 	http.HandleFunc(dict.HOLIDAY_PATH, weatherHoliday.MethodHandler)
+	http.HandleFunc(dict.HOLIDAY_PATH + "/", weatherHoliday.MethodHandler)
 	//handle weather webhook
 	http.HandleFunc(dict.WEATHERHOOK_PATH, weatherHook.MethodHandler)
 	//ends program if it can't open port

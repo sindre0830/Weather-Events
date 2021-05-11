@@ -182,4 +182,24 @@
 
 [3.18.2]    **development**:    Slight cleanup of db.Delete, more work on weatherHook
 
-[3.19.0]    **development**:    Added StartTrigger to weatherHook for initiating webhooks from DB on program start
+[3.18.3]    **fix**:            Fixed WeatherHoliday to work with new database.Get()
+
+[3.19.0]    **development**:    Finished WeatherHoliday POST function 
+
+[3.20.0]    **development**:    Added diag endpoint and restructured eventData
+
+[3.21.0]    **development**:    Added WeatherEvent DELETE method
+
+[3.22.0]    **development**:    Added WeatherEvent callLoop after a POST request
+
+[3.23.0]    **development**:    Added function to get one or all WeatherHoliday webhooks
+
+[3.23.1]    **fix**:            Solved issue with Postman seeing POST requests as GET
+
+[3.23.2]    **fix**:            Fixed WeatherHoliday Get so the output is JSON
+
+[3.23.3]    **fix**:            Fixed HandlerCoord's Handler to check if "Time" key exists
+
+[3.24.0]    **development**:    Modified WeatherEvent callLoop to terminate when it is deleted
+
+[3.25.0]    **development**:    Added StartTrigger to weatherHook for initiating webhooks from DB on program start

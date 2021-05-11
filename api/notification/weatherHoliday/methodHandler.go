@@ -10,6 +10,8 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 	var weatherHoliday WeatherHoliday
 
 	switch r.Method {
+	case http.MethodGet:
+		weatherHoliday.Get(w, r)
 	case http.MethodPost:
 		weatherHoliday.Register(w, r)
 	case http.MethodDelete:

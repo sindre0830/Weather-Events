@@ -62,8 +62,8 @@ func (database *Database) Add(name string, id string, data Data) (string, string
 		}
 		id = docRef.ID
 		//update webhook ID in database with UUID and branch if an error occurred
-		_, err = database.Client.Collection(name).Doc(id).Update(database.Ctx, []firestore.Update {{
-			Path: "Container.ID",
+		_, err = database.Client.Collection(name).Doc(id).Update(database.Ctx, []firestore.Update{{
+			Path:  "Container.ID",
 			Value: id,
 		}})
 		if err != nil {
@@ -146,6 +146,33 @@ func (database *Database) Delete(webhookdb string, id string) error {
 	_, err := database.Client.Collection(webhookdb).Doc(id).Delete(database.Ctx)
 
 	return err
+}
+
+// Delete deletes specific event.
+func (database *Database) DeleteEvent(id string) error {
+	//get only element that has the same ID as specified and branch if an error occurred
+	iter := database.Client.Collection("Events").Where("ID", "==", id).Documents(database.Ctx)
+	elem, err := iter.Next()
+	if err != nil {
+		return err
+	}
+	//delete webhook and branch if an error occurred
+	_, err = elem.Ref.Delete(database.Ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//
+func (database *Database) CountWebhooks(collection string) (int, error) {
+	docrefs, err := database.Client.Collection(collection).DocumentRefs(context.Background()).GetAll()
+	if err != nil {
+		return 0, err
+	}
+	return len(docrefs), nil
+
 }
 
 func CheckDate(dataTime string, expectedHours int) (bool, error) {
