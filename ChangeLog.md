@@ -203,3 +203,5 @@
 [3.24.0]    **development**:    Modified WeatherEvent callLoop to terminate when it is deleted
 
 [3.25.0]    **development**:    Added StartTrigger to weatherHook for initiating webhooks from DB on program start
+
+[3.25.1]    **fix**:    Fixed WeatherData's Handler to check if "Time" key exists
