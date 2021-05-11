@@ -20,23 +20,6 @@ import (
 	"time"
 )
 
-type WeatherEventInput struct {
-	Date      string `json:"date"`
-	Location  string `json:"location"`
-	URL       string `json:"url"`
-	Frequency string `json:"frequency"`
-	Timeout   int64  `json:"timeout"`
-}
-
-type WeatherEvent struct {
-	ID        string `json:"id"`
-	Date      string `json:"date"`
-	Location  string `json:"location"`
-	URL       string `json:"url"`
-	Frequency string `json:"frequency"`
-	Timeout   int64  `json:"timeout"`
-}
-
 func (weatherEvent *WeatherEvent) callLoop() {
 	_, exist := db.DB.Get("weatherEvent", weatherEvent.ID)
 	if !exist {
@@ -370,7 +353,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 	var feedback notification.Feedback
 	feedback.Update(
 		http.StatusCreated,
-		"Webhook successfully created for '" + weatherEvent.URL + "'",
+		"Webhook successfully created for '"+weatherEvent.URL+"'",
 		weatherEvent.ID,
 	)
 	err = feedback.Print(w)

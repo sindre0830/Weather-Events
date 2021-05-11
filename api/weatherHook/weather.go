@@ -12,11 +12,6 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-type WeatherHook struct {
-	Location 	string    `json:"location"`
-	Timeout		int64	  `json:"timeout"`
-}
-
 var hookdb = "weatherHookDB"
 
 /**
@@ -44,7 +39,7 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 	// Return ID if successful, otherwise error
 	if err != nil {
 		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
+			http.StatusInternalServerError,
 			"WeatherHook -> MethodHandler() -> weatherHook.HandlerPost() -> Adding webhook to database.",
 			"Database error: failed to add webhook!",
 			"Improper formatting of webhook.",
@@ -55,15 +50,14 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 	// Start as go routine, else system will hang for the sleep time!
 	go weatherHook.Trigger()
 	debug.ErrorMessage.Update(
-		http.StatusCreated, 
+		http.StatusCreated,
 		"WeatherHook -> MethodHandler() -> weatherHook.HandlerPost() -> Adding webhook to database.",
-		"Webhook successfully added to database! Your ID: " + id,
-		"",				// We have to add ID here!
+		"Webhook successfully added to database! Your ID: "+id,
+		"", // We have to add ID here!
 	)
 	debug.ErrorMessage.Print(w)
 	return
 }
-
 
 /**
 * HandlerGet
@@ -77,13 +71,13 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 	id := params["id"][0]
 
 	// check for ID in firestore - DB function
-	data, exist := db.DB.Get(hookdb, id)		// all hooks in one db?
+	data, exist := db.DB.Get(hookdb, id) // all hooks in one db?
 	// Extract from data
 	if exist {
 		err := weatherHook.ReadData(data["Container"].(interface{}))
 		if err != nil {
 			debug.ErrorMessage.Update(
-				http.StatusNotFound, 
+				http.StatusNotFound,
 				"WeatherHook -> MethodHandler() -> weatherHook.HandlerGet() -> Reading data from firebase.",
 				"Database error: Failed when reading from database!",
 				"",
@@ -94,7 +88,7 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 		err = json.NewEncoder(w).Encode(weatherHook)
 	} else {
 		debug.ErrorMessage.Update(
-			http.StatusNotFound, 
+			http.StatusNotFound,
 			"WeatherHook -> MethodHandler() -> weatherHook.HandlerGet() -> Finding ID",
 			"Database error: ID not found!",
 			"Bad ID entered OR wrong method: GET.",
@@ -118,7 +112,7 @@ func (weatherHook *WeatherHook) HandlerDelete(w http.ResponseWriter, r *http.Req
 
 	if err != nil {
 		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
+			http.StatusInternalServerError,
 			"WeatherHook -> MethodHandler() -> weatherHook.HandlerDelete() -> Deleting webhook",
 			"Database error on deleting webhook! Bad ID entered OR wrong method: DELETE.",
 			"",
@@ -127,7 +121,7 @@ func (weatherHook *WeatherHook) HandlerDelete(w http.ResponseWriter, r *http.Req
 		return
 	} else {
 		debug.ErrorMessage.Update(
-			http.StatusOK, 
+			http.StatusOK,
 			"WeatherHook -> MethodHandler() -> weatherHook.HandlerGet() -> Deleting Webhook",
 			"Webhook successfully deleted!",
 			"",
@@ -154,8 +148,8 @@ func (weatherHook *WeatherHook) ReadData(data interface{}) error {
 * trigger
 * This function handles triggering each weatherHook every timeout hours. It's run as a go-routine
 **/
-func (weatherHook *WeatherHook) Trigger () {
-	nextTime := time.Now().Truncate(time.Second)	// change to hour!!!!!!!
+func (weatherHook *WeatherHook) Trigger() {
+	nextTime := time.Now().Truncate(time.Second) // change to hour!!!!!!!
 	nextTime = nextTime.Add(time.Duration(weatherHook.Timeout) * time.Second)
 	time.Sleep(time.Until(nextTime))
 
@@ -167,7 +161,7 @@ func (weatherHook *WeatherHook) Trigger () {
 	} else {
 		fmt.Printf("\nPassed webhook to user!")
 	}
-	
+
 	go weatherHook.Trigger()
 }
 
@@ -175,12 +169,12 @@ func (weatherHook *WeatherHook) Trigger () {
 func StartTrigger(database *db.Database) error {
 	iter := database.Client.Collection("weatherHookDB").Documents(database.Ctx)
 	for {
-        doc, err := iter.Next()
-        if err == iterator.Done {
-            break
-        }
-        if err != nil {
-            return err
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return err
 		}
 		// Create dummy variables
 		var temp WeatherHook
@@ -188,7 +182,7 @@ func StartTrigger(database *db.Database) error {
 		// Extract data from iterator
 		err = temp.ReadData(dbMap["Container"].(interface{}))
 		if err != nil {
-            return err
+			return err
 		}
 		// Start as go routine, else system will hang for the sleep time!
 		go temp.Trigger()

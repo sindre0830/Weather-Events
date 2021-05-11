@@ -14,17 +14,6 @@ import (
 	"time"
 )
 
-/**
-*	LocationCoords
-*	Holds our latitude and longitude data for one location
-**/
-type LocationCoords struct {
-	Address    string  `json:"address"`
-	Importance float64 `json:"importance"`
-	Latitude   float64 `json:"lat"`
-	Longitude  float64 `json:"lon"`
-}
-
 var baseURL = "https://us1.locationiq.com/v1/search.php?key="
 var key = "pk.d8a67c78822d16869c7a3e8f6d7617af"
 
@@ -77,13 +66,13 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	}
 
 	if exist && withinTimeframe {
-			err := readData(locationCoords, data["Container"].(interface{}))
+		err := readData(locationCoords, data["Container"].(interface{}))
 
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
 
-			return http.StatusOK, nil
+		return http.StatusOK, nil
 	}
 
 	// If the location is not stored in firestore OR locally, We get the data from the locationiq api

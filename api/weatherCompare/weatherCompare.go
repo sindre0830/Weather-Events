@@ -14,56 +14,13 @@ import (
 	"time"
 )
 
-// data structure stores weather data for a location.
-type data struct {
-	Longitude float64 `json:"longitude"`
-	Latitude  float64 `json:"latitude"`
-	Location  string  `json:"location"`
-	Updated   string  `json:"updated"`
-	Instant   struct {
-		AirTemperature      float64 `json:"air_temperature"`
-		CloudAreaFraction   float64 `json:"cloud_area_fraction"`
-		DewPointTemperature float64 `json:"dew_point_temperature"`
-		RelativeHumidity    float64 `json:"relative_humidity"`
-		WindSpeed           float64 `json:"wind_speed"`
-		WindSpeedOfGust     float64 `json:"wind_speed_of_gust"`
-		PrecipitationAmount float64 `json:"precipitation_amount"`
-	} `json:"instant"`
-	Predicted struct {
-		AirTemperatureMax          float64 `json:"air_temperature_max"`
-		AirTemperatureMin          float64 `json:"air_temperature_min"`
-		PrecipitationAmount        float64 `json:"precipitation_amount"`
-		PrecipitationAmountMax     float64 `json:"precipitation_amount_max"`
-		PrecipitationAmountMin     float64 `json:"precipitation_amount_min"`
-		ProbabilityOfPrecipitation float64 `json:"probability_of_precipitation"`
-	} `json:"predicted"`
-}
-
-// locationInfo structure stores all comparison locations information.
-type locationInfo struct {
-	Location  string
-	Longitude float64
-	Latitude  float64
-}
-
-// WeatherCompare structure stores current and predicted weather data comparisons for different locations.
-//
-// Functionality: Handler, get
-type WeatherCompare struct {
-	Longitude  float64 			 `json:"longitude"`
-	Latitude   float64 			 `json:"latitude"`
-	Location   string  			 `json:"location"`
-	Updated    string  			 `json:"updated"`
-	Timeseries map[string][]data `json:"timeseries"`
-}
-
 // Handler will handle http request for REST service.
 func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Request) {
 	//parse url and branch if an error occurred
 	arrPath := strings.Split(r.URL.Path, "/")
 	if len(arrPath) != 7 {
 		debug.ErrorMessage.Update(
-			http.StatusBadRequest, 
+			http.StatusBadRequest,
 			"WeatherCompare.Handler() -> Parsing URL",
 			"url validation: either too many or too few arguments in url path",
 			"URL format. Expected format: '.../place'. Example: '.../oslo'",
@@ -77,7 +34,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 	arrCompareLocations := strings.Split(compareLocations, ";")
 	if len(arrCompareLocations) < 1 {
 		debug.ErrorMessage.Update(
-			http.StatusBadRequest, 
+			http.StatusBadRequest,
 			"WeatherCompare.Handler() -> Getting locations to compare",
 			"url validation: not enough locations to compare to",
 			"URL format. Expected format: '.../main_place/place1;place2;...'. Example: '.../bergen/oslo;stavanger'",
@@ -89,7 +46,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 	status, err := mainLocationCoords.Handler(mainLocation)
 	if err != nil {
 		debug.ErrorMessage.Update(
-			status, 
+			status,
 			"WeatherCompare.Handler() -> LocationCoords.Handler() -> Getting main location info",
 			err.Error(),
 			"UnkInstantn",
@@ -106,7 +63,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 		status, err := locationCoords.Handler(location)
 		if err != nil {
 			debug.ErrorMessage.Update(
-				status, 
+				status,
 				"WeatherCompare.Handler() -> LocationCoords.Handler() -> Getting comparison location info",
 				err.Error(),
 				"UnkInstantn",
@@ -124,7 +81,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 	arrParam, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
 		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
+			http.StatusInternalServerError,
 			"WeatherCompare.Handler() -> Validating URL parameters",
 			err.Error(),
 			"Unknown",
@@ -142,7 +99,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 			_, err = time.Parse("2006-01-02", date)
 			if err != nil {
 				debug.ErrorMessage.Update(
-					http.StatusBadRequest, 
+					http.StatusBadRequest,
 					"WeatherCompare.Handler() -> Validating URL parameters",
 					err.Error(),
 					"Date doesn't match YYYY-MM-DD format. Example: 2021-04-26",
@@ -152,7 +109,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 			}
 		} else {
 			debug.ErrorMessage.Update(
-				http.StatusBadRequest, 
+				http.StatusBadRequest,
 				"WeatherCompare.Handler() -> Validating URL parameters",
 				"url validation: unknown parameter",
 				"Unknown",
@@ -165,7 +122,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 	status, err = weatherCompare.get(mainLocationCoords.Latitude, mainLocationCoords.Longitude, arrCoordinates, date)
 	if err != nil {
 		debug.ErrorMessage.Update(
-			status, 
+			status,
 			"WeatherCompare.Handler() -> WeatherCompare.get() -> Getting data",
 			err.Error(),
 			"UnkInstantn",
@@ -180,7 +137,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 	err = json.NewEncoder(w).Encode(weatherCompare)
 	if err != nil {
 		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
+			http.StatusInternalServerError,
 			"WeatherCompare.Handler() -> Sending data to user",
 			err.Error(),
 			"UnkInstantn",

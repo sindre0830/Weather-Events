@@ -35,7 +35,7 @@ func main() {
 		port = "8080"
 	}
 
-	weatherHook.StartTrigger(&db.DB)	// Can't do this in database.go - cycling imports
+	weatherHook.StartTrigger(&db.DB) // Can't do this in database.go - cycling imports
 	//set URL with port
 	dict.URL = dict.URL + ":" + port
 	//handle weather data
@@ -45,7 +45,7 @@ func main() {
 	//handle weather event
 	http.HandleFunc(dict.WEATHEREVENT_PATH, weatherEvent.MethodHandler)
 	//Diag endpoint
-	http.HandleFunc(dict.DIAG_PATH, diag.MethodHandler)
+	http.HandleFunc(dict.DIAG_PATH, diag.MethodHandler) //NB Note that the count of webhooks counts the collections, therefore they need to be added manually and as such not all webhooks are counted as of yet
 	//handle holiday webhook
 	http.HandleFunc(dict.HOLIDAY_PATH, weatherHoliday.MethodHandler)
 	http.HandleFunc(dict.HOLIDAY_PATH+"/", weatherHoliday.MethodHandler)

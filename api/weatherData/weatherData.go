@@ -6,38 +6,6 @@ import (
 	"time"
 )
 
-// Timeseries stores current and predicted weather data for a day
-type Timeseries struct {
-	Instant struct {
-		AirTemperature      float64 `json:"air_temperature"`
-		CloudAreaFraction   float64 `json:"cloud_area_fraction"`
-		DewPointTemperature	float64 `json:"dew_point_temperature"`
-		RelativeHumidity    float64 `json:"relative_humidity"`
-		WindFromDirection   float64 `json:"wind_from_direction"`
-		WindSpeed           float64 `json:"wind_speed"`
-		WindSpeedOfGust     float64 `json:"wind_speed_of_gust"`
-		PrecipitationAmount float64 `json:"precipitation_amount"`
-	} `json:"instant"`
-	Predicted struct {
-		Summary                     string  `json:"summary"`
-		Confidence                  string  `json:"confidence"`
-		AirTemperatureMax           float64 `json:"air_temperature_max"`
-		AirTemperatureMin           float64 `json:"air_temperature_min"`
-		PrecipitationAmount         float64 `json:"precipitation_amount"`
-		PrecipitationAmountMax      float64 `json:"precipitation_amount_max"`
-		PrecipitationAmountMin      float64 `json:"precipitation_amount_min"`
-		ProbabilityOfPrecipitation	float64 `json:"probability_of_precipitation"`
-	} `json:"predicted"`
-}
-
-// WeatherData structure stores current and predicted weather data for the next 9 days.
-//
-// Functionality: Handler, get
-type WeatherData struct {
-	Updated string `json:"updated"`
-	Timeseries map[string]Timeseries `json:"timeseries"`
-}
-
 // Handler will handle http request for REST service.
 func (weatherData *WeatherData) Handler(lat string, lon string) (int, error) {
 	//try to get data from database and branch if an error occurred
@@ -100,7 +68,7 @@ func (weatherData *WeatherData) get(lat string, lon string) (int, error) {
 			timeEntry.Instant.WindSpeed = elem.Data.Instant.Details.WindSpeed
 			timeEntry.Instant.WindSpeedOfGust = elem.Data.Instant.Details.WindSpeedOfGust
 			timeEntry.Instant.PrecipitationAmount = elem.Data.Next1Hours.Details.PrecipitationAmount
-			
+
 			timeEntry.Predicted.Summary = elem.Data.Next12Hours.Summary.SymbolCode
 			timeEntry.Predicted.Confidence = elem.Data.Next12Hours.Summary.SymbolConfidence
 			timeEntry.Predicted.AirTemperatureMax = elem.Data.Next6Hours.Details.AirTemperatureMax
@@ -118,7 +86,7 @@ func (weatherData *WeatherData) get(lat string, lon string) (int, error) {
 
 func (weatherData *WeatherData) readData(data interface{}) error {
 	weatherData.Timeseries = make(map[string]Timeseries)
-    rawData := data.(map[string]interface{})
+	rawData := data.(map[string]interface{})
 	timeseries := rawData["Timeseries"].(map[string]interface{})
 	for key, elem := range timeseries {
 		var timeEntry Timeseries
