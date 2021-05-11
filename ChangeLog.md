@@ -204,10 +204,12 @@
 
 [3.25.0]    **development**:    Added StartTrigger to weatherHook for initiating webhooks from DB on program start
 
-[3.25.1]    **fix**:    Fixed WeatherData's Handler to check if "Time" key exists
+[3.25.1]    **fix**:            Fixed WeatherData's Handler to check if "Time" key exists
 
 [3.26.0]    **development**:    Added function to check if Date field is date or holiday
 
-[3.26.1]    **fix**:    Fixed formatting of date
+[3.26.1]    **fix**:            Fixed formatting of date
+
+[3.27.0]    **development**:    Changed Ticketmaster endpoint to be able to be called from another function, started moving structs to separete file
 
 
