@@ -219,3 +219,5 @@
 [3.30.0]    **development**:    Restructured so all structs have their own file in that same package
 
 [3.31.0]    **development**:    Added date validation in weatherEvent.callLoop()
+
+[3.31.1]    **formatting**:     Reformatted structures in WeatherData package
