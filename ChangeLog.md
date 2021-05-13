@@ -232,4 +232,12 @@
 
 [3.31.6]    **formatting**:     Reformatted weatherCompare package
 
-[3.32.0]    **formatting**:     Added initialization of WeatherEvent hooks on startup
+[3.31.7]    **fix**:            Fixed error handling in weatherEvent.checkIfHoliday()
+
+[3.31.8]    **fix**:            Removed weatherHoliday package
+
+[3.31.9]    **development**:    Separated sleep function in fun, added comments to weatherHook
+
+[3.31.10]   **formatting**:     Added commentary on some files
+
+[3.32.0]    **development**:    Added initialization of WeatherEvent hooks on startup

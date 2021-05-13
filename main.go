@@ -4,7 +4,6 @@ import (
 	"log"
 	"main/api/diag"
 	"main/api/notification/weatherEvent"
-	"main/api/notification/weatherHoliday"
 	"main/api/notification/weatherHook"
 	"main/api/weather"
 	compare "main/api/weatherCompare"
@@ -48,9 +47,6 @@ func main() {
 	http.HandleFunc(dict.WEATHEREVENT_PATH, weatherEvent.MethodHandler)
 	//Diag endpoint
 	http.HandleFunc(dict.DIAG_PATH, diag.MethodHandler) //NB Note that the count of webhooks counts the collections, therefore they need to be added manually and as such not all webhooks are counted as of yet
-	//handle holiday webhook
-	http.HandleFunc(dict.HOLIDAY_PATH, weatherHoliday.MethodHandler)
-	http.HandleFunc(dict.HOLIDAY_PATH+"/", weatherHoliday.MethodHandler)
 	//handle weather webhook
 	http.HandleFunc(dict.WEATHERHOOK_PATH, weatherHook.MethodHandler)
 	//ends program if it can't open port
