@@ -241,3 +241,5 @@
 [3.31.10]   **formatting**:     Added commentary on some files
 
 [3.32.0]    **development**:    Added initialization of WeatherEvent hooks on startup
+
+[3.32.1]    **formatting**:     Reformatted weatherEvent package

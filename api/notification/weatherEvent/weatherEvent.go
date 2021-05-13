@@ -1,12 +1,7 @@
 package weatherEvent
 
 import (
-	"bytes"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"main/api/holidaysData"
 	"main/api/notification"
 	"main/api/weather"
@@ -16,173 +11,18 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 )
 
-func InitHooks() {
-	arrWeatherEvent, err := db.DB.GetAll("weatherEvent")
-	if err != nil {
-		fmt.Printf(
-			"%v {\n\tError when initializing WeatherEvent webhooks.\n\tRaw error: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
-		)
-		return
-	}
-	for _, data := range arrWeatherEvent {
-		var weatherEvent WeatherEvent
-		weatherEvent.readData(data["Container"].(interface{}))
-		go weatherEvent.callLoop()
-	}
-	fmt.Printf(
-		"%v {\n\tSuccesfully initialized " + strconv.Itoa(len(arrWeatherEvent)) + " WeatherEvent webhooks.\n}\n",
-		time.Now().Format("2006-01-02 15:04:05"),
-	)
-}
-
-func (weatherEvent *WeatherEvent) callLoop() {
-	_, exist := db.DB.Get("weatherEvent", weatherEvent.ID)
-	if !exist {
-		return
-	}
-	//check if date is within 
-	date, _ := time.Parse("2006-01-02", weatherEvent.Date)
-	date = date.AddDate(0, 0, -8)
-	time.Sleep(time.Until(date))
-	//check if program should sleep on timeout value
-	nextTime := time.Now().Truncate(time.Second)
-	nextTime = nextTime.Add(time.Duration(weatherEvent.Timeout) * time.Second)
-	time.Sleep(time.Until(nextTime))
-	//get url based on webhook data
-	url := dict.GetWeatherURL(weatherEvent.Location, weatherEvent.Date)
-	var weather weather.Weather
-	//create new GET request and branch if an error occurred
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		fmt.Printf(
-			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tRaw error: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
-		)
-		go weatherEvent.callLoop()
-	}
-	//call the policy handler and branch if the status code is not OK
-	//this stops timed out request being sent to the webhook
-	recorder := httptest.NewRecorder()
-	weather.Handler(recorder, req)
-	if recorder.Result().StatusCode != http.StatusOK {
-		fmt.Printf(
-			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tStatus code: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), recorder.Result().StatusCode,
-		)
-		go weatherEvent.callLoop()
-	}
-	//convert from structure to bytes and branch if an error occurred
-	output, err := json.Marshal(weather)
-	if err != nil {
-		fmt.Printf(
-			"%v {\n\tError when parsing Weather structure.\n\tRaw error: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
-		)
-		go weatherEvent.callLoop()
-	}
-	//create new POST request and branch if an error occurred
-	req, err = http.NewRequest(http.MethodPost, weatherEvent.URL, bytes.NewBuffer(output))
-	if err != nil {
-		fmt.Printf(
-			"%v {\n\tError when creating new POST request.\n\tRaw error: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
-		)
-		go weatherEvent.callLoop()
-	}
-	//hash structure and branch if an error occurred
-	mac := hmac.New(sha256.New, dict.Secret)
-	_, err = mac.Write([]byte(output))
-	if err != nil {
-		fmt.Printf(
-			"%v {\n\tError when hashing content before POST request.\n\tRaw error: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
-		)
-		go weatherEvent.callLoop()
-	}
-	//convert hashed structure to string and add to header
-	req.Header.Add("Signature", hex.EncodeToString(mac.Sum(nil)))
-	//update header to JSON
-	req.Header.Set("Content-Type", "application/json")
-	//send request to client and branch if an error occured
-	client := http.Client{}
-	res, err := client.Do(req)
-	if err != nil {
-		fmt.Printf(
-			"%v {\n\tError when sending HTTP content to webhook.\n\tRaw error: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
-		)
-		go weatherEvent.callLoop()
-	}
-	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusServiceUnavailable {
-		fmt.Printf(
-			"%v {\n\tWebhook URL is not valid. Deleting webhook...\n\tStatus code: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), res.StatusCode,
-		)
-		db.DB.Delete("weatherEvent", weatherEvent.ID)
-		return
-	}
-	go weatherEvent.callLoop()
-}
-
-func (weatherEvent *WeatherEvent) DELETE(w http.ResponseWriter, r *http.Request) {
+// get handles a get request from the client.
+func (weatherEvent *WeatherEvent) get(w http.ResponseWriter, r *http.Request) {
 	//split URL path by '/' and branch if there aren't enough elements
 	arrPath := strings.Split(r.URL.Path, "/")
 	if len(arrPath) != 6 {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
-			"WeatherEvent.DELETE() -> Checking length of URL",
-			"URL validation: either too many or too few arguments in URL path",
-			"URL format. Expected format: '.../id'. Example: '.../1ab24db3",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
-	//set id and check if it's specified by client
-	id := arrPath[5]
-	err := db.DB.Delete("weatherEvent", id)
-	if err != nil {
-		debug.ErrorMessage.Update(
-			http.StatusBadRequest,
-			"WeatherEvent.DELETE() -> Database.Delete() -> Deleting document based on ID",
-			err.Error(),
-			"ID doesn't exist. Expected format: '.../id'. Example: '.../1ab24Db3",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
-	//create feedback message to send to client and branch if an error occurred
-	var feedback notification.Feedback
-	feedback.Update(
-		http.StatusOK,
-		"Webhook successfully deleted",
-		id,
-	)
-	err = feedback.Print(w)
-	if err != nil {
-		debug.ErrorMessage.Update(
-			http.StatusInternalServerError,
-			"WeatherEvent.DELETE() -> Feedback.print() -> Sending feedback to client",
-			err.Error(),
-			"Unknown",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
-}
-
-func (weatherEvent *WeatherEvent) GET(w http.ResponseWriter, r *http.Request) {
-	//split URL path by '/' and branch if there aren't enough elements
-	arrPath := strings.Split(r.URL.Path, "/")
-	if len(arrPath) != 6 {
-		debug.ErrorMessage.Update(
-			http.StatusBadRequest,
-			"WeatherEvent.GET() -> Checking length of URL",
+			"WeatherEvent.get() -> Checking length of URL",
 			"URL validation: either too many or too few arguments in URL path",
 			"URL format. Expected format: '.../id'. Example: '.../1ab24db3",
 		)
@@ -196,7 +36,7 @@ func (weatherEvent *WeatherEvent) GET(w http.ResponseWriter, r *http.Request) {
 		if !exist {
 			debug.ErrorMessage.Update(
 				http.StatusBadRequest,
-				"WeatherEvent.GET() -> Database.Get() -> finding document based on ID",
+				"WeatherEvent.get() -> Database.Get() -> finding document based on ID",
 				"getting webhook: can't find id",
 				"ID doesn't exist. Expected format: '.../id'. Example: '.../1ab24db3",
 			)
@@ -212,7 +52,7 @@ func (weatherEvent *WeatherEvent) GET(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError,
-				"WeatherEvent.GET() -> Sending data to user",
+				"WeatherEvent.get() -> Sending data to user",
 				err.Error(),
 				"Unknown",
 			)
@@ -224,7 +64,7 @@ func (weatherEvent *WeatherEvent) GET(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError,
-				"WeatherEvent.GET() -> Database.GetAll() -> Getting all documents",
+				"WeatherEvent.get() -> Database.GetAll() -> Getting all documents",
 				err.Error(),
 				"Unknown",
 			)
@@ -245,7 +85,7 @@ func (weatherEvent *WeatherEvent) GET(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError,
-				"WeatherEvent.GET() -> Sending data to user",
+				"WeatherEvent.get() -> Sending data to user",
 				err.Error(),
 				"Unknown",
 			)
@@ -255,25 +95,15 @@ func (weatherEvent *WeatherEvent) GET(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (weatherEvent *WeatherEvent) readData(data interface{}) {
-	rawData := data.(map[string]interface{})
-	weatherEvent.ID = rawData["ID"].(string)
-	weatherEvent.Date = rawData["Date"].(string)
-	weatherEvent.Location = rawData["Location"].(string)
-	weatherEvent.URL = rawData["URL"].(string)
-	weatherEvent.Frequency = rawData["Frequency"].(string)
-	weatherEvent.Timeout = rawData["Timeout"].(int64)
-}
-
-// POST handles a POST request from the http request.
-func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
+// post handles a post request from the client.
+func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
 	//read input from client and branch if an error occurred
 	var weatherEventInput WeatherEventInput
 	err := json.NewDecoder(r.Body).Decode(&weatherEventInput)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
-			"WeatherEvent.POST() -> Parsing data from client",
+			"WeatherEvent.post() -> Parsing data from client",
 			err.Error(),
 			"Wrong JSON format sent.",
 		)
@@ -285,7 +115,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
-			"WeatherEvent.POST() -> Checking if URL is valid",
+			"WeatherEvent.post() -> Checking if URL is valid",
 			err.Error(),
 			"Not valid URL. Example 'http://google.com/'",
 		)
@@ -296,7 +126,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
-			"WeatherEvent.POST() -> Checking if URL is valid",
+			"WeatherEvent.post() -> Checking if URL is valid",
 			"url validation: schema is incorrect, should be 'http' or 'https'",
 			"Not valid URL. Example 'http://google.com/'",
 		)
@@ -307,7 +137,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 	if weatherEventInput.Timeout < 15 || weatherEventInput.Timeout > 86400 {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
-			"WeatherEvent.POST() -> Checking if timeout value is valid",
+			"WeatherEvent.post() -> Checking if timeout value is valid",
 			"timeout validation: value isn't within scope",
 			"Timeout value has to be larger then 15 and less then 86400(24 hours) seconds.",
 		)
@@ -319,7 +149,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 	if weatherEventInput.Frequency != "EVERY_DAY" && weatherEventInput.Frequency != "ON_DATE" {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
-			"WeatherEvent.POST() -> Checking if trigger value is valid",
+			"WeatherEvent.post() -> Checking if trigger value is valid",
 			"trigger validation: trigger is not 'EVERY_DAY' or 'ON_DATE'",
 			"Not valid trigger. Example 'ON_DATE'",
 		)
@@ -332,7 +162,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
-			"WeatherEvent.POST() -> Checking if location is valid",
+			"WeatherEvent.post() -> Checking if location is valid",
 			err.Error(),
 			"Unknown",
 		)
@@ -344,7 +174,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 	if recorder.Code != http.StatusOK {
 		debug.ErrorMessage.Update(
 			http.StatusNotFound,
-			"WeatherEvent.POST() -> Checking if location is valid",
+			"WeatherEvent.post() -> Checking if location is valid",
 			err.Error(),
 			"Location not found. Example: 'Oslo'",
 		)
@@ -357,7 +187,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 	if !weatherEventInput.checkDate() {
 		debug.ErrorMessage.Update(
 			http.StatusNotFound,
-			"WeatherEvent.POST() -> WeatherEvent.checkDate() -> Checking if date is valid",
+			"WeatherEvent.post() -> WeatherEvent.checkDate() -> Checking if date is valid",
 			"invalid date: date is either wrong format or not within scope",
 			"Check that the format of the date is YYYY-MM-DD and that it is within timeframe.",
 		)
@@ -377,7 +207,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
-			"WeatherEvent.POST() -> Database.Add() -> Adding data to database",
+			"WeatherEvent.post() -> Database.Add() -> Adding data to database",
 			err.Error(),
 			"Unknown",
 		)
@@ -396,7 +226,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
-			"WeatherEvent.POST() -> Feedback.print() -> Sending feedback to client",
+			"WeatherEvent.post() -> Feedback.print() -> Sending feedback to client",
 			err.Error(),
 			"Unknown",
 		)
@@ -404,9 +234,68 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//start loop
-	go weatherEvent.callLoop()
+	go weatherEvent.callHook()
 }
 
+// delete handles a delete request from the client.
+func (weatherEvent *WeatherEvent) delete(w http.ResponseWriter, r *http.Request) {
+	//split URL path by '/' and branch if there aren't enough elements
+	arrPath := strings.Split(r.URL.Path, "/")
+	if len(arrPath) != 6 {
+		debug.ErrorMessage.Update(
+			http.StatusBadRequest,
+			"WeatherEvent.delete() -> Checking length of URL",
+			"URL validation: either too many or too few arguments in URL path",
+			"URL format. Expected format: '.../id'. Example: '.../1ab24db3",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//set id and check if it's specified by client
+	id := arrPath[5]
+	err := db.DB.Delete("weatherEvent", id)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusBadRequest,
+			"WeatherEvent.delete() -> Database.Delete() -> Deleting document based on ID",
+			err.Error(),
+			"ID doesn't exist. Expected format: '.../id'. Example: '.../1ab24Db3",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+	//create feedback message to send to client and branch if an error occurred
+	var feedback notification.Feedback
+	feedback.Update(
+		http.StatusOK,
+		"Webhook successfully deleted",
+		id,
+	)
+	err = feedback.Print(w)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusInternalServerError,
+			"WeatherEvent.delete() -> Feedback.print() -> Sending feedback to client",
+			err.Error(),
+			"Unknown",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
+}
+
+// readData parses data from database to WeatherEvent structure format.
+func (weatherEvent *WeatherEvent) readData(data interface{}) {
+	rawData := data.(map[string]interface{})
+	weatherEvent.ID = rawData["ID"].(string)
+	weatherEvent.Date = rawData["Date"].(string)
+	weatherEvent.Location = rawData["Location"].(string)
+	weatherEvent.URL = rawData["URL"].(string)
+	weatherEvent.Frequency = rawData["Frequency"].(string)
+	weatherEvent.Timeout = rawData["Timeout"].(int64)
+}
+
+// checkDate checks if date is valid and within timeframe.
 func (weatherEventInput *WeatherEventInput) checkDate() bool {
 	date, err := time.Parse("2006-01-02", weatherEventInput.Date)
 	if err != nil {
@@ -419,7 +308,7 @@ func (weatherEventInput *WeatherEventInput) checkDate() bool {
 	}
 }
 
-// checkIfHoliday, checks if Date field is date or holiday
+// checkIfHoliday converts holiday to date.
 func (weatherEventInput *WeatherEventInput) checkIfHoliday(w http.ResponseWriter) {
 	// Parse date to see if it is a date or a holiday
 	_, err := time.Parse("2006-01-02", weatherEventInput.Date)
