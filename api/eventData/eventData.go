@@ -23,17 +23,16 @@ func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 		}
 
 		//Convert the date string
-		layOut := "2006-01-02"
-		dateStamp, err := time.Parse(layOut, info.Localdate)
+		dateStamp, err := time.Parse("2006-01-02", info.Localdate)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
 
-		//Check if the eventdata should be deleted
+		//Check if the eventdata in firebase should be deleted
 		overdue := db.CheckIfDateOfEventPassed(dateStamp)
 
 		if overdue {
-			//delete the entry in the firebase
+			//Delete the entry in the firebase
 			err = db.DB.DeleteEvent(eventId)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -51,7 +50,7 @@ func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 			return status, err
 		}
 
-		// Add data to the database
+		//Add data to the database:
 		var dataDB db.Data
 		dataDB.Container = data
 
@@ -67,7 +66,7 @@ func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 //get -Requests information from the api, going through the more complex struct
 func (data *FirebaseStore) get(url string) (int, error) {
 	var eventData EventInformation
-	status, err := eventData.req(url) //Get information into the other struct
+	status, err := eventData.req(url) //Get information into ticketmaster struct called eventData
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -84,12 +83,12 @@ func (data *FirebaseStore) readData(storage interface{}) error {
 	if field, ok := m["Localdate"].(string); ok {
 		data.Localdate = field
 	} else {
-		return errors.New("getting data from database: Can't find expected field Localdate")
+		return errors.New("getting data from database: Can't find expected field: Localdate")
 	}
 	if field, ok := m["Name"].(string); ok {
 		data.Name = field
 	} else {
-		return errors.New("getting data from database: Can't find expected field Name")
+		return errors.New("getting data from database: Can't find expected field: Name")
 	}
 
 	return nil

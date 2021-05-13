@@ -238,4 +238,10 @@
 
 [3.31.9]    **development**:    Separated sleep function in fun, added comments to weatherHook
 
-[3.32.0]    **development**:    Added mutex lock to weatherHook callUrl, big update to readme
+[3.31.10]   **formatting**:     Added commentary on some files
+
+[3.32.0]    **development**:    Added initialization of WeatherEvent hooks on startup
+
+[3.32.1]    **formatting**:     Reformatted weatherEvent package
+
+[3.33.0]    **development**:    Added mutex lock to weatherHook callUrl, big update to readme

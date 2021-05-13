@@ -12,7 +12,7 @@ import (
 
 var StartTime time.Time
 
-//DiagHandler handler for diag
+//MethodHandler -Class function will be called and handle all requests and fetches
 func MethodHandler(w http.ResponseWriter, r *http.Request) {
 	var diag DiagStatuses
 	var err error
@@ -50,7 +50,8 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	diag.Weatherapi, err = getStatusOf("https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=30.0&lon=30.0") //Note that this one will almost always return 403, see their documentation here: https://api.met.no/doc/FAQ
+	//Note that this one will almost always return 403, see their documentation here: https://api.met.no/doc/FAQ
+	diag.Weatherapi, err = getStatusOf("https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=30.0&lon=30.0")
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
@@ -61,7 +62,8 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	diag.PublicHolidays, err = getStatusOf("https://date.nager.at/api/v2/publicholidays/2017/NO") //Note that this one will almost always return 405, no documentation was found on this, however the endpoints using this api works fine.
+	//Note that this one will almost always return 405, no documentation was found on this, however the endpoints using this api works fine.
+	diag.PublicHolidays, err = getStatusOf("https://date.nager.at/api/v2/publicholidays/2017/NO")
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
