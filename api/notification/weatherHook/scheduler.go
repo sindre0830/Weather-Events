@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"main/api/diag"
 	"main/api/weather"
-	"main/db"
 	"main/dict"
 	"main/fun"
+	"main/storage"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -29,7 +29,7 @@ var mutex = &sync.Mutex{}
 * InitHooks
 * Initiates webhook triggers for all weather webhooks.
 **/
-func InitHooks(database *db.Database) error {
+func InitHooks(database *storage.Database) error {
 	iter := database.Client.Collection("weatherHookDB").Documents(database.Ctx)
 	for {
         doc, err := iter.Next()
@@ -67,7 +67,7 @@ func InitHooks(database *db.Database) error {
 * Function handling webhook triggering. It runs as a go routine every x hours, where x is the user-input timeout, for each webhook.
 **/
 func (weatherHook *WeatherHook) callLoop() {
-	_, exist := db.DB.Get("weatherHookDB", weatherHook.ID)
+	_, exist := storage.Firebase.Get("weatherHookDB", weatherHook.ID)
 	if !exist {
 		return
 	}	
@@ -158,7 +158,7 @@ func (weatherHook *WeatherHook) callLoop() {
 			"%v {\n\tWebhook URL is not valid. Deleting webhook...\n\tStatus code: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), res.StatusCode,
 		)
-		err = db.DB.Delete("weatherHookDB", weatherHook.ID)
+		err = storage.Firebase.Delete("weatherHookDB", weatherHook.ID)
 		mutex.Unlock()
 		return
 	} else {

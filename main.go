@@ -7,8 +7,8 @@ import (
 	"main/api/notification/weatherHook"
 	"main/api/weather"
 	compare "main/api/weatherCompare"
-	"main/db"
 	"main/dict"
+	"main/storage"
 	"net/http"
 	"os"
 	"time"
@@ -19,9 +19,9 @@ func init() {
 	//start timer
 	diag.StartTime = time.Now()
 	//setup connection with firebase and branch if an error occured
-	err := db.DB.Setup()
+	err := storage.Firebase.Setup()
 	if err != nil {
-		defer db.DB.Client.Close()
+		defer storage.Firebase.Client.Close()
 		log.Fatalln(err)
 	}
 }
@@ -37,7 +37,7 @@ func main() {
 	dict.MAIN_URL = dict.MAIN_URL + ":" + port
 	//start webhooks
 	go weatherEvent.InitHooks()
-	go weatherHook.InitHooks(&db.DB)
+	go weatherHook.InitHooks(&storage.Firebase)
 	//handle weather data
 	http.HandleFunc(dict.WEATHER_PATH, weather.MethodHandler)
 	//handle weather comparison data

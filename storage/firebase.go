@@ -1,4 +1,4 @@
-package db
+package storage
 
 import (
 	"context"
@@ -13,19 +13,18 @@ import (
 	"google.golang.org/api/option"
 )
 
+// Data is the root structure of everything stored in the database.
 type Data struct {
 	Time      string      `json:"time"`
 	Container interface{} `json:"container"`
 }
 
-// DB stores information about the firebase database.
-//
-// Used in notification structure.
-var DB Database
+// Firebase is used as the global firebase connection.
+var Firebase Database
 
 // Database structure stores information about firebase database.
 //
-// Functionality: Setup, Add, Get, Delete
+// Functionality: Setup, clean, Add, Get, GetAll, Delete
 type Database struct {
 	Ctx    context.Context
 	Client *firestore.Client
@@ -100,7 +99,7 @@ func (database *Database) clean() {
 	database.clean()
 }
 
-// Add adds a new webhook to database.
+// Add a new webhook to database.
 func (database *Database) Add(name string, id string, data Data) (string, string, error) {
 	data.Time = time.Now().Format(time.RFC822)
 	if id == "" {
@@ -128,6 +127,7 @@ func (database *Database) Add(name string, id string, data Data) (string, string
 	return data.Time, id, nil
 }
 
+// Get a webhook from the database.
 func (database *Database) Get(name string, id string) (map[string]interface{}, bool) {
 	iter, err := database.Client.Collection(name).Doc(id).Get(database.Ctx)
 	if err != nil {
@@ -137,6 +137,7 @@ func (database *Database) Get(name string, id string) (map[string]interface{}, b
 	return data, true
 }
 
+// Get all webhooks from the database.
 func (database *Database) GetAll(name string) ([]map[string]interface{}, error) {
 	var arrData []map[string]interface{}
 	iter := database.Client.Collection(name).Documents(database.Ctx)
@@ -153,40 +154,14 @@ func (database *Database) GetAll(name string) ([]map[string]interface{}, error) 
 	return arrData, nil
 }
 
-// Delete deletes specific webhook.
+// Delete specific webhook.
 func (database *Database) Delete(webhookdb string, id string) error {
 	_, err := database.Client.Collection(webhookdb).Doc(id).Delete(database.Ctx)
 
 	return err
 }
 
-// Delete deletes specific event.
-func (database *Database) DeleteEvent(id string) error {
-	//get only element that has the same ID as specified and branch if an error occurred
-	iter := database.Client.Collection("Events").Where("ID", "==", id).Documents(database.Ctx)
-	elem, err := iter.Next()
-	if err != nil {
-		return err
-	}
-	//delete webhook and branch if an error occurred
-	_, err = elem.Ref.Delete(database.Ctx)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-//
-func (database *Database) CountWebhooks(collection string) (int, error) {
-	docrefs, err := database.Client.Collection(collection).DocumentRefs(context.Background()).GetAll()
-	if err != nil {
-		return 0, err
-	}
-	return len(docrefs), nil
-
-}
-
+// Check date of data in database.
 func CheckDate(dataTime string, expectedHours int) (bool, error) {
 	then, err := time.Parse(time.RFC822, dataTime)
 	if err != nil {

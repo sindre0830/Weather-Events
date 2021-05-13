@@ -5,7 +5,7 @@ import (
 	"main/api"
 	"main/api/countryData"
 	"main/api/geoCoords"
-	"main/db"
+	"main/storage"
 	"net/http"
 	"strings"
 	"time"
@@ -36,7 +36,7 @@ func Handler(location string) (map[string]interface{}, int, error) {
 	}
 
 	// Check if country is already stored in the database
-	data, exist := db.DB.Get(holidaysDB, countryCode)
+	data, exist := storage.Firebase.Get(holidaysDB, countryCode)
 
 	if exist {
 		// Finds the year the data was saved and the current year
@@ -65,9 +65,9 @@ func Handler(location string) (map[string]interface{}, int, error) {
 	}
 
 	// Add data to the database
-	var dataDB db.Data
+	var dataDB storage.Data
 	dataDB.Container = holidaysMap
-	_, _, err = db.DB.Add(holidaysDB, countryCode, dataDB)
+	_, _, err = storage.Firebase.Add(holidaysDB, countryCode, dataDB)
 	if err != nil {
 		return holidaysMap, http.StatusInternalServerError, err
 	}

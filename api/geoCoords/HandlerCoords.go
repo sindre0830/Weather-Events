@@ -3,12 +3,10 @@ package geoCoords
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"main/api"
-	"main/db"
+	"main/storage"
 	"math"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -34,10 +32,16 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	id = strings.ToLower(id)
 
 	// We read our local DB, if one exists, into LocalCoords map.
-	var file []byte
-	if _, err := os.Stat("GeoCoords.json"); err == nil {
-		file, _ = ioutil.ReadFile("GeoCoords.json")
-		_ = json.Unmarshal([]byte(file), &LocalCoords)
+	//var file []byte
+	if storage.FindCollection("GeoCoords") {
+		file, err := storage.ReadCollection("GeoCoords")
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		err = json.Unmarshal([]byte(file), &LocalCoords)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
 	}
 
 	// Check LocalCoords if location data for this location exists
@@ -54,7 +58,7 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	}
 
 	// If not, we check in firestoreDB if location data for this location exists
-	data, exist := db.DB.Get("GeoCoords", id)
+	data, exist := storage.Firebase.Get("GeoCoords", id)
 
 	// We check whether data on firestore is deprecated or not.
 	// For locations that are not countries/capitals, we don't want to keep our data more than 3 hours.
@@ -62,7 +66,7 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	withinTimeframe := false
 
 	if _, ok := data["Time"].(string); ok {
-		withinTimeframe, _ = db.CheckDate(data["Time"].(string), 3)
+		withinTimeframe, _ = storage.CheckDate(data["Time"].(string), 3)
 	}
 
 	if exist && withinTimeframe {
@@ -94,16 +98,16 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 		LocalCoords[id] = *locationCoords
 		file, _ := json.MarshalIndent(LocalCoords, "", " ")
 
-		err = ioutil.WriteFile("GeoCoords.json", file, 0644)
+		err = storage.WriteCollection("GeoCoords", file)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
 	} else {
 		// If not important, we send the data to firestore
-		var data db.Data
+		var data storage.Data
 		data.Time = time.Now().String()
 		data.Container = locationCoords
-		_, _, err = db.DB.Add("GeoCoords", id, data)
+		_, _, err = storage.Firebase.Add("GeoCoords", id, data)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}

@@ -2,7 +2,7 @@ package eventData
 
 import (
 	"errors"
-	"main/db"
+	"main/storage"
 	"net/http"
 	"time"
 )
@@ -11,7 +11,7 @@ import (
 func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 
 	//Check if it is already in firebase
-	data, exist := db.DB.Get("Events", eventId)
+	data, exist := storage.Firebase.Get("Events", eventId)
 
 	if exist { //If in firebase, fetch data from firebase
 
@@ -28,11 +28,11 @@ func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 		}
 
 		//Check if the eventdata in firebase should be deleted
-		overdue := db.CheckIfDateOfEventPassed(dateStamp)
+		overdue := storage.CheckIfDateOfEventPassed(dateStamp)
 
 		if overdue {
 			//Delete the entry in the firebase
-			err = db.DB.DeleteEvent(eventId)
+			err = storage.Firebase.Delete("Events", eventId)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -49,10 +49,10 @@ func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 		}
 
 		//Add data to the database:
-		var dataDB db.Data
+		var dataDB storage.Data
 		dataDB.Container = fireBaseStore
 
-		_, _, err = db.DB.Add("Events", eventId, dataDB)
+		_, _, err = storage.Firebase.Add("Events", eventId, dataDB)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -88,6 +88,5 @@ func (data *FirebaseStore) readData(storage interface{}) error {
 	} else {
 		return errors.New("getting data from database: Can't find expected field: Name")
 	}
-
 	return nil
 }

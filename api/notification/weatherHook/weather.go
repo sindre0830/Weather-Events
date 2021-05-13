@@ -5,9 +5,9 @@ import (
 	"main/api/diag"
 	"main/api/notification"
 	"main/api/weather"
-	"main/db"
 	"main/debug"
 	"main/dict"
+	"main/storage"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -96,9 +96,9 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 	weatherHook.URL = weatherHookInput.URL
 	// add it to firebase
 	// how do we want to handle ID, getting/passing to user? Currently getting but not checking dupes.
-	var data db.Data
+	var data storage.Data
 	data.Container = weatherHook
-	_, id, err := db.DB.Add(hookdb, "", data)
+	_, id, err := storage.Firebase.Add(hookdb, "", data)
 	// return ID if successful, otherwise error
 	if err != nil {
 		debug.ErrorMessage.Update(
@@ -146,7 +146,7 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 	id := params["id"][0]
 
 	// check for ID in firestore - DB function
-	data, exist := db.DB.Get(hookdb, id)
+	data, exist := storage.Firebase.Get(hookdb, id)
 	// extract from data
 	if exist {
 		err := weatherHook.ReadData(data["Container"].(interface{}))
@@ -196,7 +196,7 @@ func (weatherHook *WeatherHook) HandlerDelete(w http.ResponseWriter, r *http.Req
 	params, _ := url.ParseQuery(r.URL.RawQuery)
 	id := params["id"][0]
 	// delete
-	err := db.DB.Delete(hookdb, id)
+	err := storage.Firebase.Delete(hookdb, id)
 
 	if err != nil {
 		debug.ErrorMessage.Update(
