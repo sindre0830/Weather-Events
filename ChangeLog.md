@@ -237,3 +237,5 @@
 [3.31.8]    **fix**:            Removed weatherHoliday package
 
 [3.31.9]    **development**:    Separated sleep function in fun, added comments to weatherHook
+
+[3.31.10]    **formatting**:    Added commentary on some files
