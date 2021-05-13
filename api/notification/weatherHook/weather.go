@@ -12,6 +12,7 @@ import (
 	"main/db"
 	"main/debug"
 	"main/dict"
+	"main/fun"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -51,7 +52,7 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	//branch if the schema in the URL is incorrect
+	// branch if the schema in the URL is incorrect
 	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
@@ -62,7 +63,7 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	//validate parameters and branch if an error occurred
+	// validate parameters and branch if an error occurred
 	var weather weather.Weather
 	req, err := http.NewRequest("GET", dict.GetWeatherURL(weatherHookInput.Location, ""), nil)
 	if err != nil {
@@ -85,7 +86,7 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 		)
 		debug.ErrorMessage.Print(w)
 	}
-	//check if timeout is valid and return an error if it isn't - timeout in hours
+	// check if timeout is valid and return an error if it isn't - timeout in hours
 	if weatherHookInput.Timeout < 1 || weatherHookInput.Timeout > 72 {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
@@ -101,11 +102,11 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 	weatherHook.Timeout = weatherHookInput.Timeout
 	weatherHook.URL = weatherHookInput.URL
 	// add it to firebase
-	// How do we want to handle ID, getting/passing to user? Currently getting but not checking dupes.
+	// how do we want to handle ID, getting/passing to user? Currently getting but not checking dupes.
 	var data db.Data
 	data.Container = weatherHook
 	_, id, err := db.DB.Add(hookdb, "", data)
-	// Return ID if successful, otherwise error
+	// return ID if successful, otherwise error
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
@@ -117,9 +118,9 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	weatherHook.ID = id
-	//start loop
+	// start loop
 	go weatherHook.callLoop()
-	//create feedback message to send to client and branch if an error occurred
+	// create feedback message to send to client and branch if an error occurred
 	var feedback notification.Feedback
 	feedback.Update(
 		http.StatusCreated,
@@ -137,22 +138,11 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	// // Start as go routine, else system will hang for the sleep time!
-	// go weatherHook.Trigger()
-	// debug.ErrorMessage.Update(
-	// 	http.StatusCreated,
-	// 	"WeatherHook -> MethodHandler() -> weatherHook.HandlerPost() -> Adding webhook to database.",
-	// 	"Webhook successfully added to database! Your ID: " + id,
-	// 	"",				// We have to add ID here!
-	// )
-	// debug.ErrorMessage.Print(w)
-	// return
 }
 
 /**
 * HandlerGet
 * Handles GET method requests from clients
-* This method should post the webhook itself to the client.
 **/
 func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -161,8 +151,8 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 	id := params["id"][0]
 
 	// check for ID in firestore - DB function
-	data, exist := db.DB.Get(hookdb, id) // all hooks in one db?
-	// Extract from data
+	data, exist := db.DB.Get(hookdb, id)
+	// extract from data
 	if exist {
 		err := weatherHook.ReadData(data["Container"].(interface{}))
 		if err != nil {
@@ -177,7 +167,7 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 		}
 		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(&weatherHook)
-		//send output to user and branch if an error occured
+		// send output to user and branch if an error occured
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError,
@@ -233,14 +223,18 @@ func (weatherHook *WeatherHook) HandlerDelete(w http.ResponseWriter, r *http.Req
 	}
 }
 
+/**
+* callLoop
+* Function handling webhook triggering. It runs as a go routine every x hours, where x is the user-input timeout, for each webhook.
+**/
 func (weatherHook *WeatherHook) callLoop() {
-	_, exist := db.DB.Get("weatherHook", weatherHook.ID)
+	_, exist := db.DB.Get("weatherHookDB", weatherHook.ID)
 	if !exist {
 		return
-	}
-	nextTime := time.Now().Truncate(time.Second)
-	nextTime = nextTime.Add(time.Duration(weatherHook.Timeout) * time.Second) // Change to hour!
-	time.Sleep(time.Until(nextTime))
+	}	
+	// Sleep
+	fun.HookSleep(weatherHook.Timeout)
+
 	url := dict.GetWeatherURL(weatherHook.Location, "")
 	var weather weather.Weather
 	//create new GET request and branch if an error occurred
@@ -318,7 +312,7 @@ func (weatherHook *WeatherHook) callLoop() {
 
 /**
 * readData
-* Reads data from a Data struct.
+* Reads data from a Data json object.
 **/
 func (weatherHook *WeatherHook) ReadData(data interface{}) error {
 	m := data.(map[string]interface{})
@@ -328,22 +322,26 @@ func (weatherHook *WeatherHook) ReadData(data interface{}) error {
 	return nil
 }
 
-// Can't put in database due to cyclic import
+/**
+* StartCall
+* Initiates webhook triggers for all weather webhooks.
+**/
 func StartCall(database *db.Database) error {
 	iter := database.Client.Collection("weatherHookDB").Documents(database.Ctx)
 	for {
-		doc, err := iter.Next()
-		if err == iterator.Done {
-			break
+        doc, err := iter.Next()
+        if err == iterator.Done {
+            break
 		}
-		if err != nil {
-			return err
+        if err != nil {
+            return err
 		}
 		// Create dummy variables
 		var temp WeatherHook
 		var dbMap = doc.Data()
 		// Extract data from iterator
 		err = temp.ReadData(dbMap["Container"].(interface{}))
+		temp.ID = doc.Ref.ID
 		if err != nil {
 			return err
 		}

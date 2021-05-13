@@ -232,5 +232,8 @@
 
 [3.31.6]    **formatting**:     Reformatted weatherCompare package
 
-[3.31.7]    **fix**:     Fixed error handling in weatherEvent.checkIfHoliday()
+[3.31.7]    **fix**:            Fixed error handling in weatherEvent.checkIfHoliday()
 
+[3.31.8]    **fix**:            Removed weatherHoliday package
+
+[3.31.9]    **development**:    Separated sleep function in fun, added comments to weatherHook

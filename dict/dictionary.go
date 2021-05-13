@@ -9,7 +9,6 @@ var WEATHERCOMPARE_PATH = MAIN_URL + "/weather-rest/v1/weather/compare/"
 var WEATHEREVENT_PATH = MAIN_URL + "/weather-rest/v1/event/date/"
 var EVENT_PATH = MAIN_URL + "/weather-rest/v1/weather/event/"
 var DIAG_PATH = MAIN_URL + "/weather-rest/v1/weather/diag/"
-var HOLIDAY_PATH = MAIN_URL + "/weather-rest/v1/notification/weather/holiday"
 var WEATHERHOOK_PATH = MAIN_URL + "/weather-rest/v1/notification/weather"
 
 /* REST services */
