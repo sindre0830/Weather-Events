@@ -255,3 +255,5 @@
 [3.37.0]    **development**:    Started adding unit testing
 
 [3.38.0]    **development**:    Restructured webhook count in diag to reduce operations
+
+[3.39.0]    **development**:    Added database cleaner which removes some collections every 12 hours

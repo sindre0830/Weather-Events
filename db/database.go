@@ -2,7 +2,9 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"math"
+	"strconv"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -43,12 +45,59 @@ func (database *Database) Setup() error {
 	if err != nil {
 		return err
 	}
-	// //update Notifications with data from database and branch if and error occurred
-	// err = database.Get()
-	// if err != nil {
-	// 	return err
-	// }
+	//start database cleaner
+	go database.clean()
 	return nil
+}
+
+// clean database for some collections.
+func (database *Database) clean() {
+	var itemsCleaned int
+	//clean ticketmaster events
+	iter := database.Client.Collection("Events").Documents(database.Ctx)
+	for {
+		//go to next element in array and break loop if there are no elements, branch if an error occurred
+		elem, err := iter.Next()
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			fmt.Printf(
+				"%v {\n\tError while cleaning database.\n\tRaw error: %v\n}\n",
+				time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+			)
+			return
+		} else {
+			database.Delete("Events", elem.Ref.ID)
+			itemsCleaned++
+		}
+	}
+	//clean coordinates
+	iter = database.Client.Collection("GeoCoords").Documents(database.Ctx)
+	for {
+		//go to next element in array and break loop if there are no elements, branch if an error occurred
+		elem, err := iter.Next()
+		if err == iterator.Done {
+			break
+		} else if err != nil {
+			fmt.Printf(
+				"%v {\n\tError while cleaning database.\n\tRaw error: %v\n}\n",
+				time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+			)
+			return
+		} else {
+			database.Delete("GeoCoords", elem.Ref.ID)
+			itemsCleaned++
+		}
+	}
+	fmt.Printf(
+		"%v {\n\tSuccsesfully cleaned database.\n\tRemoved items: %v\n}\n",
+		time.Now().Format("2006-01-02 15:04:05"), strconv.Itoa(itemsCleaned),
+	)
+	//put program to sleep for 12 hours before cleaing again
+	nextTime := time.Now().Truncate(time.Hour)
+	nextTime = nextTime.Add(time.Duration(12) * time.Hour)
+	time.Sleep(time.Until(nextTime))
+	database.clean()
 }
 
 // Add adds a new webhook to database.
@@ -76,11 +125,6 @@ func (database *Database) Add(name string, id string, data Data) (string, string
 			return "", "", err
 		}
 	}
-	// //update Notifications with data from database and branch if and error occurred
-	// err = database.Get()
-	// if err != nil {
-	// 	return err
-	// }
 	return data.Time, id, nil
 }
 
@@ -108,38 +152,6 @@ func (database *Database) GetAll(name string) ([]map[string]interface{}, error) 
 	}
 	return arrData, nil
 }
-
-// // Get gets all webhooks from database
-// func (database *Database) Get() error {
-// 	//clear current webhooks stored in Notifications
-// 	Notifications = make(map[string]Notification)
-// 	//iterate through database and get each webhook
-// 	iter := database.Client.Collection("notification").Documents(database.Ctx)
-// 	var notification Notification
-// 	for {
-// 		//go to next element in array and break loop if there are no elements, branch if an error occurred
-// 		elem, err := iter.Next()
-// 		if err == iterator.Done {
-// 			break
-// 		} else if err != nil {
-// 			return err
-// 		}
-
-// elem.Ref.ID for ID
-
-// 		//convert data from interface and set in structure
-// 		data := elem.Data()
-// 		notification.ID = fmt.Sprintf("%v", data["ID"])
-// 		notification.URL = fmt.Sprintf("%v", data["URL"])
-// 		notification.Timeout = data["Timeout"].(int64)
-// 		notification.Information = fmt.Sprintf("%v", data["Information"])
-// 		notification.Country = fmt.Sprintf("%v", data["Country"])
-// 		notification.Trigger = fmt.Sprintf("%v", data["Trigger"])
-// 		//add structure to map
-// 		Notifications[notification.ID] = notification
-// 	}
-// 	return nil
-// }
 
 // Delete deletes specific webhook.
 func (database *Database) Delete(webhookdb string, id string) error {

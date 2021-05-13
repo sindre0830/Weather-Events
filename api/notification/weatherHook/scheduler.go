@@ -55,7 +55,7 @@ func InitHooks(database *db.Database) error {
 	}
 	//print message with amount of webhooks initilizied
 	fmt.Printf(
-		"%v {\n\tSuccesfully initialized WeatherHookwebhooks.\n}",
+		"%v {\n\tSuccesfully initialized WeatherHook webhooks.\n}\n",
 		time.Now().Format("2006-01-02 15:04:05"),
 	)
 	return nil
