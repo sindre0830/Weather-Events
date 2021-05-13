@@ -25,7 +25,8 @@ func init() {
 		log.Fatalln(err)
 	}
 	//start WeatherEvent webhooks
-	go weatherEvent.InitHooks()
+	//go weatherEvent.InitHooks()
+	go weatherHook.InitHooks(&db.DB)
 }
 
 // Main program.
@@ -36,7 +37,6 @@ func main() {
 		port = "8080"
 	}
 
-	weatherHook.StartCall(&db.DB) // Can't do this in database.go - cycling imports
 	//set URL with port
 	dict.MAIN_URL = dict.MAIN_URL + ":" + port
 	//handle weather data
