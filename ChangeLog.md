@@ -214,4 +214,26 @@
 
 [3.28.0]    **development**:    Moved weatherHook, changed trigger to callUrl.
 
-[3.29.0]    **development**:    Separated sleep function in fun, added comments to weatherHook
+[3.29.0]    **development**:    Added date validation in weatherEvent.POST()
+
+[3.30.0]    **development**:    Restructured so all structs have their own file in that same package
+
+[3.31.0]    **development**:    Added date validation in weatherEvent.callLoop()
+
+[3.31.1]    **formatting**:     Reformatted structures in WeatherData package
+
+[3.31.2]    **formatting**:     Reformatted dict package
+
+[3.31.3]    **formatting**:     Reformatted weatherData package
+
+[3.31.4]    **formatting**:     Reformatted weather package
+
+[3.31.5]    **fix**:            Fixed CheckDate to subtract hours instead of minutes
+
+[3.31.6]    **formatting**:     Reformatted weatherCompare package
+
+[3.31.7]    **fix**:            Fixed error handling in weatherEvent.checkIfHoliday()
+
+[3.31.8]    **fix**:            Removed weatherHoliday package
+
+[3.31.9]    **development**:    Separated sleep function in fun, added comments to weatherHook

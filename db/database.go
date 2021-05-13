@@ -184,7 +184,7 @@ func CheckDate(dataTime string, expectedHours int) (bool, error) {
 	currentTime := time.Now()
 	diffTime := currentTime.Sub(then)
 	//convert the difference to integer of hours
-	diffHours := int(math.Floor(diffTime.Minutes()))
+	diffHours := int(math.Floor(diffTime.Hours()))
 	return diffHours <= expectedHours, nil
 }
 

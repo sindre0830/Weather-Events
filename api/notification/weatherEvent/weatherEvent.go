@@ -20,31 +20,20 @@ import (
 	"time"
 )
 
-type WeatherEventInput struct {
-	Date      string `json:"date"`
-	Location  string `json:"location"`
-	URL       string `json:"url"`
-	Frequency string `json:"frequency"`
-	Timeout   int64  `json:"timeout"`
-}
-
-type WeatherEvent struct {
-	ID        string `json:"id"`
-	Date      string `json:"date"`
-	Location  string `json:"location"`
-	URL       string `json:"url"`
-	Frequency string `json:"frequency"`
-	Timeout   int64  `json:"timeout"`
-}
-
 func (weatherEvent *WeatherEvent) callLoop() {
 	_, exist := db.DB.Get("weatherEvent", weatherEvent.ID)
 	if !exist {
 		return
 	}
+	//check if date is within 
+	date, _ := time.Parse("2006-01-02", weatherEvent.Date)
+	date = date.AddDate(0, 0, -8)
+	time.Sleep(time.Until(date))
+	//check if program should sleep on timeout value
 	nextTime := time.Now().Truncate(time.Second)
 	nextTime = nextTime.Add(time.Duration(weatherEvent.Timeout) * time.Second)
 	time.Sleep(time.Until(nextTime))
+	//get url based on webhook data
 	url := dict.GetWeatherURL(weatherEvent.Location, weatherEvent.Date)
 	var weather weather.Weather
 	//create new GET request and branch if an error occurred
@@ -328,6 +317,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 			"Unknown",
 		)
 		debug.ErrorMessage.Print(w)
+		return
 	}
 	recorder := httptest.NewRecorder()
 	weather.Handler(recorder, req)
@@ -339,17 +329,28 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 			"Location not found. Example: 'Oslo'",
 		)
 		debug.ErrorMessage.Print(w)
+		return
 	}
-
-	weatherEventInput.checkIfHoliday()
-
+	//convert holiday to date if it is inputted
+	weatherEventInput.checkIfHoliday(w)
+	//check if date is valid
+	if !weatherEventInput.checkDate() {
+		debug.ErrorMessage.Update(
+			http.StatusNotFound,
+			"WeatherEvent.POST() -> WeatherEvent.checkDate() -> Checking if date is valid",
+			"invalid date: date is either wrong format or not within scope",
+			"Check that the format of the date is YYYY-MM-DD and that it is within timeframe.",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
 	//set data
 	weatherEvent.Date = weatherEventInput.Date
 	weatherEvent.Location = weatherEventInput.Location
 	weatherEvent.URL = weatherEventInput.URL
 	weatherEvent.Frequency = weatherEventInput.Frequency
 	weatherEvent.Timeout = weatherEventInput.Timeout
-
+	//send data to database
 	var data db.Data
 	data.Container = weatherEvent
 	_, id, err := db.DB.Add("weatherEvent", "", data)
@@ -364,13 +365,11 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	weatherEvent.ID = id
-	//start loop
-	go weatherEvent.callLoop()
 	//create feedback message to send to client and branch if an error occurred
 	var feedback notification.Feedback
 	feedback.Update(
 		http.StatusCreated,
-		"Webhook successfully created for '" + weatherEvent.URL + "'",
+		"Webhook successfully created for '"+weatherEvent.URL+"'",
 		weatherEvent.ID,
 	)
 	err = feedback.Print(w)
@@ -384,18 +383,39 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 		return
 	}
+	//start loop
+	go weatherEvent.callLoop()
+}
+
+func (weatherEventInput *WeatherEventInput) checkDate() bool {
+	date, err := time.Parse("2006-01-02", weatherEventInput.Date)
+	if err != nil {
+		return false
+	}
+	if weatherEventInput.Date == time.Now().Format("2006-01-02") {
+		return true
+	} else {
+		return time.Now().Before(date)
+	}
 }
 
 // checkIfHoliday, checks if Date field is date or holiday
-func (weatherEventInput *WeatherEventInput) checkIfHoliday() {
+func (weatherEventInput *WeatherEventInput) checkIfHoliday(w http.ResponseWriter) {
 	// Parse date to see if it is a date or a holiday
 	_, err := time.Parse("2006-01-02", weatherEventInput.Date)
 	if err != nil {
 		// It is a holiday, replace holiday with date
 		// Get a map of all the country's holidays
 		var holidaysMap = make(map[string]interface{})
-		holidaysMap, _, err := holidaysData.Handler(weatherEventInput.Location)
+		holidaysMap, status, err := holidaysData.Handler(weatherEventInput.Location)
 		if err != nil {
+			debug.ErrorMessage.Update(
+				status,
+				"WeatherHoliday.Register() -> holidaysData.Handler() - > Getting information about the country's holidays",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
 			return
 		}
 
@@ -405,6 +425,13 @@ func (weatherEventInput *WeatherEventInput) checkIfHoliday() {
 		// Check if the holiday exists in the selected country
 		date, ok := holidaysMap[weatherEventInput.Date]
 		if !ok {
+			debug.ErrorMessage.Update(
+				http.StatusBadRequest,
+				"WeatherHoliday.Register() -> Checking if a holiday exists in a country",
+				"invalid holiday: the holiday is not valid in the selected country",
+				"Not a real holiday. Check your spelling and make sure it is the english name.",
+			)
+			debug.ErrorMessage.Print(w)
 			return
 		}
 

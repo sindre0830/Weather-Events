@@ -13,24 +13,13 @@ import (
 	"time"
 )
 
-// Weather structure stores current and predicted weather data for a day and information about location.
-//
-// Functionality: Handler, get
-type Weather struct {
-	Longitude  float64 `json:"longitude"`
-	Latitude   float64 `json:"latitude"`
-	Location   string  `json:"location"`
-	Updated    string  `json:"updated"`
-	Timeseries map[string]weatherData.Timeseries `json:"timeseries"`
-}
-
 // Handler will handle http request for REST service.
 func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 	//parse url and branch if an error occurred
 	arrPath := strings.Split(r.URL.Path, "/")
 	if len(arrPath) != 6 {
 		debug.ErrorMessage.Update(
-			http.StatusBadRequest, 
+			http.StatusBadRequest,
 			"Weather.Handler() -> Parsing URL",
 			"url validation: either too many or too few arguments in url path",
 			"URL format. Expected format: '.../place'. Example: '.../oslo'",
@@ -44,7 +33,7 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 	status, err := locationCoords.Handler(location)
 	if err != nil {
 		debug.ErrorMessage.Update(
-			status, 
+			status,
 			"Weather.Handler() -> LocationCoords.Handler() -> Getting location info",
 			err.Error(),
 			"Unknown",
@@ -52,11 +41,14 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 		return
 	}
+	weather.Longitude = locationCoords.Longitude
+	weather.Latitude = locationCoords.Latitude
+	weather.Location = locationCoords.Address
 	//get all parameters from URL and branch if an error occurred
 	arrParam, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
 		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
+			http.StatusInternalServerError,
 			"Weather.Handler() -> Validating URL parameters",
 			err.Error(),
 			"Unknown",
@@ -74,7 +66,7 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 			_, err = time.Parse("2006-01-02", date)
 			if err != nil {
 				debug.ErrorMessage.Update(
-					http.StatusBadRequest, 
+					http.StatusBadRequest,
 					"Weather.Handler() -> Validating URL parameters",
 					err.Error(),
 					"Date doesn't match YYYY-MM-DD format. Example: 2021-04-26",
@@ -84,7 +76,7 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			debug.ErrorMessage.Update(
-				http.StatusBadRequest, 
+				http.StatusBadRequest,
 				"Weather.Handler() -> Validating URL parameters",
 				"url validation: unknown parameter",
 				"Unknown",
@@ -94,10 +86,10 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	//get weather data and branch if an error occurred
-	status, err = weather.get(locationCoords.Latitude, locationCoords.Longitude, date)
+	status, err = weather.get(weather.Latitude, weather.Longitude, date)
 	if err != nil {
 		debug.ErrorMessage.Update(
-			status, 
+			status,
 			"Weather.Handler() -> Weather.get() -> Getting weather data",
 			err.Error(),
 			"Unknown",
@@ -105,18 +97,12 @@ func (weather *Weather) Handler(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	//set data in structure
-	weather.Longitude = locationCoords.Longitude
-	weather.Latitude = locationCoords.Latitude
-	weather.Location = locationCoords.Address
-	//update header to JSON and set HTTP code
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 	//send output to user and branch if an error occured
+	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(weather)
 	if err != nil {
 		debug.ErrorMessage.Update(
-			http.StatusInternalServerError, 
+			http.StatusInternalServerError,
 			"Weather.Handler() -> Sending data to user",
 			err.Error(),
 			"Unknown",
@@ -137,7 +123,7 @@ func (weather *Weather) get(lat float64, lon float64, date string) (int, error) 
 		return status, err
 	}
 	weather.Timeseries = make(map[string]weatherData.Timeseries)
-	//set data in structure
+	//set data in structure and branch if data can't be found
 	weather.Updated = weatherDataRange.Updated
 	if data, ok := weatherDataRange.Timeseries[date]; ok {
 		weather.Timeseries[date] = data

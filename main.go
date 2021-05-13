@@ -4,7 +4,6 @@ import (
 	"log"
 	"main/api/diag"
 	"main/api/notification/weatherEvent"
-	"main/api/notification/weatherHoliday"
 	"main/api/notification/weatherHook"
 	"main/api/weather"
 	compare "main/api/weatherCompare"
@@ -35,9 +34,9 @@ func main() {
 		port = "8080"
 	}
 
-	weatherHook.StartCall(&db.DB)	// Can't do this in database.go - cycling imports
+	weatherHook.StartCall(&db.DB) // Can't do this in database.go - cycling imports
 	//set URL with port
-	dict.URL = dict.URL + ":" + port
+	dict.MAIN_URL = dict.MAIN_URL + ":" + port
 	//handle weather data
 	http.HandleFunc(dict.WEATHER_PATH, weather.MethodHandler)
 	//handle weather comparison data
@@ -45,10 +44,7 @@ func main() {
 	//handle weather event
 	http.HandleFunc(dict.WEATHEREVENT_PATH, weatherEvent.MethodHandler)
 	//Diag endpoint
-	http.HandleFunc(dict.DIAG_PATH, diag.MethodHandler)
-	//handle holiday webhook
-	http.HandleFunc(dict.HOLIDAY_PATH, weatherHoliday.MethodHandler)
-	http.HandleFunc(dict.HOLIDAY_PATH+"/", weatherHoliday.MethodHandler)
+	http.HandleFunc(dict.DIAG_PATH, diag.MethodHandler) //NB Note that the count of webhooks counts the collections, therefore they need to be added manually and as such not all webhooks are counted as of yet
 	//handle weather webhook
 	http.HandleFunc(dict.WEATHERHOOK_PATH, weatherHook.MethodHandler)
 	//ends program if it can't open port
