@@ -2,6 +2,7 @@ package weatherHook
 
 import (
 	"encoding/json"
+	"main/api/diag"
 	"main/api/notification"
 	"main/api/weather"
 	"main/db"
@@ -112,6 +113,8 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 	weatherHook.ID = id
 	// start loop
 	go weatherHook.callLoop()
+	//add hook amount to diag
+	diag.HookAmount++
 	// create feedback message to send to client and branch if an error occurred
 	var feedback notification.Feedback
 	feedback.Update(

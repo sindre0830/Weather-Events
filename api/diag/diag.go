@@ -3,7 +3,6 @@ package diag
 import (
 	"encoding/json"
 	"log"
-	"main/db"
 	"main/debug"
 	"math"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 )
 
 var StartTime time.Time
+var HookAmount int
 
 //MethodHandler -Class function will be called and handle all requests and fetches
 func MethodHandler(w http.ResponseWriter, r *http.Request) {
@@ -75,31 +75,7 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Find number of registered webhooks NB! needs to add for all collections!
-	countNotifications, err := db.DB.CountWebhooks("notifications")
-	if err != nil {
-		debug.ErrorMessage.Update(
-			http.StatusInternalServerError,
-			"Diag.Handler() -> Database.CountWebhooks() -> count the number of registered webhooks",
-			err.Error(),
-			"Unknown",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
-	countWeather, err := db.DB.CountWebhooks("weatherEvent")
-	if err != nil {
-		debug.ErrorMessage.Update(
-			http.StatusInternalServerError,
-			"Diag.Handler() -> Database.CountWebhooks() -> count the number of registered webhooks",
-			err.Error(),
-			"Unknown",
-		)
-		debug.ErrorMessage.Print(w)
-		return
-	}
-
-	diag.RegisteredWebhooks = countNotifications + countWeather //NB
+	diag.RegisteredWebhooks = HookAmount
 	diag.Version = "v1"
 	diag.Uptime = int(math.Floor(time.Since(StartTime).Seconds()))
 

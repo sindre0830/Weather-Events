@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"main/api/diag"
 	"main/api/weather"
 	"main/db"
 	"main/dict"
@@ -41,6 +42,7 @@ func InitHooks() {
 		"%v {\n\tSuccesfully initialized WeatherEvent webhooks.\n\tAmount: %v\n}\n",
 		time.Now().Format("2006-01-02 15:04:05"), strconv.Itoa(len(arrWeatherEvent)),
 	)
+	diag.HookAmount += len(arrWeatherEvent)
 }
 
 // callHook calls webhook.

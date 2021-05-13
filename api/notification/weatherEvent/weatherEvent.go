@@ -2,6 +2,7 @@ package weatherEvent
 
 import (
 	"encoding/json"
+	"main/api/diag"
 	"main/api/eventData"
 	"main/api/holidaysData"
 	"main/api/notification"
@@ -341,6 +342,8 @@ func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
 	}
 	//start loop
 	go weatherEvent.callHook()
+	//add hook amount to diag
+	diag.HookAmount++
 }
 
 // delete handles a delete request from the client.

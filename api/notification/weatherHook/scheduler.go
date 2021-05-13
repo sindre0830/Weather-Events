@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"main/api/diag"
 	"main/api/weather"
 	"main/db"
 	"main/dict"
@@ -49,6 +50,8 @@ func InitHooks(database *db.Database) error {
 		}
 		// Start as go routine, else system will hang for the sleep time!
 		go temp.callLoop()
+		//add hook amount to diag
+		diag.HookAmount++
 	}
 	//print message with amount of webhooks initilizied
 	fmt.Printf(

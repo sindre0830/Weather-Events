@@ -253,3 +253,5 @@
 [3.36.0]    **development**:    Added mutex lock to WeatherEvent
 
 [3.37.0]    **development**:    Started adding unit testing
+
+[3.38.0]    **development**:    Restructured webhook count in diag to reduce operations
