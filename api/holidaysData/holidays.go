@@ -28,7 +28,6 @@ func Handler(location string) (map[string]interface{}, int, error) {
 
 	// Get country code
 	var countryInfo countryData.Information
-
 	status, err, countryCode := countryInfo.Handler(country)
 	if err != nil {
 		return holidaysMap, http.StatusBadRequest, err
@@ -53,7 +52,7 @@ func Handler(location string) (map[string]interface{}, int, error) {
 
 	// Get data from the API and add to the database
 	var holidays Holiday
-	status, err = holidays.get(countryCode)
+	holidays, status, err = get(countryCode)
 	if err != nil {
 		return holidaysMap, status, err
 	}
@@ -66,7 +65,6 @@ func Handler(location string) (map[string]interface{}, int, error) {
 	// Add data to the database
 	var dataDB db.Data
 	dataDB.Container = holidaysMap
-
 	_, _, err = db.DB.Add("Holidays", countryCode, dataDB)
 	if err != nil {
 		return holidaysMap, http.StatusInternalServerError, err
@@ -76,7 +74,9 @@ func Handler(location string) (map[string]interface{}, int, error) {
 }
 
 // get information about all holidaysData in a country
-func (holidays *Holiday) get(country string) (int, error) {
+func get(country string) (Holiday, int, error) {
+	var holidays Holiday
+
 	// Get the current year as a string
 	t := time.Now()
 	year := t.String()[:4]
@@ -87,14 +87,14 @@ func (holidays *Holiday) get(country string) (int, error) {
 	// Get data from the request URL
 	res, status, err := api.RequestData(url)
 	if err != nil {
-		return status, err
+		return holidays, status, err
 	}
 
 	// Unmarshal the response
 	err = json.Unmarshal(res, &holidays)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return holidays, http.StatusInternalServerError, err
 	}
 
-	return http.StatusOK, err
+	return holidays, http.StatusOK, err
 }
