@@ -332,7 +332,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//convert holiday to date if it is inputted
-	weatherEventInput.checkIfHoliday()
+	weatherEventInput.checkIfHoliday(w)
 	//check if date is valid
 	if !weatherEventInput.checkDate() {
 		debug.ErrorMessage.Update(
@@ -400,15 +400,22 @@ func (weatherEventInput *WeatherEventInput) checkDate() bool {
 }
 
 // checkIfHoliday, checks if Date field is date or holiday
-func (weatherEventInput *WeatherEventInput) checkIfHoliday() {
+func (weatherEventInput *WeatherEventInput) checkIfHoliday(w http.ResponseWriter) {
 	// Parse date to see if it is a date or a holiday
 	_, err := time.Parse("2006-01-02", weatherEventInput.Date)
 	if err != nil {
 		// It is a holiday, replace holiday with date
 		// Get a map of all the country's holidays
 		var holidaysMap = make(map[string]interface{})
-		holidaysMap, _, err := holidaysData.Handler(weatherEventInput.Location)
+		holidaysMap, status, err := holidaysData.Handler(weatherEventInput.Location)
 		if err != nil {
+			debug.ErrorMessage.Update(
+				status,
+				"WeatherHoliday.Register() -> holidaysData.Handler() - > Getting information about the country's holidays",
+				err.Error(),
+				"Unknown",
+			)
+			debug.ErrorMessage.Print(w)
 			return
 		}
 
@@ -418,6 +425,13 @@ func (weatherEventInput *WeatherEventInput) checkIfHoliday() {
 		// Check if the holiday exists in the selected country
 		date, ok := holidaysMap[weatherEventInput.Date]
 		if !ok {
+			debug.ErrorMessage.Update(
+				http.StatusBadRequest,
+				"WeatherHoliday.Register() -> Checking if a holiday exists in a country",
+				"invalid holiday: the holiday is not valid in the selected country",
+				"Not a real holiday. Check your spelling and make sure it is the english name.",
+			)
+			debug.ErrorMessage.Print(w)
 			return
 		}
 

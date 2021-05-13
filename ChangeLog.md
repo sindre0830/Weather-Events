@@ -231,3 +231,6 @@
 [3.31.5]    **fix**:            Fixed CheckDate to subtract hours instead of minutes
 
 [3.31.6]    **formatting**:     Reformatted weatherCompare package
+
+[3.31.7]    **fix**:     Fixed error handling in weatherEvent.checkIfHoliday()
+
