@@ -13,10 +13,10 @@ import (
 //Handler - Class function will be called and handle all requests and fetches
 func (data Information) Handler(country string) (int, error, string) {
 
-	//Check if document exists, if it does not exist run this code:
+	//Check if a locally stored document with the information exists, if it does not exist, run this code:
 	if _, err := os.Stat("./data/countries.json"); os.IsNotExist(err) {
 
-		//Fetch information:
+		//Fetch new information from API:
 		var input Information
 		status, err := input.req("https://restcountries.eu/rest/v2/all")
 		if err != nil {
@@ -31,7 +31,7 @@ func (data Information) Handler(country string) (int, error, string) {
 	//If function was called with a specific country
 	if country != "" {
 		var specificCountry Information
-		status, err, countryCode := specificCountry.oneCountry(country)
+		status, err, countryCode := specificCountry.oneCountry(country) //Fetch information for one country
 		if err != nil {
 
 			return status, err, ""
@@ -40,7 +40,7 @@ func (data Information) Handler(country string) (int, error, string) {
 
 	} else { //If function was NOT called with a specific country:
 		var AllData Information
-		status, err := AllData.allCountries()
+		status, err := AllData.allCountries() //Fetch information for all countries
 		if err != nil {
 
 			return status, err, ""
