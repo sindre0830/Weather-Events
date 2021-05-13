@@ -13,8 +13,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"sync"
 	"time"
 )
+
+var mutex = &sync.Mutex{}
 
 // InitHooks initilizes all weatherEvent hooks from the database.
 func InitHooks() {
@@ -55,6 +58,7 @@ func (weatherEvent *WeatherEvent) callHook() {
 	nextTime := time.Now().Truncate(time.Second)
 	nextTime = nextTime.Add(time.Duration(weatherEvent.Timeout) * time.Second)
 	time.Sleep(time.Until(nextTime))
+	mutex.Lock()
 	//get url based on webhook data
 	url := dict.GetWeatherURL(weatherEvent.Location, weatherEvent.Date)
 	var weather weather.Weather
@@ -65,6 +69,7 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
+		mutex.Unlock()
 		weatherEvent.callHook()
 		return 
 	}
@@ -77,6 +82,7 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tStatus code: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), recorder.Result().StatusCode,
 		)
+		mutex.Unlock()
 		weatherEvent.callHook()
 		return
 	}
@@ -87,6 +93,7 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when parsing Weather structure.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
+		mutex.Unlock()
 		weatherEvent.callHook()
 		return
 	}
@@ -97,6 +104,7 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when creating new POST request.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
+		mutex.Unlock()
 		weatherEvent.callHook()
 		return
 	}
@@ -108,6 +116,7 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when hashing content before POST request.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
+		mutex.Unlock()
 		weatherEvent.callHook()
 		return
 	}
@@ -122,6 +131,7 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when sending HTTP content to webhook.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
+		mutex.Unlock()
 		weatherEvent.callHook()
 		return
 	}
@@ -137,7 +147,9 @@ func (weatherEvent *WeatherEvent) callHook() {
 				time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 			)
 		}
+		mutex.Unlock()
 		return
 	}
+	mutex.Unlock()
 	weatherEvent.callHook()
 }
