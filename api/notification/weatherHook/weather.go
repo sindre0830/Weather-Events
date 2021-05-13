@@ -16,12 +16,19 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"sync"
 	"time"
 
 	"google.golang.org/api/iterator"
 )
 
+// name of the firestore database for this webhook
 var hookdb = "weatherHookDB"
+
+// We use mutex locks in our webhook trigger functions to ensure we get no concurrency issues WRT map writes
+// Since we're loading every hook in when the program starts running, any2 or more  hooks with the same timeout
+// would otherwise be at risk of panicking when running at the same time. 
+var mutex = &sync.Mutex{}
 
 /**
 * HandlerPost
@@ -165,6 +172,7 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 			debug.ErrorMessage.Print(w)
 			return
 		}
+		weatherHook.ID = id
 		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(&weatherHook)
 		// send output to user and branch if an error occured
@@ -234,6 +242,8 @@ func (weatherHook *WeatherHook) callLoop() {
 	}	
 	// Sleep
 	fun.HookSleep(weatherHook.Timeout)
+	// Lock and do its thing when the timeout is up
+	mutex.Lock()
 
 	url := dict.GetWeatherURL(weatherHook.Location, "")
 	var weather weather.Weather
@@ -307,6 +317,8 @@ func (weatherHook *WeatherHook) callLoop() {
 		db.DB.Delete("weatherEvent", weatherHook.ID)
 		return
 	}
+	// When we've finished processing the trigger, we can unlock and recur in a new routine
+	mutex.Unlock()
 	go weatherHook.callLoop()
 }
 
