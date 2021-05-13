@@ -16,14 +16,13 @@ func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 	if exist { //If in firebase, fetch data from firebase
 
 		//Storing it locally temporarily
-		var info FirebaseStore
-		err := info.readData(data["Container"].(interface{}))
+		err := fireBaseStore.readData(data["Container"].(interface{}))
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
 
 		//Convert the date string
-		dateStamp, err := time.Parse("2006-01-02", info.Localdate)
+		dateStamp, err := time.Parse("2006-01-02", fireBaseStore.Localdate)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -44,15 +43,14 @@ func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 	} else { //If not in firebase, fetch information and store it in firebase
 
 		//Fetch Info:
-		var data FirebaseStore
-		status, err := data.get(baseURL + eventId + padding + key)
+		status, err := fireBaseStore.get(baseURL + eventId + padding + key)
 		if err != nil {
 			return status, err
 		}
 
 		//Add data to the database:
 		var dataDB db.Data
-		dataDB.Container = data
+		dataDB.Container = fireBaseStore
 
 		_, _, err = db.DB.Add("Events", eventId, dataDB)
 		if err != nil {

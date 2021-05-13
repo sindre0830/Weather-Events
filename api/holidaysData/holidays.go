@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var holidaysDB = "Holidays"
+
 // Handler that gets data about a country's holidaysData from either the API or the database
 func Handler(location string) (map[string]interface{}, int, error) {
 	var holidaysMap = make(map[string]interface{})
@@ -34,7 +36,7 @@ func Handler(location string) (map[string]interface{}, int, error) {
 	}
 
 	// Check if country is already stored in the database
-	data, exist := db.DB.Get("Holidays", countryCode)
+	data, exist := db.DB.Get(holidaysDB, countryCode)
 
 	if exist {
 		// Finds the year the data was saved and the current year
@@ -65,7 +67,7 @@ func Handler(location string) (map[string]interface{}, int, error) {
 	// Add data to the database
 	var dataDB db.Data
 	dataDB.Container = holidaysMap
-	_, _, err = db.DB.Add("Holidays", countryCode, dataDB)
+	_, _, err = db.DB.Add(holidaysDB, countryCode, dataDB)
 	if err != nil {
 		return holidaysMap, http.StatusInternalServerError, err
 	}

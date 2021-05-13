@@ -238,4 +238,18 @@
 
 [3.31.9]    **development**:    Separated sleep function in fun, added comments to weatherHook
 
-[3.31.10]    **formatting**:    Added commentary on some files
+[3.31.10]   **formatting**:     Added commentary on some files
+
+[3.32.0]    **development**:    Added initialization of WeatherEvent hooks on startup
+
+[3.32.1]    **formatting**:     Reformatted weatherEvent package
+
+[3.33.0]    **development**:    Added mutex lock to weatherHook callUrl, big update to readme
+
+[3.34.0]    **development**:    Fixed up weatherHook.callLoop function
+
+[3.35.0]    **development**:    Added different types of WeatherEvent webhooks
+
+[3.36.0]    **development**:    Added mutex lock to WeatherEvent
+
+[3.37.0]    **development**:    Started adding unit testing

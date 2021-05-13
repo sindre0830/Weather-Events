@@ -27,13 +27,21 @@ This webhook will allow a user to register an event id, like a concert. It will 
 
 #### Progress
 
-So far we have implemented most of the functionality. All endpoints except webhooks are done. It has gone smooth so far, working on incrementing each endpoint when natural and building on what we have so far. We are designing it to be easy to rewrite and repurpose. We are implementing helping functions and packages where it's fitting, and class methods for structs are quite numerous throughout the project. Working in a group has worked out well so far. We have had regular meetings and a structured plan which made it easy to actually get things done. This worked especially well while working on retrieving data from our service endpoints, as everyone could work siultaneously without issue. For some more difficult work, we brainstormed solutions together during meetings while one person implemented and pushed the code. We did have occasional bottlenecks where some of us had to wait for someone else to finish, but there was always refactoring, readme improvements and other things to fix up. None of these lasted very long, so they did not present a challenge for the project as a whole.
+The progress for our project was overall very good. Initially, we struggled with finding an event-based api we could use for our event ID webhook, which was part of the reason why we did not include it in our original plans. Eventually however, we figured out that Ticketmaster's api is free, and how to use it. Because of this, we were able to complete all our planned endpoints. Overall, we had a very smooth time with the project - we never got stuck on anything important, nor were we forced to abandon any functionality or compromise our execution of the project. 
+
+We are designing our api to be easy to rewrite and repurpose. We are implementing helping functions and packages where it's fitting, and class methods for structs are quite numerous throughout the project. Working in a group has worked out well so far. We have had regular meetings and a structured plan which made it easy to actually get things done. This worked especially well while working on retrieving data from our service endpoints, as everyone could work siultaneously without issue. For some more difficult work, we brainstormed solutions together during meetings while one person implemented and pushed the code. We did have occasional bottlenecks where some of us had to wait for someone else to finish, but there was always refactoring, readme improvements and other things to fix up. None of these lasted very long, so they did not present a challenge for the project as a whole.
 
 #### Experiences
 
-The only problem we encounterd so far during development was almost exceeding the free firestore operation quota of 50K reads. We planned to store all of our data in firestore, but realized that each firestore query would read through every ID. This resoluted in each query reading more than 200 times. We ended up using more than 16% of our free quota in 2 days, after fixing this we used less than 0.5% each day.
+Throughout our work we ran into a couple challenges that we had to overcome as a group. The first problem we encountered was risking exceeding the free firestore operation quota of 50K reads. We planned to store all of our data in firestore, but realized that each firestore query would read through every ID. This resoluted in each query reading more than 200 times. We ended up using more than 16% of our free quota in 2 days, after fixing this we used less than 0.5% each day.
 
 ![Firestore operations reaching 5.8K a day](images/firestore.png)
+
+Our second challenge was with the API we used to translate location names into geo-coordinates. SUddenly, a week before the deadline, we were starting to get wrong information from our geocoords handler. It was not consistent nor easily reproduced, yet it happened quite frequently. We struggled for a good our to figure out where our code was going wrong, until we realized the actual source-api - locationiq - was the problem.
+
+To put it simply, when we pass a location into locationiq, it returns an array of up to ten locations matching the string we pass in, ordered from most 'important' to least. If there are more than ten, only the top ten will be returned. This is fine, and lets us get our locations in one of two ways - the simple way of just taking the first element in the array, and the theoretically more robust but also more cumbersome way of checking all returned locations and storing the one with highest importance. The problem was that for whatever reason, this endpoint will randomly just return one or two locations instead - and always among the lowest-importance locations as well. Leading to passing 'Oslo' in and having it spit out a location in the US. And since the issue is with the number of locations returned by locationiq, checking importance will not get us the data we need either.
+
+While we could think of some 'solutions' to this issue - for example a function that looks at all locations stored with importance below a certain threshold, checking locationiq for new data every so often, and updating if one with greater importance is found - we didn't find this a worthwhile issue to work on for this project. For one, we are making a very roundabout and suboptimal solution to a problem in another api, which would be useless once that api is fixed. For another, this solution would get spammy for naturally low-importance locations that never update. We elected instead to explain it in the readme and leave it as is.
 
 ### Usage
 
@@ -219,6 +227,119 @@ The only problem we encounterd so far during development was almost exceeding th
                 ]
             }
             ```
+3. weatherHook
+
+    - Input:
+        ```
+        Method: GET
+        Path: .../weather-rest/v1/notification/weather{?id=yourhook}
+        ```
+
+    - Output:
+        ```go
+        type WeatherHook struct {
+            ID       string `json:"id"`
+            Location string `json:"location"`
+            Timeout  int64  `json:"timeout"`
+            URL      string `json:"url"`
+        }
+        ```
+
+    - Example:
+        - Input: 
+            ```
+            Method: GET
+            Path: localhost:8080/weather-rest/v1/notification/weather?id=yourHookID
+            ```
+        - Output:
+            ```json
+            {
+                "id": "yourHookID",
+                "location": "Oslo",
+                "timeout": 5,
+                "url": "https://webhook.site/292d37f5-a017-4e07-8b62-2d8a4b9c3f94"
+            }
+            ```
+
+    - Input:
+        ```
+        Method: POST
+        Path: .../weather-rest/v1/notification/weather
+        ```
+        ```json
+        Body:
+           {
+                "location": "Location of interest.",
+                "timeout": 1,
+                "url": "URL to pass data to."
+            }
+        ```
+
+    - Output:
+        ```go
+        type WeatherHook struct {
+            ID       string `json:"id"`
+            Location string `json:"location"`
+            Timeout  int64  `json:"timeout"`
+            URL      string `json:"url"`
+        }
+        ```
+
+    - Example:
+        - Input: 
+            ```
+            Method: POST
+            Path: localhost:8080/weather-rest/v1/notification/weather
+            ```
+            ```json
+            Body:
+            {
+                    "location": "Oslo",
+                    "timeout": 5,
+                    "url": "https://webhook.site/292d37f5-a017-4e07-8b62-2d8a4b9c3f94"
+            }
+            ```
+        - Output:
+            ```json
+            {
+                "status_code": 201,
+                "message": "Webhook successfully created for 'https://webhook.site/292d37f5-a017-4e07-8b62-2d8a4b9c3f94'",
+                "id": "ilX0vteqDlunPM1RZpXb"
+            }
+            ```
+
+    - Input:
+        ```
+        Method: DELETE
+        Path: .../weather-rest/v1/notification/weather{?id=yourhook}
+        ```
+
+    - Output:
+        ```go
+        type Debug struct {
+            StatusCode 		 int    `json:"status_code"`
+            Location   		 string `json:"location"`
+            RawError   		 string `json:"raw_error"`
+            PossibleReason   string `json:"possible_reason"`
+        }
+        ```
+
+    - Example:
+        - Input: 
+            ```
+            Method: DELETE
+            Path: localhost:8080/weather-rest/v1/notification/weather?id=yourHookID
+            ```
+        - Output:
+            ```json
+            {
+                "status_code": 200,
+                "location": "WeatherHook -> MethodHandler() -> weatherHook.HandlerGet() -> Deleting Webhook",
+                "raw_error": "Webhook successfully deleted!",
+                "possible_reason": "Unknown"
+            }
+            ```
+
 
 ## Notes
 
@@ -233,18 +354,41 @@ The technologies we are going to use are Firestore, OpenStack and Docker. We are
 ```
 ├──api
 │   ├── countryData
-│   │   └── restCountries.go
+│   │   ├── restCountries.go
+│   │   └── structure.go
+│   ├── diag
+│   │   ├── diag.go
+│   │   └── structure.go
+│   ├── eventData
+│   │   ├── eventData.go
+│   │   ├── structure.go
+│   │   └── ticketMaster.go
 │   ├── geoCoordsData
-│   │   └── HandlerCoords.go
+│   │   ├── HandlerCoords.go
+│   │   └── structure.go
 │   ├── holidaysData
-│   │   └── holidays.go
+│   │   ├── holidays.go
+│   │   └── structure.go
+│   ├── notification
+│   │   ├── weatherEvent
+│   │   │   ├── methodHandler.go
+│   │   │   ├── structure.go
+│   │   │   └── weatherEvent.go
+│   │   ├── weatherHook
+│   │   │   ├── methodHandler.go
+│   │   │   ├── structure.go
+│   │   │   └── weather.go
+│   │   └── feedback.go
 │   ├── weather
 │   │   ├── methodHandler.go
+│   │   ├── structure.go
 │   │   └── weather.go
 │   ├── weatherCompare
 │   │   ├── methodHandler.go
+│   │   ├── structure.go
 │   │   └── weatherCompare.go
 │   ├── weatherData
+│   │   ├── structure.go
 │   │   ├── weatherData.go
 │   │   └── yr.go
 │   └── dataHandling
@@ -255,13 +399,13 @@ The technologies we are going to use are Firestore, OpenStack and Docker. We are
 ├── dict
 │   └── dictionary.go
 ├── fun
-│   └── math.go
+│   ├── math.go
+│   └── sleep.go
 ├── ChangeLog.md
 ├── go.mod
 ├── go.sum
 ├── main.go
-├── README.md
-└── fun
+└── README.md
 ```
 
 #### Error Handling
