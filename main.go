@@ -25,6 +25,8 @@ func init() {
 		defer db.DB.Client.Close()
 		log.Fatalln(err)
 	}
+	//start WeatherEvent webhooks
+	go weatherEvent.InitHooks()
 }
 
 // Main program.

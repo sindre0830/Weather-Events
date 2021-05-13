@@ -16,9 +16,30 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
+
+func InitHooks() {
+	arrWeatherEvent, err := db.DB.GetAll("weatherEvent")
+	if err != nil {
+		fmt.Printf(
+			"%v {\n\tError when initializing WeatherEvent webhooks.\n\tRaw error: %v\n}\n",
+			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+		)
+		return
+	}
+	for _, data := range arrWeatherEvent {
+		var weatherEvent WeatherEvent
+		weatherEvent.readData(data["Container"].(interface{}))
+		go weatherEvent.callLoop()
+	}
+	fmt.Printf(
+		"%v {\n\tSuccesfully initialized " + strconv.Itoa(len(arrWeatherEvent)) + " WeatherEvent webhooks.\n}\n",
+		time.Now().Format("2006-01-02 15:04:05"),
+	)
+}
 
 func (weatherEvent *WeatherEvent) callLoop() {
 	_, exist := db.DB.Get("weatherEvent", weatherEvent.ID)
@@ -234,7 +255,7 @@ func (weatherEvent *WeatherEvent) GET(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (weatherEvent *WeatherEvent) readData(data interface{}) error {
+func (weatherEvent *WeatherEvent) readData(data interface{}) {
 	rawData := data.(map[string]interface{})
 	weatherEvent.ID = rawData["ID"].(string)
 	weatherEvent.Date = rawData["Date"].(string)
@@ -242,7 +263,6 @@ func (weatherEvent *WeatherEvent) readData(data interface{}) error {
 	weatherEvent.URL = rawData["URL"].(string)
 	weatherEvent.Frequency = rawData["Frequency"].(string)
 	weatherEvent.Timeout = rawData["Timeout"].(int64)
-	return nil
 }
 
 // POST handles a POST request from the http request.
@@ -369,7 +389,7 @@ func (weatherEvent *WeatherEvent) POST(w http.ResponseWriter, r *http.Request) {
 	var feedback notification.Feedback
 	feedback.Update(
 		http.StatusCreated,
-		"Webhook successfully created for '"+weatherEvent.URL+"'",
+		"Webhook successfully created for '" + weatherEvent.URL + "'",
 		weatherEvent.ID,
 	)
 	err = feedback.Print(w)
