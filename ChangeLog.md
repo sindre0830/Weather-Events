@@ -244,4 +244,8 @@
 
 [3.32.1]    **formatting**:     Reformatted weatherEvent package
 
-[3.33.0]    **development**:    Added different types of WeatherEvent webhooks
+[3.33.0]    **development**:    Added mutex lock to weatherHook callUrl, big update to readme
+
+[3.34.0]    **development**:    Fixed up weatherHook.callLoop function
+
+[3.35.0]    **development**:    Added different types of WeatherEvent webhooks

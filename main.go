@@ -37,7 +37,7 @@ func main() {
 	dict.MAIN_URL = dict.MAIN_URL + ":" + port
 	//start webhooks
 	go weatherEvent.InitHooks()
-	go weatherHook.StartCall(&db.DB)
+	go weatherHook.InitHooks(&db.DB)
 	//handle weather data
 	http.HandleFunc(dict.WEATHER_PATH, weather.MethodHandler)
 	//handle weather comparison data
