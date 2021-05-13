@@ -1,5 +1,16 @@
 package compare
 
+// WeatherCompare structure stores current and predicted weather data comparisons for different locations.
+//
+// Functionality: Handler, get
+type WeatherCompare struct {
+	Longitude  float64           `json:"longitude"`
+	Latitude   float64           `json:"latitude"`
+	Location   string            `json:"location"`
+	Updated    string            `json:"updated"`
+	Timeseries map[string][]data `json:"timeseries"`
+}
+
 // data structure stores weather data for a location.
 type data struct {
 	Longitude float64 `json:"longitude"`
@@ -27,18 +38,7 @@ type data struct {
 
 // locationInfo structure stores all comparison locations information.
 type locationInfo struct {
-	Location  string
 	Longitude float64
 	Latitude  float64
-}
-
-// WeatherCompare structure stores current and predicted weather data comparisons for different locations.
-//
-// Functionality: Handler, get
-type WeatherCompare struct {
-	Longitude  float64           `json:"longitude"`
-	Latitude   float64           `json:"latitude"`
-	Location   string            `json:"location"`
-	Updated    string            `json:"updated"`
-	Timeseries map[string][]data `json:"timeseries"`
+	Location  string
 }
