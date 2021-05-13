@@ -1,6 +1,8 @@
 package fun
 
-import "math"
+import (
+	"math"
+)
 
 // LimitDecimals limits decimals to two.
 func LimitDecimals(number float64) float64 {

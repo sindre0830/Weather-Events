@@ -18,8 +18,8 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		debug.ErrorMessage.Update(
 			http.StatusMethodNotAllowed,
-			"MethodHandler() -> Validating method",
-			"method validation: wrong method",
+			"weatherHook.MethodHandler() -> Validating method",
+			"Method validation: wrong method",
 			"Method not implemented.",
 		)
 		debug.ErrorMessage.Print(w)

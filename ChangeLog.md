@@ -213,3 +213,5 @@
 [3.27.0]    **development**:    Changed Ticketmaster endpoint to be able to be called from another function, started moving structs to separete file
 
 [3.28.0]    **development**:    Moved weatherHook, changed trigger to callUrl.
+
+[3.29.0]    **development**:    Separated sleep function in fun, added comments to weatherHook
