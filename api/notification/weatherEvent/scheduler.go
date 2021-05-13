@@ -65,7 +65,8 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		go weatherEvent.callHook()
+		weatherEvent.callHook()
+		return 
 	}
 	//call the policy handler and branch if the status code is not OK
 	//this stops timed out request being sent to the webhook
@@ -76,7 +77,8 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tStatus code: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), recorder.Result().StatusCode,
 		)
-		go weatherEvent.callHook()
+		weatherEvent.callHook()
+		return
 	}
 	//convert from structure to bytes and branch if an error occurred
 	output, err := json.Marshal(weather)
@@ -85,7 +87,8 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when parsing Weather structure.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		go weatherEvent.callHook()
+		weatherEvent.callHook()
+		return
 	}
 	//create new POST request and branch if an error occurred
 	req, err = http.NewRequest(http.MethodPost, weatherEvent.URL, bytes.NewBuffer(output))
@@ -94,7 +97,8 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when creating new POST request.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		go weatherEvent.callHook()
+		weatherEvent.callHook()
+		return
 	}
 	//hash structure and branch if an error occurred
 	mac := hmac.New(sha256.New, dict.Secret)
@@ -104,7 +108,8 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when hashing content before POST request.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		go weatherEvent.callHook()
+		weatherEvent.callHook()
+		return
 	}
 	//convert hashed structure to string and add to header
 	req.Header.Set("Content-Type", "application/json")
@@ -117,15 +122,22 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when sending HTTP content to webhook.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		go weatherEvent.callHook()
+		weatherEvent.callHook()
+		return
 	}
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusServiceUnavailable {
 		fmt.Printf(
 			"%v {\n\tWebhook URL is not valid. Deleting webhook...\n\tStatus code: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), res.StatusCode,
 		)
-		db.DB.Delete("weatherEvent", weatherEvent.ID)
+		err = db.DB.Delete("weatherEvent", weatherEvent.ID)
+		if err != nil {
+			fmt.Printf(
+				"%v {\n\tDidn't manage to delete webhook.\n\tRaw error: %v\n}\n",
+				time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+			)
+		}
 		return
 	}
-	go weatherEvent.callHook()
+	weatherEvent.callHook()
 }

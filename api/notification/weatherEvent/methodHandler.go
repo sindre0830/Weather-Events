@@ -12,7 +12,7 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 		case http.MethodGet:
 			weatherEvent.get(w, r)
 		case http.MethodPost:
-			weatherEvent.post(w, r)
+			weatherEvent.postHandler(w, r)
 		case http.MethodDelete:
 			weatherEvent.delete(w, r)
 		default:

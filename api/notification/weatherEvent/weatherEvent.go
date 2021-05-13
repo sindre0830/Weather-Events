@@ -2,6 +2,7 @@ package weatherEvent
 
 import (
 	"encoding/json"
+	"main/api/eventData"
 	"main/api/holidaysData"
 	"main/api/notification"
 	"main/api/weather"
@@ -95,23 +96,137 @@ func (weatherEvent *WeatherEvent) get(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// post handles a post request from the client.
-func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
-	//read input from client and branch if an error occurred
-	var weatherEventInput WeatherEventInput
-	err := json.NewDecoder(r.Body).Decode(&weatherEventInput)
-	if err != nil {
+func (weatherEvent *WeatherEvent) postHandler(w http.ResponseWriter, r *http.Request) {
+	//parse url and branch if an error occurred
+	arrPath := strings.Split(r.URL.Path, "/")
+	if len(arrPath) != 6 {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
-			"WeatherEvent.post() -> Parsing data from client",
-			err.Error(),
-			"Wrong JSON format sent.",
+			"WeatherEvent.postHandler() -> Parsing URL",
+			"url validation: either too many or too few arguments in url path",
+			"URL format.",
 		)
 		debug.ErrorMessage.Print(w)
 		return
 	}
+	event := strings.ToLower(arrPath[5])
+	switch event {
+		case "":
+			//read input from client and branch if an error occurred
+			var weatherEventDefault WeatherEventDefault
+			err := json.NewDecoder(r.Body).Decode(&weatherEventDefault)
+			if err != nil {
+				debug.ErrorMessage.Update(
+					http.StatusBadRequest,
+					"WeatherEvent.postHandler() -> Parsing data from client",
+					err.Error(),
+					"Wrong JSON format sent. See README for template and example.",
+				)
+				debug.ErrorMessage.Print(w)
+				return
+			}
+			//set data
+			weatherEvent.Date = weatherEventDefault.Date
+			weatherEvent.Location = weatherEventDefault.Location
+			weatherEvent.URL = weatherEventDefault.URL
+			weatherEvent.Frequency = weatherEventDefault.Frequency
+			weatherEvent.Timeout = weatherEventDefault.Timeout
+		case "holiday":
+			//read input from client and branch if an error occurred
+			var weatherEventHoliday WeatherEventHoliday
+			err := json.NewDecoder(r.Body).Decode(&weatherEventHoliday)
+			if err != nil {
+				debug.ErrorMessage.Update(
+					http.StatusBadRequest,
+					"WeatherEvent.postHandler() -> Parsing data from client",
+					err.Error(),
+					"Wrong JSON format sent. See README for template and example.",
+				)
+				debug.ErrorMessage.Print(w)
+				return
+			}
+			//get a map of all the country's holidays
+			var holidaysMap = make(map[string]interface{})
+			holidaysMap, status, err := holidaysData.Handler(weatherEventHoliday.Location)
+			if err != nil {
+				debug.ErrorMessage.Update(
+					status,
+					"WeatherEvent.postHandler() -> WeatherHoliday.Register() -> holidaysData.Handler() - > Getting information about the country's holidays",
+					err.Error(),
+					"Unknown",
+				)
+				debug.ErrorMessage.Print(w)
+				return
+			}
+			//make the first letter of each word uppercase to match the format in holidaysMap
+			weatherEventHoliday.Holiday = strings.Title(strings.ToLower(weatherEventHoliday.Holiday))
+			//check if the holiday exists in the selected country
+			if date, ok := holidaysMap[weatherEventHoliday.Holiday].(string); !ok {
+				debug.ErrorMessage.Update(
+					http.StatusBadRequest,
+					"WeatherHoliday.Register() -> Checking if a holiday exists in a country",
+					"invalid holiday: the holiday is not valid in the selected country",
+					"Not a real holiday. Check your spelling and make sure it is the english name.",
+				)
+				debug.ErrorMessage.Print(w)
+				return
+			} else {
+				weatherEvent.Date = date
+			}
+			//set data
+			weatherEvent.Location = weatherEventHoliday.Location
+			weatherEvent.URL = weatherEventHoliday.URL
+			weatherEvent.Frequency = weatherEventHoliday.Frequency
+			weatherEvent.Timeout = weatherEventHoliday.Timeout
+		case "ticket":
+			//read input from client and branch if an error occurred
+			var weatherEventTicketmaster WeatherEventTicketmaster
+			err := json.NewDecoder(r.Body).Decode(&weatherEventTicketmaster)
+			if err != nil {
+				debug.ErrorMessage.Update(
+					http.StatusBadRequest,
+					"WeatherEvent.postHandler() -> Parsing data from client",
+					err.Error(),
+					"Wrong JSON format sent. See README for template and example.",
+				)
+				debug.ErrorMessage.Print(w)
+				return
+			}
+			var ticketMaster eventData.FirebaseStore
+			status, err := ticketMaster.Handler(weatherEventTicketmaster.Ticket)
+			if err != nil {
+				debug.ErrorMessage.Update(
+					status,
+					"WeatherEvent.postHandler() -> FirebaseStore.Handler -> Getting ticket information",
+					err.Error(),
+					"Invalid ticket.",
+				)
+				debug.ErrorMessage.Print(w)
+				return
+			}
+			//set data
+			weatherEvent.Date = ticketMaster.Localdate
+			weatherEvent.Location = ticketMaster.Name
+			weatherEvent.URL = weatherEventTicketmaster.URL
+			weatherEvent.Frequency = weatherEventTicketmaster.Frequency
+			weatherEvent.Timeout = weatherEventTicketmaster.Timeout
+		default:
+			debug.ErrorMessage.Update(
+				http.StatusBadRequest, 
+				"WeatherEvent.postHandler() -> Validating event type",
+				"event validation: event doesn't exist",
+				"Event not implemented. List of possible events: 'Holiday' where date is defined for client, 'Ticketmaster' where date and location is defined for client, '' where client has to define location and date.",
+			)
+			debug.ErrorMessage.Print(w)
+			return
+	}
+	weatherEvent.post(w, r)
+}
+
+// post handles a post request from the client.
+func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
 	//check if URL is valid (very simple check) and branch if an error occurred
-	parsedURL, err := url.ParseRequestURI(weatherEventInput.URL)
+	parsedURL, err := url.ParseRequestURI(weatherEvent.URL)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
@@ -134,7 +249,7 @@ func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//check if timeout is valid and return an error if it isn't
-	if weatherEventInput.Timeout < 15 || weatherEventInput.Timeout > 86400 {
+	if weatherEvent.Timeout < 15 || weatherEvent.Timeout > 86400 {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
 			"WeatherEvent.post() -> Checking if timeout value is valid",
@@ -145,8 +260,7 @@ func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//check if trigger is valid and return an error if it isn't
-	weatherEventInput.Frequency = strings.ToUpper(weatherEventInput.Frequency)
-	if weatherEventInput.Frequency != "EVERY_DAY" && weatherEventInput.Frequency != "ON_DATE" {
+	if weatherEvent.Frequency != "EVERY_DAY" && weatherEvent.Frequency != "ON_DATE" {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,
 			"WeatherEvent.post() -> Checking if trigger value is valid",
@@ -158,7 +272,7 @@ func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
 	}
 	//validate parameters and branch if an error occurred
 	var weather weather.Weather
-	req, err := http.NewRequest("GET", dict.GetWeatherURL(weatherEventInput.Location, ""), nil)
+	req, err := http.NewRequest("GET", dict.GetWeatherURL(weatherEvent.Location, ""), nil)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
@@ -175,16 +289,14 @@ func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Update(
 			http.StatusNotFound,
 			"WeatherEvent.post() -> Checking if location is valid",
-			err.Error(),
+			"validating location: couldn't find location",
 			"Location not found. Example: 'Oslo'",
 		)
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	//convert holiday to date if it is inputted
-	weatherEventInput.checkIfHoliday(w)
 	//check if date is valid
-	if !weatherEventInput.checkDate() {
+	if !weatherEvent.checkDate() {
 		debug.ErrorMessage.Update(
 			http.StatusNotFound,
 			"WeatherEvent.post() -> WeatherEvent.checkDate() -> Checking if date is valid",
@@ -194,12 +306,6 @@ func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	//set data
-	weatherEvent.Date = weatherEventInput.Date
-	weatherEvent.Location = weatherEventInput.Location
-	weatherEvent.URL = weatherEventInput.URL
-	weatherEvent.Frequency = weatherEventInput.Frequency
-	weatherEvent.Timeout = weatherEventInput.Timeout
 	//send data to database
 	var data db.Data
 	data.Container = weatherEvent
@@ -296,54 +402,14 @@ func (weatherEvent *WeatherEvent) readData(data interface{}) {
 }
 
 // checkDate checks if date is valid and within timeframe.
-func (weatherEventInput *WeatherEventInput) checkDate() bool {
-	date, err := time.Parse("2006-01-02", weatherEventInput.Date)
+func (weatherEvent *WeatherEvent) checkDate() bool {
+	date, err := time.Parse("2006-01-02", weatherEvent.Date)
 	if err != nil {
 		return false
 	}
-	if weatherEventInput.Date == time.Now().Format("2006-01-02") {
+	if weatherEvent.Date == time.Now().Format("2006-01-02") {
 		return true
 	} else {
 		return time.Now().Before(date)
-	}
-}
-
-// checkIfHoliday converts holiday to date.
-func (weatherEventInput *WeatherEventInput) checkIfHoliday(w http.ResponseWriter) {
-	// Parse date to see if it is a date or a holiday
-	_, err := time.Parse("2006-01-02", weatherEventInput.Date)
-	if err != nil {
-		// It is a holiday, replace holiday with date
-		// Get a map of all the country's holidays
-		var holidaysMap = make(map[string]interface{})
-		holidaysMap, status, err := holidaysData.Handler(weatherEventInput.Location)
-		if err != nil {
-			debug.ErrorMessage.Update(
-				status,
-				"WeatherHoliday.Register() -> holidaysData.Handler() - > Getting information about the country's holidays",
-				err.Error(),
-				"Unknown",
-			)
-			debug.ErrorMessage.Print(w)
-			return
-		}
-
-		// Make the first letter of each word uppercase to match the format in holidaysMap
-		weatherEventInput.Date = strings.Title(strings.ToLower(weatherEventInput.Date))
-
-		// Check if the holiday exists in the selected country
-		date, ok := holidaysMap[weatherEventInput.Date]
-		if !ok {
-			debug.ErrorMessage.Update(
-				http.StatusBadRequest,
-				"WeatherHoliday.Register() -> Checking if a holiday exists in a country",
-				"invalid holiday: the holiday is not valid in the selected country",
-				"Not a real holiday. Check your spelling and make sure it is the english name.",
-			)
-			debug.ErrorMessage.Print(w)
-			return
-		}
-
-		weatherEventInput.Date = date.(string)
 	}
 }

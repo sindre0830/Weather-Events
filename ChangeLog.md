@@ -243,3 +243,5 @@
 [3.32.0]    **development**:    Added initialization of WeatherEvent hooks on startup
 
 [3.32.1]    **formatting**:     Reformatted weatherEvent package
+
+[3.33.0]    **development**:    Added different types of WeatherEvent webhooks
