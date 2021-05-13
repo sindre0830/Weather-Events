@@ -234,3 +234,6 @@
 
 [3.31.7]    **fix**:     Fixed error handling in weatherEvent.checkIfHoliday()
 
+[3.31.8]   **fix**:     Removed weatherHoliday package
+
+
