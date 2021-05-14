@@ -1,7 +1,7 @@
 # [Project | weather-events](https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2021/-/wikis/Project-Description)
 
 ### Info
-- Authors: 
+- Authors:
     - Sindre Eiklid (sindreik@stud.ntnu.no)
     - Rickard Loland (rickarl@stud.ntnu.no)
     - Susanne Skjold Edvardsen (susanse@stud.ntnu.no)
@@ -23,11 +23,17 @@ The idea of this project is to utilize the weather data at yr's API and match it
 
 In addition to these services another webhook may be implemented if there is time for it:
 
-This webhook will allow a user to register an event id, like a concert. It will return the location and date of the event, additionally the weather if it allows for it, although weather is only availale 9 days ahead in time so a notification will be sent when its available. 
+This webhook will allow a user to register an event id, like a concert. It will return the location and date of the event, additionally the weather if it allows for it, although weather is only availale 9 days ahead in time so a notification will be sent when its available.
+
+We have finished all functionality from our original plan. In addition, we implemented three more webhooks:
+- Like the holiday one, we made one that takes a location, date and frequency and sends a weather report based on these parameters. The frequency can be either ON_DATE or EVERY_DAY.
+- Based on Ticketmaster’s API, the user can send in an event ID and frequency. The service returns the weather report for the day of the event.
+- The last webhook takes a location and a timeout. A weather report will then be sent based on the location and timeout.
+
 
 #### Progress
 
-The progress for our project was overall very good. Initially, we struggled with finding an event-based api we could use for our event ID webhook, which was part of the reason why we did not include it in our original plans. Eventually however, we figured out that Ticketmaster's api is free, and how to use it. Because of this, we were able to complete all our planned endpoints. Overall, we had a very smooth time with the project - we never got stuck on anything important, nor were we forced to abandon any functionality or compromise our execution of the project. 
+The progress for our project was overall very good. Initially, we struggled with finding an event-based api we could use for our event ID webhook, which was part of the reason why we did not include it in our original plans. Eventually however, we figured out that Ticketmaster's api is free, and how to use it. Because of this, we were able to complete all our planned endpoints. Overall, we had a very smooth time with the project - we never got stuck on anything important, nor were we forced to abandon any functionality or compromise our execution of the project.
 
 We are designing our api to be easy to rewrite and repurpose. We are implementing helping functions and packages where it's fitting, and class methods for structs are quite numerous throughout the project. Working in a group has worked out well so far. We have had regular meetings and a structured plan which made it easy to actually get things done. This worked especially well while working on retrieving data from our service endpoints, as everyone could work siultaneously without issue. For some more difficult work, we brainstormed solutions together during meetings while one person implemented and pushed the code. We did have occasional bottlenecks where some of us had to wait for someone else to finish, but there was always refactoring, readme improvements and other things to fix up. None of these lasted very long, so they did not present a challenge for the project as a whole.
 
@@ -86,7 +92,7 @@ While we could think of some 'solutions' to this issue - for example a function 
         ```
 
     - Example:
-        - Input: 
+        - Input:
             ```
             Method: GET
             Path: localhost:8080/weather-rest/v1/weather/location/oslo
@@ -165,7 +171,7 @@ While we could think of some 'solutions' to this issue - for example a function 
         ```
 
     - Example:
-        - Input: 
+        - Input:
             ```
             Method: GET
             Path: localhost:8080/weather-rest/v1/weather/compare/oslo/bergen;stavanger
@@ -246,7 +252,7 @@ While we could think of some 'solutions' to this issue - for example a function 
         ```
 
     - Example:
-        - Input: 
+        - Input:
             ```
             Method: GET
             Path: localhost:8080/weather-rest/v1/notification/weather?id=yourHookID
@@ -286,7 +292,7 @@ While we could think of some 'solutions' to this issue - for example a function 
         ```
 
     - Example:
-        - Input: 
+        - Input:
             ```
             Method: POST
             Path: localhost:8080/weather-rest/v1/notification/weather
@@ -325,7 +331,7 @@ While we could think of some 'solutions' to this issue - for example a function 
         ```
 
     - Example:
-        - Input: 
+        - Input:
             ```
             Method: DELETE
             Path: localhost:8080/weather-rest/v1/notification/weather?id=yourHookID
@@ -347,7 +353,7 @@ While we could think of some 'solutions' to this issue - for example a function 
 
 ##### Technologies used
 
-The technologies we are going to use are Firestore, OpenStack and Docker. We are using firestore for caching. The weather data are stored for 6 hours. Whether or not the geocoords are stored depends on the importance of the selected location. If it has a low importance, it is stored for 3 hours. If the importance is high, it is saved in a file. The data about holidays are stored until the year change. 
+The technologies we are going to use are Firestore, OpenStack and Docker. We are using firestore for caching. The weather data are stored for 6 hours. Whether or not the geocoords are stored depends on the importance of the selected location. If it has a low importance, it is stored for 3 hours. If the importance is high, it is saved in a file. The data about holidays are stored until the year change.
 
 #### Structure
 
