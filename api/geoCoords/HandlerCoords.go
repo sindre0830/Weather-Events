@@ -96,7 +96,10 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	if locationCoords.Importance > 0.7 {
 		// Save locally if it's an important place
 		LocalCoords[id] = *locationCoords
-		file, _ := json.MarshalIndent(LocalCoords, "", " ")
+		file, err := json.MarshalIndent(LocalCoords, "", " ")
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
 
 		err = storage.WriteCollection("GeoCoords", file)
 		if err != nil {
@@ -128,7 +131,7 @@ func getCoords(coords *LocationCoords, location map[string]interface{}) error {
 	var err error
 
 	coords.Address = location["display_name"].(string)
-	latitude, _ := strconv.ParseFloat(location["lat"].(string), 64)
+	latitude, err := strconv.ParseFloat(location["lat"].(string), 64)
 	coords.Latitude = math.Round(latitude*100) / 100
 	longitude, err := strconv.ParseFloat(location["lon"].(string), 64)
 	coords.Longitude = math.Round(longitude*100) / 100

@@ -372,10 +372,12 @@ The technologies we are going to use are Firestore, OpenStack and Docker. We are
 │   ├── notification
 │   │   ├── weatherEvent
 │   │   │   ├── methodHandler.go
+│   │   │   ├── scheduler.go
 │   │   │   ├── structure.go
 │   │   │   └── weatherEvent.go
 │   │   ├── weatherHook
 │   │   │   ├── methodHandler.go
+│   │   │   ├── scheduler.go
 │   │   │   ├── structure.go
 │   │   │   └── weather.go
 │   │   └── feedback.go
@@ -401,6 +403,7 @@ The technologies we are going to use are Firestore, OpenStack and Docker. We are
 ├── fun
 │   ├── math.go
 │   └── sleep.go
+├── .gitignore
 ├── ChangeLog.md
 ├── go.mod
 ├── go.sum

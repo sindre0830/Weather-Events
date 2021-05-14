@@ -142,7 +142,17 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// get query with ID
-	params, _ := url.ParseQuery(r.URL.RawQuery)
+	params, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusNotFound,
+			"WeatherHook -> MethodHandler() -> weatherHook.HandlerGet() -> Parsing URL query.",
+			"Parse error: Failed when handling query!",
+			"",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
 	id := params["id"][0]
 
 	// check for ID in firestore - DB function
@@ -193,10 +203,20 @@ func (weatherHook *WeatherHook) HandlerGet(w http.ResponseWriter, r *http.Reques
 func (weatherHook *WeatherHook) HandlerDelete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// get query with ID
-	params, _ := url.ParseQuery(r.URL.RawQuery)
+	params, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		debug.ErrorMessage.Update(
+			http.StatusNotFound,
+			"WeatherHook -> MethodHandler() -> weatherHook.HandlerGet() -> Parsing URL query.",
+			"Parse error: Failed when handling query!",
+			"",
+		)
+		debug.ErrorMessage.Print(w)
+		return
+	}
 	id := params["id"][0]
 	// delete
-	err := storage.Firebase.Delete(hookdb, id)
+	err = storage.Firebase.Delete(hookdb, id)
 
 	if err != nil {
 		debug.ErrorMessage.Update(
