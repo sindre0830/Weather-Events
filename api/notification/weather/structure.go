@@ -1,16 +1,16 @@
-package weatherHook
+package weather
 
 // Our main struct with ID
-type WeatherHook struct {
+type Weather struct {
 	ID       string `json:"id"`
 	Location string `json:"location"`
-	Timeout  int64  `json:"timeout"`
 	URL      string `json:"url"`
+	Timeout  int64  `json:"timeout"`
 }
 
 // Helper struct for reading from user
-type WeatherHookInput struct {
+type WeatherInput struct {
 	Location string `json:"location"`
-	Timeout  int64  `json:"timeout"`
 	URL      string `json:"url"`
+	Timeout  int64  `json:"timeout"`
 }

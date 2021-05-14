@@ -265,3 +265,5 @@
 [3.3.0]     **development**:    Restructured Weather and WeatherCompare structures
 
 [3.4.0]     **development**:    Renamed weather to weatherDetails and compare to weatherCompare (packages)
+
+[3.5.0]     **development**:    Restructured Weather hook to be more similar to WeatherEvent, added a common mutex state to handle multiple webhooks

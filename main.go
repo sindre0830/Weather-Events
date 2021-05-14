@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 	"main/api/diag"
+	"main/api/notification/weather"
 	"main/api/notification/weatherEvent"
-	"main/api/notification/weatherHook"
 	"main/api/weatherCompare"
 	"main/api/weatherDetails"
 	"main/dict"
@@ -36,18 +36,18 @@ func main() {
 	//set URL with port
 	dict.MAIN_URL = dict.MAIN_URL + ":" + port
 	//start webhooks
-	go weatherEvent.InitHooks()
-	go weatherHook.InitHooks(&storage.Firebase)
+	weatherEvent.InitHooks()
+	weather.InitHooks()
 	//handle weather data
-	http.HandleFunc(dict.WEATHER_PATH, weatherDetails.MethodHandler)
+	http.HandleFunc(dict.WEATHERDETAILS_PATH, weatherDetails.MethodHandler)
 	//handle weather comparison data
 	http.HandleFunc(dict.WEATHERCOMPARE_PATH, weatherCompare.MethodHandler)
 	//handle weather event
-	http.HandleFunc(dict.WEATHEREVENT_PATH, weatherEvent.MethodHandler)
+	http.HandleFunc(dict.WEATHEREVENT_HOOK_PATH, weatherEvent.MethodHandler)
 	//Diag endpoint
 	http.HandleFunc(dict.DIAG_PATH, diag.MethodHandler) //NB Note that the count of webhooks counts the collections, therefore they need to be added manually and as such not all webhooks are counted as of yet
 	//handle weather webhook
-	http.HandleFunc(dict.WEATHERHOOK_PATH, weatherHook.MethodHandler)
+	http.HandleFunc(dict.WEATHER_HOOK_PATH, weather.MethodHandler)
 	//ends program if it can't open port
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
