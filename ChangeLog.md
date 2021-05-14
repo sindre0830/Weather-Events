@@ -259,3 +259,5 @@
 [3.39.0]    **development**:    Added database cleaner which removes some collections every 12 hours
 
 [3.40.0]    **development**:    Renamed db package to storage and moved file operations there
+
+[3.40.1]    **setup**:          Moved GeoCoord file to data/ and added a gitkeep
