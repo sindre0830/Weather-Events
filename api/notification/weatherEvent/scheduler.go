@@ -64,9 +64,16 @@ func (weatherEvent *WeatherEvent) callHook() {
 	if !weatherEvent.checkDate() {
 		err := storage.Firebase.Delete(dict.WEATHEREVENT_COLLECTION, weatherEvent.ID)
 		if err != nil {
+			//send output to console
 			fmt.Printf(
-				"%v {\n\tDidn't manage to delete webhook.\n\tRaw error: %v\n}\n",
-				time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+				"%v {\n" +
+				"    id:              %s \n" +
+				"    status_code:     %v,\n" +
+				"    raw_error:       %s,\n" +
+				"    message:         %s,\n" +
+				"}\n", 
+				time.Now().Format("2006-01-02 15:04:05"), weatherEvent.ID, "None", err.Error(),
+				"Didn't manage to delete webhook.", 
 			)
 		}
 		dict.MutexState.Unlock()
@@ -76,9 +83,16 @@ func (weatherEvent *WeatherEvent) callHook() {
 	var weatherDetails weatherDetails.WeatherDetails
 	req, err := http.NewRequest(http.MethodGet, dict.GetWeatherDetailsURL(weatherEvent.Location, weatherEvent.Date), nil)
 	if err != nil {
+		//send output to console
 		fmt.Printf(
-			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tRaw error: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+			"%v {\n" +
+			"    id:              %s \n" +
+			"    status_code:     %v,\n" +
+			"    raw_error:       %s,\n" +
+			"    message:         %s,\n" +
+			"}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), weatherEvent.ID, "None", err.Error(),
+			"Error when creating HTTP request to WeatherEvent.Handler().", 
 		)
 		dict.MutexState.Unlock()
 		weatherEvent.callHook()
@@ -89,9 +103,16 @@ func (weatherEvent *WeatherEvent) callHook() {
 	recorder := httptest.NewRecorder()
 	weatherDetails.Handler(recorder, req)
 	if recorder.Result().StatusCode != http.StatusOK {
+		//send output to console
 		fmt.Printf(
-			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tStatus code: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), recorder.Result().StatusCode,
+			"%v {\n" +
+			"    id:              %s \n" +
+			"    status_code:     %v,\n" +
+			"    raw_error:       %s,\n" +
+			"    message:         %s,\n" +
+			"}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), weatherEvent.ID, recorder.Result().StatusCode, "None",
+			"Error when creating HTTP request to WeatherEvent.Handler().", 
 		)
 		dict.MutexState.Unlock()
 		weatherEvent.callHook()
@@ -100,9 +121,16 @@ func (weatherEvent *WeatherEvent) callHook() {
 	//convert from structure to bytes and branch if an error occurred
 	output, err := json.Marshal(weatherDetails)
 	if err != nil {
+		//send output to console
 		fmt.Printf(
-			"%v {\n\tError when parsing Weather structure.\n\tRaw error: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+			"%v {\n" +
+			"    id:              %s \n" +
+			"    status_code:     %v,\n" +
+			"    raw_error:       %s,\n" +
+			"    message:         %s,\n" +
+			"}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), weatherEvent.ID, "None", err.Error(),
+			"Error when parsing WeatherEvent structure.", 
 		)
 		dict.MutexState.Unlock()
 		weatherEvent.callHook()
@@ -111,9 +139,16 @@ func (weatherEvent *WeatherEvent) callHook() {
 	//create new POST request and branch if an error occurred
 	req, err = http.NewRequest(http.MethodPost, weatherEvent.URL, bytes.NewBuffer(output))
 	if err != nil {
+		//send output to console
 		fmt.Printf(
-			"%v {\n\tError when creating new POST request.\n\tRaw error: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+			"%v {\n" +
+			"    id:              %s \n" +
+			"    status_code:     %v,\n" +
+			"    raw_error:       %s,\n" +
+			"    message:         %s,\n" +
+			"}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), weatherEvent.ID, "None", err.Error(),
+			"Error when creating new POST request.", 
 		)
 		dict.MutexState.Unlock()
 		weatherEvent.callHook()
@@ -123,9 +158,16 @@ func (weatherEvent *WeatherEvent) callHook() {
 	mac := hmac.New(sha256.New, dict.Secret)
 	_, err = mac.Write([]byte(output))
 	if err != nil {
+		//send output to console
 		fmt.Printf(
-			"%v {\n\tError when hashing content before POST request.\n\tRaw error: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+			"%v {\n" +
+			"    id:              %s \n" +
+			"    status_code:     %v,\n" +
+			"    raw_error:       %s,\n" +
+			"    message:         %s,\n" +
+			"}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), weatherEvent.ID, "None", err.Error(),
+			"Error when hashing content before POST request.", 
 		)
 		dict.MutexState.Unlock()
 		weatherEvent.callHook()
@@ -138,25 +180,47 @@ func (weatherEvent *WeatherEvent) callHook() {
 	client := http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
+		//send output to console
 		fmt.Printf(
-			"%v {\n\tError when sending HTTP content to webhook.\n\tRaw error: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+			"%v {\n" +
+			"    id:              %s \n" +
+			"    status_code:     %v,\n" +
+			"    raw_error:       %s,\n" +
+			"    message:         %s,\n" +
+			"}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), weatherEvent.ID, "None", err.Error(),
+			"Error when sending HTTP content to webhook. Putting webhook to sleep for 6 hours...", 
 		)
 		dict.MutexState.Unlock()
+		time.Sleep(time.Duration(6) * time.Hour)
 		weatherEvent.callHook()
 		return
 	}
 	//branch if status from client isn't OK or service unavailable and delete webhook
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusServiceUnavailable {
+		//send output to console
 		fmt.Printf(
-			"%v {\n\tWebhook URL is not valid. Deleting webhook...\n\tStatus code: %v\n}\n",
-			time.Now().Format("2006-01-02 15:04:05"), res.StatusCode,
+			"%v {\n" +
+			"    id:              %s \n" +
+			"    status_code:     %v,\n" +
+			"    raw_error:       %s,\n" +
+			"    message:         %s,\n" +
+			"}\n", 
+			time.Now().Format("2006-01-02 15:04:05"), weatherEvent.ID, res.StatusCode, "None",
+			"Webhook URL is not valid. Deleting webhook...", 
 		)
 		err = storage.Firebase.Delete(dict.WEATHEREVENT_COLLECTION, weatherEvent.ID)
 		if err != nil {
+			//send output to console
 			fmt.Printf(
-				"%v {\n\tDidn't manage to delete webhook.\n\tRaw error: %v\n}\n",
-				time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+				"%v {\n" +
+				"    id:              %s \n" +
+				"    status_code:     %v,\n" +
+				"    raw_error:       %s,\n" +
+				"    message:         %s,\n" +
+				"}\n", 
+				time.Now().Format("2006-01-02 15:04:05"), weatherEvent.ID, "None", err.Error(),
+				"Didn't manage to delete webhook.", 
 			)
 		}
 		dict.MutexState.Unlock()

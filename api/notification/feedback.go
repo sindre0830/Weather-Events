@@ -1,7 +1,7 @@
 package notification
 
 import (
-	"encoding/json"
+	"main/api"
 	"net/http"
 )
 
@@ -23,13 +23,6 @@ func (feedback *Feedback) Update(status int, message string, id string) {
 
 // Print sends structure to client.
 func (feedback *Feedback) Print(w http.ResponseWriter) error {
-	//update header to JSON and set HTTP code
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(feedback.StatusCode)
-	//send output to user and branch if an error occured
-	err := json.NewEncoder(w).Encode(feedback)
-	if err != nil {
-		return err
-	}
-	return nil
+	//send output to user and return if an error occurred
+	return api.SendData(w, feedback, feedback.StatusCode)
 }

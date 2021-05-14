@@ -55,7 +55,7 @@ func (database *Database) clean() {
 	var itemsCleaned int
 	dict.MutexState.Lock()
 	//clean ticketmaster events
-	iter := database.Client.Collection("Events").Documents(database.Ctx)
+	iter := database.Client.Collection(dict.EVENT_COLLECTION).Documents(database.Ctx)
 	for {
 		//go to next element in array and break loop if there are no elements, branch if an error occurred
 		elem, err := iter.Next()
@@ -68,12 +68,12 @@ func (database *Database) clean() {
 			)
 			return
 		} else {
-			database.Delete("Events", elem.Ref.ID)
+			database.Delete(dict.EVENT_COLLECTION, elem.Ref.ID)
 			itemsCleaned++
 		}
 	}
 	//clean coordinates
-	iter = database.Client.Collection("GeoCoords").Documents(database.Ctx)
+	iter = database.Client.Collection(dict.LOCATION_COLLECTION).Documents(database.Ctx)
 	for {
 		//go to next element in array and break loop if there are no elements, branch if an error occurred
 		elem, err := iter.Next()
@@ -86,7 +86,7 @@ func (database *Database) clean() {
 			)
 			return
 		} else {
-			database.Delete("GeoCoords", elem.Ref.ID)
+			database.Delete(dict.LOCATION_COLLECTION, elem.Ref.ID)
 			itemsCleaned++
 		}
 	}

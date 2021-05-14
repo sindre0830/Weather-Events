@@ -2,6 +2,7 @@ package weatherEvent
 
 import (
 	"encoding/json"
+	"main/api"
 	"main/api/diag"
 	"main/api/eventData"
 	"main/api/holidaysData"
@@ -46,11 +47,8 @@ func (weatherEvent *WeatherEvent) get(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		weatherEvent.readData(data["Container"].(interface{}))
-		//update header to JSON and set HTTP code
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
 		//send output to user and branch if an error occured
-		err := json.NewEncoder(w).Encode(&weatherEvent)
+		err := api.SendData(w, weatherEvent, http.StatusOK)
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError,
@@ -79,11 +77,8 @@ func (weatherEvent *WeatherEvent) get(w http.ResponseWriter, r *http.Request) {
 			weatherEvent.readData(data)
 			arrWeatherEvent = append(arrWeatherEvent, *weatherEvent)
 		}
-		//update header to JSON and set HTTP code
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
 		//send output to user and branch if an error occured
-		err = json.NewEncoder(w).Encode(&arrWeatherEvent)
+		err = api.SendData(w, arrWeatherEvent, http.StatusOK)
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError,

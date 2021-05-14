@@ -1,8 +1,8 @@
 package debug
 
 import (
-	"encoding/json"
 	"fmt"
+	"main/api"
 	"net/http"
 	"time"
 )
@@ -35,11 +35,8 @@ func (debug *Debug) Update(status int, loc string, err string, reason string) {
 
 // Print sends structure to client and console.
 func (debug *Debug) Print(w http.ResponseWriter) {
-	//update header to JSON and set HTTP code
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(debug.StatusCode)
 	//send output to user and branch if an error occured
-	err := json.NewEncoder(w).Encode(debug)
+	err := api.SendData(w, debug, debug.StatusCode)
 	if err != nil {
 		fmt.Println("Error encoding JSON in Debug.Print()", err)
 		return

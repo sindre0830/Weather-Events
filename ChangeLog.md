@@ -275,3 +275,5 @@
 [3.8.0]     **development**:    Added check for trigger in weather event hook
 
 [3.9.0]     **development**:    Added check for invalid date in hook loop
+
+[3.10.0]    **development**:    Added SendData() to handle data transfers and updateded error handling in webhooks

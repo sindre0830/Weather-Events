@@ -1,11 +1,20 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
 	"time"
 )
+
+// SendData sends data to client.
+func SendData(w http.ResponseWriter, data interface{}, status int) error {
+	//update header with body type and status code
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	return json.NewEncoder(w).Encode(data)
+}
 
 // requestData gets raw data from REST services based on URL.
 func RequestData(url string) ([]byte, int, error) {

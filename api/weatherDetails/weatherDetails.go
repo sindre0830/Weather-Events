@@ -1,9 +1,9 @@
 package weatherDetails
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+	"main/api"
 	"main/api/geoCoords"
 	"main/api/weatherData"
 	"main/debug"
@@ -97,9 +97,8 @@ func (weatherDetails *WeatherDetails) Handler(w http.ResponseWriter, r *http.Req
 		debug.ErrorMessage.Print(w)
 		return
 	}
-	//send output to user and branch if an error occured
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(weatherDetails)
+	//send data to client and branch if an error occured
+	err = api.SendData(w, weatherDetails, http.StatusOK)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,

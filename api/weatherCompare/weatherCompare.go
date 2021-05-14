@@ -1,9 +1,9 @@
 package weatherCompare
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+	"main/api"
 	"main/api/geoCoords"
 	"main/api/weatherData"
 	"main/debug"
@@ -133,8 +133,7 @@ func (weatherCompare *WeatherCompare) Handler(w http.ResponseWriter, r *http.Req
 		return
 	}
 	//send output to user and branch if an error occured
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(weatherCompare)
+	err = api.SendData(w, weatherCompare, http.StatusOK)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
