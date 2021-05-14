@@ -43,6 +43,8 @@ Working in a group has worked out well. We have had regular meetings and a struc
 
 Overall, we had a very smooth time with the project - we never got stuck on anything important, nor were we forced to abandon any functionality or compromise our execution of the project.
 
+##### What went wrong
+
 ##### Experiences
 
 Throughout our work we ran into a couple challenges that we had to overcome as a group. The first problem we encountered was risking exceeding the free firestore operation quota of 50K reads. We planned to store all of our data in firestore, but realized that each firestore query would read through every ID. This resulted in each query reading more than 200 times. We ended up using more than 16% of our free quota in 2 days, after fixing this we used less than 0.5% each day.
@@ -54,6 +56,12 @@ Our second challenge was with the API we used to translate location names into g
 To put it simply, when we pass a location into locationiq, it returns an array of up to ten locations matching the string we pass in, ordered from most 'important' to least. If there are more than ten, only the top ten will be returned. This is fine, and lets us get our locations in one of two ways - the simple way of just taking the first element in the array, and the theoretically more robust but also more cumbersome way of checking all returned locations and storing the one with highest importance. The problem was that for whatever reason, this endpoint will randomly just return one or two locations instead - and always among the lowest-importance locations as well. Leading to passing 'Oslo' in and having it spit out a location in the US. And since the issue is with the number of locations returned by locationiq, checking importance will not get us the data we need either.
 
 While we could think of some 'solutions' to this issue - for example a function that looks at all locations stored with importance below a certain threshold, checking locationiq for new data every so often, and updating if one with greater importance is found - we didn't find this a worthwhile issue to work on for this project. For one, we are making a very roundabout and suboptimal solution to a problem in another API, which would be useless once that API is fixed. For another, this solution would get spammy for naturally low-importance locations that never update. We elected instead to explain it in the readme and leave it as is.
+
+#### Learning experiences
+
+One new thing we have learned while working on the project is caching, as none of us had any previous experience with it. We stored static data in files, and dynamic data in firestore. Already being familiar and knowing how to use firestore, definitely helped this experience. Saving information to files was not a hard challenge either.
+
+Another new learning experience was designing an API by ourselves. In the assignments we always got a task and the structure of the different endpoints. Doing this by ourselves was educational, as we had to put a lot of thought into the data structures and what information to return.
 
 ### Usage
 
