@@ -256,8 +256,11 @@ Another new learning experience was designing an API by ourselves. In the assign
     - Input:
         ```
         Method: GET
-        Path: .../weather-rest/v1/notification/weather{?id=yourhook}
+        Path: .../weather-rest/v1/notification/weather/{id}
         ```
+
+        - If {id} is empty, all registered webhooks are returned.
+
 
     - Output:
         ```go
@@ -273,12 +276,12 @@ Another new learning experience was designing an API by ourselves. In the assign
         - Input:
             ```
             Method: GET
-            Path: localhost:8080/weather-rest/v1/notification/weather?id=yourHookID
+            Path: localhost:8080/weather-rest/v1/notification/weather/ilX0vteqDlunPM1RZpXb
             ```
         - Output:
             ```json
             {
-                "id": "yourHookID",
+                "id": "zKweuha67Rqh",
                 "location": "Oslo",
                 "timeout": 5,
                 "url": "https://webhook.site/292d37f5-a017-4e07-8b62-2d8a4b9c3f94"
@@ -301,12 +304,12 @@ Another new learning experience was designing an API by ourselves. In the assign
 
     - Output:
         ```go
-        type WeatherHook struct {
-            ID       string `json:"id"`
-            Location string `json:"location"`
-            Timeout  int64  `json:"timeout"`
-            URL      string `json:"url"`
+        type Feedback struct {
+          	StatusCode int    `json:"status_code"`
+          	Message    string `json:"message"`
+          	ID		   string `json:"id"`
         }
+
         ```
 
     - Example:
@@ -335,16 +338,15 @@ Another new learning experience was designing an API by ourselves. In the assign
     - Input:
         ```
         Method: DELETE
-        Path: .../weather-rest/v1/notification/weather{?id=yourhook}
+        Path: .../weather-rest/v1/notification/weather/{:id}
         ```
 
     - Output:
         ```go
-        type Debug struct {
-            StatusCode 		 int    `json:"status_code"`
-            Location   		 string `json:"location"`
-            RawError   		 string `json:"raw_error"`
-            PossibleReason   string `json:"possible_reason"`
+        type Feedback struct {
+          	StatusCode int    `json:"status_code"`
+          	Message    string `json:"message"`
+          	ID		   string `json:"id"`
         }
         ```
 
@@ -352,15 +354,14 @@ Another new learning experience was designing an API by ourselves. In the assign
         - Input:
             ```
             Method: DELETE
-            Path: localhost:8080/weather-rest/v1/notification/weather?id=yourHookID
+            Path: localhost:8080/weather-rest/v1/notification/weather/ilX0vteqDlunPM1RZpXb
             ```
         - Output:
             ```json
             {
                 "status_code": 200,
-                "location": "WeatherHook -> MethodHandler() -> weatherHook.HandlerGet() -> Deleting Webhook",
-                "raw_error": "Webhook successfully deleted!",
-                "possible_reason": "Unknown"
+                "message": "Webhook successfully deleted",
+                "id": "ilX0vteqDlunPM1RZpXb"
             }
             ```
 4. weatherEvent
@@ -389,12 +390,12 @@ Another new learning experience was designing an API by ourselves. In the assign
         - Input:
             ```
             Method: GET
-            Path: localhost:8080/weather-rest/v1/notification/event/zhXMIlfqWkH7D1bSA3DU
+            Path: localhost:8080/weather-rest/v1/notification/event/zKweuha67Rqh
             ```
         - Output:
             ```json
             {
-                "id": "zhXMIlfqWkH7D1bSA3DU",
+                "id": "zKweuha67Rqh",
                 "date": "2021-12-25",
                 "location": "Hungary",
                 "url": "https://webhook.site/786ed4dd-f6b9-44a2-b470-aef4d4c5abef",
@@ -413,13 +414,10 @@ Another new learning experience was designing an API by ourselves. In the assign
 
     - Output:
         ```go
-        type WeatherEvent struct {
-          	ID        string `json:"id"`
-          	Date      string `json:"date"`
-          	Location  string `json:"location"`
-          	URL       string `json:"url"`
-          	Frequency string `json:"frequency"`
-          	Timeout   int64  `json:"timeout"`
+        type Feedback struct {
+          	StatusCode int    `json:"status_code"`
+          	Message    string `json:"message"`
+          	ID		   string `json:"id"`
         }
         ```
 
@@ -445,7 +443,7 @@ Another new learning experience was designing an API by ourselves. In the assign
             {
                 "status_code": 201,
                 "message": "Webhook successfully created for https://webhook.site/786ed4dd-f6b9-44a2-b470-aef4d4c5abef",
-                "id": "zhXMIlfqWkH7D1bSA3DU"
+                "id": "zKweuha67Rqh"
             }
             ```
 
@@ -468,14 +466,14 @@ Another new learning experience was designing an API by ourselves. In the assign
         - Input:
             ```
             Method: DELETE
-            Path: localhost:8080/weather-rest/v1/notification/event/zhXMIlfqWkH7D1bSA3DU
+            Path: localhost:8080/weather-rest/v1/notification/event/zKweuha67Rqh
             ```
         - Output:
             ```json
             {
                 "status_code": 200,
                 "message": "Webhook successfully deleted",
-                "id": "zhXMIlfqWkH7D1bSA3DU"
+                "id": "zKweuha67Rqh"
             }
             ```
 5. Diag
