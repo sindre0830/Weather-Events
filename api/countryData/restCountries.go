@@ -23,7 +23,10 @@ func (data Information) Handler(country string) (int, error, string) {
 		}
 
 		//Store it in a file:
-		file, _ := json.MarshalIndent(input, "", " ")
+		file, err := json.MarshalIndent(input, "", " ")
+		if err != nil {
+			return http.StatusInternalServerError, err, ""
+		}
 		err = storage.WriteCollection("countries", file)
 		if err != nil {
 			return http.StatusInternalServerError, err, ""
