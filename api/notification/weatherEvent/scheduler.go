@@ -51,7 +51,9 @@ func (weatherEvent *WeatherEvent) callHook() {
 	}
 	//check if date is available and wait untill it is
 	date, _ := time.Parse("2006-01-02", weatherEvent.Date)
-	date = date.AddDate(0, 0, -8)
+	if weatherEvent.Frequency == "EVERY_DAY" {
+		date = date.AddDate(0, 0, -9)
+	}
 	time.Sleep(time.Until(date))
 	//check if program should sleep on timeout value
 	nextTime := time.Now().Truncate(time.Second)
