@@ -128,7 +128,7 @@
 
 [1.16.0]    **development**:    Removed filtering suggestion from Weather and WeatherCompare
 
-[2.0.0]     **milestone**:      Implemented all endpoints except webhooks
+[2.0.0]     **milestone**:      Implemented all main endpoints
 
 [2.1.0]     **development**:    Moved information about used REST services
 
@@ -138,126 +138,126 @@
 
 [2.3.0]     **development**:    Modified information about endpoints
 
-[3.0.0]     **milestone**:      Implemented all main endpoints
+[2.4.0]     **development**:    Implemented method handler and some basic functionality of WeatherHoliday structure
 
-[3.1.0]     **development**:    Implemented method handler and some basic functionality of WeatherHoliday structure
+[2.5.0]     **development**:    Implemented function to get a country's alpha code
 
-[3.2.0]     **development**:    Implemented function to get a country's alpha code
+[2.6.0]     **development**:    Implemented function to add weatherHoliday webhooks to the database
 
-[3.3.0]     **development**:    Implemented function to add weatherHoliday webhooks to the database
+[2.7.0]     **development**:    Renamed weather fields Now and Today to Instant and Predicted
 
-[3.4.0]     **development**:    Renamed weather fields Now and Today to Instant and Predicted
+[2.8.0]     **development**:    Simplified data reading in WeatherData
 
-[3.5.0]     **development**:    Simplified data reading in WeatherData
+[2.9.0]     **development**:    Modified WeatherData to store data for all available days 
 
-[3.6.0]     **development**:    Modified WeatherData to store data for all available days 
+[2.10.0]    **development**:    Initial modification of Weather and WeatherCompare to handle inputted dates
 
-[3.7.0]     **development**:    Initial modification of Weather and WeatherCompare to handle inputted dates
+[2.11.0]    **development**:    Added handling of inputted date for Weather structure
 
-[3.8.0]     **development**:    Added handling of inputted date for Weather structure
+[2.12.0]    **development**:    Added handling of inputted date for WeatherCompare structure
 
-[3.9.0]     **development**:    Added handling of inputted date for WeatherCompare structure
+[2.13.0]    **development**:    Added function to delete weatherHoliday webhook
 
-[3.10.0]    **development**:    Added function to delete weatherHoliday webhook
+[2.14.0]    **development**:    Changed adding to database function to return the documents ID
 
-[3.11.0]    **development**:    Changed adding to database function to return the documents ID
+[2.15.0]    **development**:    Added getWeatherURL in dictionary
 
-[3.12.0]    **development**:    Added getWeatherURL in dictionary
+[2.16.0]    **development**:    Added getWeatherCompareURL in dictionary
 
-[3.13.0]    **development**:    Added getWeatherCompareURL in dictionary
+[2.17.0]    **development**:    Added ticketmaster endpoint
 
-[3.14.0]    **development**:    Added ticketmaster endpoint
+[2.18.0]    **development**:    Moved code from holiday webhook to holiday data
 
-[3.15.0]    **development**:    Moved code from holiday webhook to holiday data
+[2.18.1]    **fix**:            Fixed an error when formatting holiday name wrong
 
-[3.15.1]    **fix**:            Fixed an error when formatting holiday name wrong
+[2.19.0]    **development**:    Added WeatherEvent POST method and a feedback pipeline to handle webhook feedback
 
-[3.16.0]    **development**:    Added WeatherEvent POST method and a feedback pipeline to handle webhook feedback
+[2.20.0]    **development**:    Added passing of data from weatherHoliday to weatherEvent
 
-[3.17.0]    **development**:    Added passing of data from weatherHoliday to weatherEvent
+[2.21.0]    **development**:    Added WeatherEvent GET method and modified database.Get() to return map of interfaces
 
-[3.18.0]    **development**:    Added WeatherEvent GET method and modified database.Get() to return map of interfaces
+[2.21.1]    **fix**:            Fixed weatherHook to work with new database.Get()
 
-[3.18.1]    **fix**:            Fixed weatherHook to work with new database.Get()
+[2.21.2]    **development**:    Slight cleanup of db.Delete, more work on weatherHook
 
-[3.18.2]    **development**:    Slight cleanup of db.Delete, more work on weatherHook
+[2.21.3]    **fix**:            Fixed WeatherHoliday to work with new database.Get()
 
-[3.18.3]    **fix**:            Fixed WeatherHoliday to work with new database.Get()
+[2.22.0]    **development**:    Finished WeatherHoliday POST function 
 
-[3.19.0]    **development**:    Finished WeatherHoliday POST function 
+[2.23.0]    **development**:    Added diag endpoint and restructured eventData
 
-[3.20.0]    **development**:    Added diag endpoint and restructured eventData
+[2.24.0]    **development**:    Added WeatherEvent DELETE method
 
-[3.21.0]    **development**:    Added WeatherEvent DELETE method
+[2.25.0]    **development**:    Added WeatherEvent callLoop after a POST request
 
-[3.22.0]    **development**:    Added WeatherEvent callLoop after a POST request
+[2.26.0]    **development**:    Added function to get one or all WeatherHoliday webhooks
 
-[3.23.0]    **development**:    Added function to get one or all WeatherHoliday webhooks
+[2.26.1]    **fix**:            Solved issue with Postman seeing POST requests as GET
 
-[3.23.1]    **fix**:            Solved issue with Postman seeing POST requests as GET
+[2.26.2]    **fix**:            Fixed WeatherHoliday Get so the output is JSON
 
-[3.23.2]    **fix**:            Fixed WeatherHoliday Get so the output is JSON
+[2.26.3]    **fix**:            Fixed HandlerCoord's Handler to check if "Time" key exists
 
-[3.23.3]    **fix**:            Fixed HandlerCoord's Handler to check if "Time" key exists
+[2.27.0]    **development**:    Modified WeatherEvent callLoop to terminate when it is deleted
 
-[3.24.0]    **development**:    Modified WeatherEvent callLoop to terminate when it is deleted
+[2.28.0]    **development**:    Added StartTrigger to weatherHook for initiating webhooks from DB on program start
 
-[3.25.0]    **development**:    Added StartTrigger to weatherHook for initiating webhooks from DB on program start
+[2.28.1]    **fix**:            Fixed WeatherData's Handler to check if "Time" key exists
 
-[3.25.1]    **fix**:            Fixed WeatherData's Handler to check if "Time" key exists
+[2.29.0]    **development**:    Added function to check if Date field is date or holiday
 
-[3.26.0]    **development**:    Added function to check if Date field is date or holiday
+[2.29.1]    **fix**:            Fixed formatting of date
 
-[3.26.1]    **fix**:            Fixed formatting of date
+[2.30.0]    **development**:    Changed Ticketmaster endpoint to be able to be called from another function, started moving structs to separete file
 
-[3.27.0]    **development**:    Changed Ticketmaster endpoint to be able to be called from another function, started moving structs to separete file
+[2.31.0]    **development**:    Moved weatherHook, changed trigger to callUrl.
 
-[3.28.0]    **development**:    Moved weatherHook, changed trigger to callUrl.
+[2.32.0]    **development**:    Added date validation in weatherEvent.POST()
 
-[3.29.0]    **development**:    Added date validation in weatherEvent.POST()
+[2.33.0]    **development**:    Restructured so all structs have their own file in that same package
 
-[3.30.0]    **development**:    Restructured so all structs have their own file in that same package
+[2.34.0]    **development**:    Added date validation in weatherEvent.callLoop()
 
-[3.31.0]    **development**:    Added date validation in weatherEvent.callLoop()
+[2.34.1]    **formatting**:     Reformatted structures in WeatherData package
 
-[3.31.1]    **formatting**:     Reformatted structures in WeatherData package
+[2.34.2]    **formatting**:     Reformatted dict package
 
-[3.31.2]    **formatting**:     Reformatted dict package
+[2.34.3]    **formatting**:     Reformatted weatherData package
 
-[3.31.3]    **formatting**:     Reformatted weatherData package
+[2.34.4]    **formatting**:     Reformatted weather package
 
-[3.31.4]    **formatting**:     Reformatted weather package
+[2.34.5]    **fix**:            Fixed CheckDate to subtract hours instead of minutes
 
-[3.31.5]    **fix**:            Fixed CheckDate to subtract hours instead of minutes
+[2.34.6]    **formatting**:     Reformatted weatherCompare package
 
-[3.31.6]    **formatting**:     Reformatted weatherCompare package
+[2.34.7]    **fix**:            Fixed error handling in weatherEvent.checkIfHoliday()
 
-[3.31.7]    **fix**:            Fixed error handling in weatherEvent.checkIfHoliday()
+[2.34.8]    **fix**:            Removed weatherHoliday package
 
-[3.31.8]    **fix**:            Removed weatherHoliday package
+[2.34.9]    **development**:    Separated sleep function in fun, added comments to weatherHook
 
-[3.31.9]    **development**:    Separated sleep function in fun, added comments to weatherHook
+[2.34.10]   **formatting**:     Added commentary on some files
 
-[3.31.10]   **formatting**:     Added commentary on some files
+[2.35.0]    **development**:    Added initialization of WeatherEvent hooks on startup
 
-[3.32.0]    **development**:    Added initialization of WeatherEvent hooks on startup
+[2.35.1]    **formatting**:     Reformatted weatherEvent package
 
-[3.32.1]    **formatting**:     Reformatted weatherEvent package
+[2.36.0]    **development**:    Added mutex lock to weatherHook callUrl, big update to readme
 
-[3.33.0]    **development**:    Added mutex lock to weatherHook callUrl, big update to readme
+[2.37.0]    **development**:    Fixed up weatherHook.callLoop function
 
-[3.34.0]    **development**:    Fixed up weatherHook.callLoop function
+[2.38.0]    **development**:    Added different types of WeatherEvent webhooks
 
-[3.35.0]    **development**:    Added different types of WeatherEvent webhooks
+[2.39.0]    **development**:    Added mutex lock to WeatherEvent
 
-[3.36.0]    **development**:    Added mutex lock to WeatherEvent
+[2.40.0]    **development**:    Started adding unit testing
 
-[3.37.0]    **development**:    Started adding unit testing
+[2.41.0]    **development**:    Restructured webhook count in diag to reduce operations
 
-[3.38.0]    **development**:    Restructured webhook count in diag to reduce operations
+[3.0.0]     **milestone**:      Implemented all webhooks
 
-[3.39.0]    **development**:    Added database cleaner which removes some collections every 12 hours
+[3.1.0]     **development**:    Added database cleaner which removes some collections every 12 hours
 
-[3.40.0]    **development**:    Renamed db package to storage and moved file operations there
+[3.2.0]     **development**:    Renamed db package to storage and moved file operations there
 
-[3.40.1]    **setup**:          Moved GeoCoord file to data/ and added a gitkeep
+[3.2.1]     **setup**:          Moved GeoCoord file to data/ and added a gitkeep
