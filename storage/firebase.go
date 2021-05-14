@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"main/dict"
 	"math"
 	"strconv"
 	"time"
@@ -52,6 +53,7 @@ func (database *Database) Setup() error {
 // clean database for some collections.
 func (database *Database) clean() {
 	var itemsCleaned int
+	dict.MutexState.Lock()
 	//clean ticketmaster events
 	iter := database.Client.Collection("Events").Documents(database.Ctx)
 	for {
@@ -92,6 +94,7 @@ func (database *Database) clean() {
 		"%v {\n\tSuccsesfully cleaned database.\n\tRemoved items: %v\n}\n",
 		time.Now().Format("2006-01-02 15:04:05"), strconv.Itoa(itemsCleaned),
 	)
+	dict.MutexState.Unlock()
 	//put program to sleep for 12 hours before cleaing again
 	nextTime := time.Now().Truncate(time.Hour)
 	nextTime = nextTime.Add(time.Duration(12) * time.Hour)

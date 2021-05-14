@@ -273,7 +273,7 @@ func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
 	}
 	//validate parameters and branch if an error occurred
 	var weatherDetails weatherDetails.WeatherDetails
-	req, err := http.NewRequest("GET", dict.GetWeatherURL(weatherEvent.Location, ""), nil)
+	req, err := http.NewRequest("GET", dict.GetWeatherDetailsURL(weatherEvent.Location, ""), nil)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
