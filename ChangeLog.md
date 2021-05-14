@@ -263,3 +263,5 @@
 [3.2.1]     **setup**:          Moved GeoCoord file to data/ and added a gitkeep
 
 [3.3.0]     **development**:    Restructured Weather and WeatherCompare structures
+
+[3.4.0]     **development**:    Renamed weather to weatherDetails and compare to weatherCompare (packages)

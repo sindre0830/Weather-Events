@@ -1,4 +1,4 @@
-package weather
+package weatherDetails
 
 import (
 	"main/debug"
@@ -9,8 +9,8 @@ import (
 func MethodHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 		case http.MethodGet:
-			var weather Weather
-			weather.Handler(w, r)
+			var weatherDetails WeatherDetails
+			weatherDetails.Handler(w, r)
 		default:
 			debug.ErrorMessage.Update(
 				http.StatusMethodNotAllowed, 

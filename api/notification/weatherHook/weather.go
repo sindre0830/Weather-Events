@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"main/api/diag"
 	"main/api/notification"
-	"main/api/weather"
+	"main/api/weatherDetails"
 	"main/debug"
 	"main/dict"
 	"main/storage"
@@ -57,7 +57,7 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	// validate parameters and branch if an error occurred
-	var weather weather.Weather
+	var weatherDetails weatherDetails.WeatherDetails
 	req, err := http.NewRequest("GET", dict.GetWeatherURL(weatherHookInput.Location, ""), nil)
 	if err != nil {
 		debug.ErrorMessage.Update(
@@ -69,7 +69,7 @@ func (weatherHook *WeatherHook) HandlerPost(w http.ResponseWriter, r *http.Reque
 		debug.ErrorMessage.Print(w)
 	}
 	recorder := httptest.NewRecorder()
-	weather.Handler(recorder, req)
+	weatherDetails.Handler(recorder, req)
 	if recorder.Code != http.StatusOK {
 		debug.ErrorMessage.Update(
 			http.StatusNotFound,

@@ -5,8 +5,8 @@ import (
 	"main/api/diag"
 	"main/api/notification/weatherEvent"
 	"main/api/notification/weatherHook"
-	"main/api/weather"
-	compare "main/api/weatherCompare"
+	"main/api/weatherCompare"
+	"main/api/weatherDetails"
 	"main/dict"
 	"main/storage"
 	"net/http"
@@ -39,9 +39,9 @@ func main() {
 	go weatherEvent.InitHooks()
 	go weatherHook.InitHooks(&storage.Firebase)
 	//handle weather data
-	http.HandleFunc(dict.WEATHER_PATH, weather.MethodHandler)
+	http.HandleFunc(dict.WEATHER_PATH, weatherDetails.MethodHandler)
 	//handle weather comparison data
-	http.HandleFunc(dict.WEATHERCOMPARE_PATH, compare.MethodHandler)
+	http.HandleFunc(dict.WEATHERCOMPARE_PATH, weatherCompare.MethodHandler)
 	//handle weather event
 	http.HandleFunc(dict.WEATHEREVENT_PATH, weatherEvent.MethodHandler)
 	//Diag endpoint

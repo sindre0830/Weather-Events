@@ -6,7 +6,7 @@ import (
 	"main/api/eventData"
 	"main/api/holidaysData"
 	"main/api/notification"
-	"main/api/weather"
+	"main/api/weatherDetails"
 	"main/debug"
 	"main/dict"
 	"main/storage"
@@ -272,7 +272,7 @@ func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//validate parameters and branch if an error occurred
-	var weather weather.Weather
+	var weatherDetails weatherDetails.WeatherDetails
 	req, err := http.NewRequest("GET", dict.GetWeatherURL(weatherEvent.Location, ""), nil)
 	if err != nil {
 		debug.ErrorMessage.Update(
@@ -285,7 +285,7 @@ func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	recorder := httptest.NewRecorder()
-	weather.Handler(recorder, req)
+	weatherDetails.Handler(recorder, req)
 	if recorder.Code != http.StatusOK {
 		debug.ErrorMessage.Update(
 			http.StatusNotFound,

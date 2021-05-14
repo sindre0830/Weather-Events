@@ -1,4 +1,4 @@
-package compare
+package weatherCompare
 
 // WeatherCompare structure stores current and predicted weather data comparisons for different locations.
 //

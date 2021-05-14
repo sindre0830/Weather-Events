@@ -1,4 +1,4 @@
-package compare
+package weatherCompare
 
 import (
 	"main/debug"

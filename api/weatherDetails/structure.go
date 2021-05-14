@@ -1,11 +1,11 @@
-package weather
+package weatherDetails
 
 import "main/api/weatherData"
 
-// Weather structure stores current and predicted weather data for a day and information about location.
+// WeatherDetails structure stores current and predicted weather data for a day and information about location.
 //
 // Functionality: Handler, get
-type Weather struct {
+type WeatherDetails struct {
 	Longitude float64                        `json:"longitude"`
 	Latitude  float64                        `json:"latitude"`
 	Location  string                         `json:"location"`

@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"main/api/diag"
-	"main/api/weather"
+	"main/api/weatherDetails"
 	"main/dict"
 	"main/fun"
 	"main/storage"
@@ -77,7 +77,7 @@ func (weatherHook *WeatherHook) callLoop() {
 	mutex.Lock()
 
 	url := dict.GetWeatherURL(weatherHook.Location, "")
-	var weather weather.Weather
+	var weatherDetails weatherDetails.WeatherDetails
 	//create new GET request and branch if an error occurred
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -92,7 +92,7 @@ func (weatherHook *WeatherHook) callLoop() {
 	//call the policy handler and branch if the status code is not OK
 	//this stops timed out request being sent to the webhook
 	recorder := httptest.NewRecorder()
-	weather.Handler(recorder, req)
+	weatherDetails.Handler(recorder, req)
 	if recorder.Result().StatusCode != http.StatusOK {
 		fmt.Printf(
 			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tStatus code: %v\n}\n",
@@ -103,7 +103,7 @@ func (weatherHook *WeatherHook) callLoop() {
 		return
 	}
 	//convert from structure to bytes and branch if an error occurred
-	output, err := json.Marshal(weather)
+	output, err := json.Marshal(weatherDetails)
 	if err != nil {
 		fmt.Printf(
 			"%v {\n\tError when parsing Weather structure.\n\tRaw error: %v\n}\n",
