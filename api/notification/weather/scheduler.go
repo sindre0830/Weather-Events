@@ -1,4 +1,4 @@
-package weatherHook
+package weather
 
 import (
 	"bytes"
@@ -10,84 +10,61 @@ import (
 	"main/api/diag"
 	"main/api/weatherDetails"
 	"main/dict"
-	"main/fun"
 	"main/storage"
 	"net/http"
 	"net/http/httptest"
-	"sync"
+	"strconv"
 	"time"
-
-	"google.golang.org/api/iterator"
 )
 
-// We use mutex locks in callLoop to ensure we get no concurrency issues WRT map writes
-// Since we're loading every hook in when the program starts running, any 2 or more hooks with the same timeout
-// would otherwise be at risk of panicking when running at the same time.
-var mutex = &sync.Mutex{}
-
-/**
-* InitHooks
-* Initiates webhook triggers for all weather webhooks.
-**/
-func InitHooks(database *storage.Database) error {
-	iter := database.Client.Collection("weatherHookDB").Documents(database.Ctx)
-	for {
-        doc, err := iter.Next()
-        if err == iterator.Done {
-            break
-		}
-        if err != nil {
-            return err
-		}
-		// Create dummy variables
-		var temp WeatherHook
-		var dbMap = doc.Data()
-		// Extract data from iterator
-		err = temp.ReadData(dbMap["Container"].(interface{}))
-		temp.ID = doc.Ref.ID
-		if err != nil {
-			return err
-		}
-		// Start as go routine, else system will hang for the sleep time!
-		go temp.callLoop()
-		//add hook amount to diag
-		diag.HookAmount++
+// InitHooks initilizes all weather hooks from the database.
+func InitHooks() {
+	//get all webhooks and branch if an error occured
+	arrWeather, err := storage.Firebase.GetAll(dict.WEATHER_COLLECTION)
+	if err != nil {
+		fmt.Printf(
+			"%v {\n\tError when initializing weather webhooks.\n\tRaw error: %v\n}\n",
+			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+		)
+		return
+	}
+	//call each hook
+	for _, data := range arrWeather {
+		var weather Weather
+		weather.readData(data["Container"].(interface{}))
+		go weather.callHook()
 	}
 	//print message with amount of webhooks initilizied
 	fmt.Printf(
-		"%v {\n\tSuccesfully initialized WeatherHook webhooks.\n}\n",
-		time.Now().Format("2006-01-02 15:04:05"),
+		"%v {\n\tSuccesfully initialized weather webhooks.\n\tAmount: %v\n}\n",
+		time.Now().Format("2006-01-02 15:04:05"), strconv.Itoa(len(arrWeather)),
 	)
-	return nil
+	diag.HookAmount += len(arrWeather)
 }
 
-
-/**
-* callLoop
-* Function handling webhook triggering. It runs as a go routine every x hours, where x is the user-input timeout, for each webhook.
-**/
-func (weatherHook *WeatherHook) callLoop() {
-	_, exist := storage.Firebase.Get("weatherHookDB", weatherHook.ID)
+// callHook calls webhook.
+func (weather *Weather) callHook() {
+	//check if webhook still exist in database
+	_, exist := storage.Firebase.Get(dict.WEATHER_COLLECTION, weather.ID)
 	if !exist {
 		return
-	}	
-	// Sleep
-	fun.HookSleep(weatherHook.Timeout)
-	// Lock and do its thing when the timeout is up
-	mutex.Lock()
-
-	url := dict.GetWeatherURL(weatherHook.Location, "")
-	var weatherDetails weatherDetails.WeatherDetails
+	}
+	//check if program should sleep on timeout value
+	nextTime := time.Now().Truncate(time.Second)
+	nextTime = nextTime.Add(time.Duration(weather.Timeout) * time.Second)
+	time.Sleep(time.Until(nextTime))
+	dict.MutexState.Lock()
 	//create new GET request and branch if an error occurred
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	var weatherDetails weatherDetails.WeatherDetails
+	req, err := http.NewRequest(http.MethodGet, dict.GetWeatherDetailsURL(weather.Location, ""), nil)
 	if err != nil {
 		fmt.Printf(
 			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		mutex.Unlock()		
-		weatherHook.callLoop()
-		return
+		dict.MutexState.Unlock()
+		weather.callHook()
+		return 
 	}
 	//call the policy handler and branch if the status code is not OK
 	//this stops timed out request being sent to the webhook
@@ -98,8 +75,8 @@ func (weatherHook *WeatherHook) callLoop() {
 			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tStatus code: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), recorder.Result().StatusCode,
 		)
-		mutex.Unlock()
-		weatherHook.callLoop()
+		dict.MutexState.Unlock()
+		weather.callHook()
 		return
 	}
 	//convert from structure to bytes and branch if an error occurred
@@ -109,19 +86,19 @@ func (weatherHook *WeatherHook) callLoop() {
 			"%v {\n\tError when parsing Weather structure.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		mutex.Unlock()
-		weatherHook.callLoop()
+		dict.MutexState.Unlock()
+		weather.callHook()
 		return
 	}
 	//create new POST request and branch if an error occurred
-	req, err = http.NewRequest(http.MethodPost, weatherHook.URL, bytes.NewBuffer(output))
+	req, err = http.NewRequest(http.MethodPost, weather.URL, bytes.NewBuffer(output))
 	if err != nil {
 		fmt.Printf(
 			"%v {\n\tError when creating new POST request.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		mutex.Unlock()
-		weatherHook.callLoop()
+		dict.MutexState.Unlock()
+		weather.callHook()
 		return
 	}
 	//hash structure and branch if an error occurred
@@ -132,14 +109,13 @@ func (weatherHook *WeatherHook) callLoop() {
 			"%v {\n\tError when hashing content before POST request.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		mutex.Unlock()
-		weatherHook.callLoop()
+		dict.MutexState.Unlock()
+		weather.callHook()
 		return
 	}
 	//convert hashed structure to string and add to header
-	req.Header.Add("Signature", hex.EncodeToString(mac.Sum(nil)))
-	//update header to JSON
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("Signature", hex.EncodeToString(mac.Sum(nil)))
 	//send request to client and branch if an error occured
 	client := http.Client{}
 	res, err := client.Do(req)
@@ -148,23 +124,26 @@ func (weatherHook *WeatherHook) callLoop() {
 			"%v {\n\tError when sending HTTP content to webhook.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		mutex.Unlock()
-		weatherHook.callLoop()
+		dict.MutexState.Unlock()
+		weather.callHook()
 		return
 	}
-	// Check URL is valid, delete webhook if not
+	//branch if status from client isn't OK or service unavailable and delete webhook
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusServiceUnavailable {
 		fmt.Printf(
 			"%v {\n\tWebhook URL is not valid. Deleting webhook...\n\tStatus code: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), res.StatusCode,
 		)
-		err = storage.Firebase.Delete("weatherHookDB", weatherHook.ID)
-		mutex.Unlock()
+		err = storage.Firebase.Delete(dict.WEATHER_COLLECTION, weather.ID)
+		if err != nil {
+			fmt.Printf(
+				"%v {\n\tDidn't manage to delete webhook.\n\tRaw error: %v\n}\n",
+				time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+			)
+		}
+		dict.MutexState.Unlock()
 		return
-	} else {
-	// When we've finished processing the trigger, we can unlock and recur in a new routine
-		mutex.Unlock()
-		weatherHook.callLoop()
 	}
-	return
+	dict.MutexState.Unlock()
+	weather.callHook()
 }

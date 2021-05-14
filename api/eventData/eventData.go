@@ -2,6 +2,7 @@ package eventData
 
 import (
 	"errors"
+	"main/dict"
 	"main/storage"
 	"net/http"
 	"time"
@@ -11,7 +12,7 @@ import (
 func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 
 	//Check if it is already in firebase
-	data, exist := storage.Firebase.Get("Events", eventId)
+	data, exist := storage.Firebase.Get(dict.EVENT_COLLECTION, eventId)
 
 	if exist { //If in firebase, fetch data from firebase
 
@@ -32,7 +33,7 @@ func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 
 		if overdue {
 			//Delete the entry in the firebase
-			err = storage.Firebase.Delete("Events", eventId)
+			err = storage.Firebase.Delete(dict.EVENT_COLLECTION, eventId)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -52,7 +53,7 @@ func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 		var dataDB storage.Data
 		dataDB.Container = fireBaseStore
 
-		_, _, err = storage.Firebase.Add("Events", eventId, dataDB)
+		_, _, err = storage.Firebase.Add(dict.EVENT_COLLECTION, eventId, dataDB)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -76,8 +77,8 @@ func (data *FirebaseStore) get(url string) (int, error) {
 }
 
 //readData -Stores information from interface to the struct
-func (data *FirebaseStore) readData(storage interface{}) error {
-	m := storage.(map[string]interface{})
+func (data *FirebaseStore) readData(rawData interface{}) error {
+	m := rawData.(map[string]interface{})
 	if field, ok := m["Localdate"].(string); ok {
 		data.Localdate = field
 	} else {

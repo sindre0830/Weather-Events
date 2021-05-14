@@ -1,7 +1,7 @@
 # [Project | weather-events](https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2021/-/wikis/Project-Description)
 
 ### Info
-- Authors: 
+- Authors:
     - Sindre Eiklid (sindreik@stud.ntnu.no)
     - Rickard Loland (rickarl@stud.ntnu.no)
     - Susanne Skjold Edvardsen (susanse@stud.ntnu.no)
@@ -17,31 +17,51 @@
 - You need to be connected to NTNU network with a VPN to run the program. If you want to run it locally, you will have to change the URL variable in the 'dict' package to ```http://localhost```.
 - Client Repo: *TBA*
 
-### About:
+#### Plan
 
-The idea of this project is to utilize the weather data at yr's API and match it with event-based APIs (concerts, games, whatever) to let users find the weather for the event time + location. There are two endpoints, and one webhook. The first endpoint gives a basic weather report for the location, and the second compares a base location with other locations. The webhook lets a user pass in a location and a holiday, and the service will return the weather report for that date. The webhook gives the option to register for a future event and be notefied when the weather report for that event changes, or is updated for the first time.
+##### Original plan
 
-In addition to these services another webhook may be implemented if there is time for it:
+Our original plan was to utilize the weather data from Yr's API and combine it with event-based APIs (concerts, holidays etc.) to let users get the weather report for that specific date and location. We planned to create three endpoints, where one of them is a webhook. The first endpoint gives a basic weather report, and the second compares the weather report from a base location with other locations. The webhook let users pass in a location and a holiday, and the service will return the weather report for that date
 
-This webhook will allow a user to register an event id, like a concert. It will return the location and date of the event, additionally the weather if it allows for it, although weather is only availale 9 days ahead in time so a notification will be sent when its available. 
+In addition to these endpoints, we planned to implement another webhook if there was enough time. This webhook allows users to register an event ID. It will then send the weather report from the location and date of the event.
 
-#### Progress
+##### What has been achieved
 
-The progress for our project was overall very good. Initially, we struggled with finding an event-based api we could use for our event ID webhook, which was part of the reason why we did not include it in our original plans. Eventually however, we figured out that Ticketmaster's api is free, and how to use it. Because of this, we were able to complete all our planned endpoints. Overall, we had a very smooth time with the project - we never got stuck on anything important, nor were we forced to abandon any functionality or compromise our execution of the project. 
+Initially, we struggled with finding an event-based API we could use for our event webhook, which was part of the reason it was only a "maybe" in our original plan. Eventually we figured out that Ticketmaster's API was free, and how to use it. Because of this, we were able to complete all of our planned endpoints.
 
-We are designing our api to be easy to rewrite and repurpose. We are implementing helping functions and packages where it's fitting, and class methods for structs are quite numerous throughout the project. Working in a group has worked out well so far. We have had regular meetings and a structured plan which made it easy to actually get things done. This worked especially well while working on retrieving data from our service endpoints, as everyone could work siultaneously without issue. For some more difficult work, we brainstormed solutions together during meetings while one person implemented and pushed the code. We did have occasional bottlenecks where some of us had to wait for someone else to finish, but there was always refactoring, readme improvements and other things to fix up. None of these lasted very long, so they did not present a challenge for the project as a whole.
+In addition, we implemented some more webhooks. We made one with three different variations based on different input structures, which all had the same outcome. The three different options are default, holiday and ticket. Default takes a location and a date. Holiday, like stated in our original plan, takes a location and a holiday. The ticket option takes an event ID. The service sends a weather report for the date and location based on the frequency decided by the user. The frequency can be either ON_DATE or EVERY_DAY. ON_DATE only sends the weather report on the specific date, while EVERY_DAY sends the weather report every day starting 9 days before the date. Another webhook we implemented takes a location and a timeout. A weather report will then be returned based on these parameters.
 
-#### Experiences
+#### Reflection
 
-Throughout our work we ran into a couple challenges that we had to overcome as a group. The first problem we encountered was risking exceeding the free firestore operation quota of 50K reads. We planned to store all of our data in firestore, but realized that each firestore query would read through every ID. This resoluted in each query reading more than 200 times. We ended up using more than 16% of our free quota in 2 days, after fixing this we used less than 0.5% each day.
+##### What went well
+
+We designed our API to be easy to rewrite and repurpose. We have implemented helping functions and packages where it is fitting, and gclass methods for structs are quite numerous throughout the project.
+
+Working in a group has worked out well. We have had regular meetings and a structured plan which made it easy to get things done. This worked especially well while working on retrieving data from our service endpoints, as everyone could work simultaneously without issue. For some more difficult work, we brainstormed solutions together during meetings while one person implemented and pushed the code. We did have occasional bottlenecks where some of us had to wait for someone else to finish, but there was always refactoring, readme improvements and other things to fix up. None of these lasted very long, so they did not present a challenge for the project as a whole.
+
+Overall, we had a very smooth time with the project - we never got stuck on anything important, nor were we forced to abandon any functionality or compromise our execution of the project.
+
+##### What went wrong
+
+ One problem we encountered was risking exceeding the free firestore operation quota of 50K reads. We planned to store all of our data in firestore, but realized that each firestore query would read through every ID. This resulted in each query reading more than 200 times. We ended up using more than 16% of our free quota in 2 days, after fixing this we used less than 0.5% each day.
 
 ![Firestore operations reaching 5.8K a day](images/firestore.png)
 
-Our second challenge was with the API we used to translate location names into geo-coordinates. SUddenly, a week before the deadline, we were starting to get wrong information from our geocoords handler. It was not consistent nor easily reproduced, yet it happened quite frequently. We struggled for a good our to figure out where our code was going wrong, until we realized the actual source-api - locationiq - was the problem.
+We encountered another problem when the work with calling webhooks started. When two different go routines read from a file at the same time, the program crashed. We tried to solve this by adding mutex locks. This lead to another problem, as we used two different mutex locks for the webhooks. This was solved by only having one collective mutex lock that we put in the 'dict' file.  
+
+##### Experiences
+
+One challenge we ran into was with the API we used to translate location names into geo-coordinates. Suddenly, a week before the deadline, we were starting to get wrong information from our geocoords handler. It was not consistent nor easily reproduced, yet it happened quite frequently. We struggled for a good our to figure out where our code was going wrong, until we realized the actual source-API - locationiq - was the problem.
 
 To put it simply, when we pass a location into locationiq, it returns an array of up to ten locations matching the string we pass in, ordered from most 'important' to least. If there are more than ten, only the top ten will be returned. This is fine, and lets us get our locations in one of two ways - the simple way of just taking the first element in the array, and the theoretically more robust but also more cumbersome way of checking all returned locations and storing the one with highest importance. The problem was that for whatever reason, this endpoint will randomly just return one or two locations instead - and always among the lowest-importance locations as well. Leading to passing 'Oslo' in and having it spit out a location in the US. And since the issue is with the number of locations returned by locationiq, checking importance will not get us the data we need either.
 
-While we could think of some 'solutions' to this issue - for example a function that looks at all locations stored with importance below a certain threshold, checking locationiq for new data every so often, and updating if one with greater importance is found - we didn't find this a worthwhile issue to work on for this project. For one, we are making a very roundabout and suboptimal solution to a problem in another api, which would be useless once that api is fixed. For another, this solution would get spammy for naturally low-importance locations that never update. We elected instead to explain it in the readme and leave it as is.
+While we could think of some 'solutions' to this issue - for example a function that looks at all locations stored with importance below a certain threshold, checking locationiq for new data every so often, and updating if one with greater importance is found - we didn't find this a worthwhile issue to work on for this project. For one, we are making a very roundabout and suboptimal solution to a problem in another API, which would be useless once that API is fixed. For another, this solution would get spammy for naturally low-importance locations that never update. We elected instead to explain it in the readme and leave it as is.
+
+#### Learning experiences
+
+One new thing we have learned while working on the project is caching, as none of us had any previous experience with it. We stored static data in files, and dynamic data in firestore. Already being familiar and knowing how to use firestore, definitely helped this experience. One challenge was knowing how long to keep the data for. In the end we ended up storing the geo coordinates and the Ticketmaster data for 12 hours before deleting it. The information about holidays are stored until the year changes, as some of the holidays are on different dates each year. We are overall happy with the result.
+
+Another new learning experience was designing an API by ourselves. In the assignments we always got a task and the structure of the different endpoints. Doing this by ourselves was educational, as we had to put a lot of thought into the data structures and what information to return.
 
 ### Usage
 
@@ -86,7 +106,7 @@ While we could think of some 'solutions' to this issue - for example a function 
         ```
 
     - Example:
-        - Input: 
+        - Input:
             ```
             Method: GET
             Path: localhost:8080/weather-rest/v1/weather/location/oslo
@@ -165,7 +185,7 @@ While we could think of some 'solutions' to this issue - for example a function 
         ```
 
     - Example:
-        - Input: 
+        - Input:
             ```
             Method: GET
             Path: localhost:8080/weather-rest/v1/weather/compare/oslo/bergen;stavanger
@@ -246,7 +266,7 @@ While we could think of some 'solutions' to this issue - for example a function 
         ```
 
     - Example:
-        - Input: 
+        - Input:
             ```
             Method: GET
             Path: localhost:8080/weather-rest/v1/notification/weather?id=yourHookID
@@ -286,7 +306,7 @@ While we could think of some 'solutions' to this issue - for example a function 
         ```
 
     - Example:
-        - Input: 
+        - Input:
             ```
             Method: POST
             Path: localhost:8080/weather-rest/v1/notification/weather
@@ -325,7 +345,7 @@ While we could think of some 'solutions' to this issue - for example a function 
         ```
 
     - Example:
-        - Input: 
+        - Input:
             ```
             Method: DELETE
             Path: localhost:8080/weather-rest/v1/notification/weather?id=yourHookID
@@ -347,7 +367,7 @@ While we could think of some 'solutions' to this issue - for example a function 
 
 ##### Technologies used
 
-The technologies we are going to use are Firestore, OpenStack and Docker. We are using firestore for caching. The weather data are stored for 6 hours. Whether or not the geocoords are stored depends on the importance of the selected location. If it has a low importance, it is stored for 3 hours. If the importance is high, it is saved in a file. The data about holidays are stored until the year change. 
+The technologies we are going to use are Firestore, OpenStack and Docker. We are using firestore for caching. The weather data are stored for 6 hours. Whether or not the geocoords are stored depends on the importance of the selected location. If it has a low importance, it is stored for 3 hours. If the importance is high, it is saved in a file. The data about holidays are stored until the year change.
 
 #### Structure
 

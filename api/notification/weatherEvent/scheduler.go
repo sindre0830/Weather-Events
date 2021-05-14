@@ -14,16 +14,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
-	"sync"
 	"time"
 )
-
-var mutex = &sync.Mutex{}
 
 // InitHooks initilizes all weatherEvent hooks from the database.
 func InitHooks() {
 	//get all webhooks and branch if an error occured
-	arrWeatherEvent, err := storage.Firebase.GetAll("weatherEvent")
+	arrWeatherEvent, err := storage.Firebase.GetAll(dict.WEATHEREVENT_COLLECTION)
 	if err != nil {
 		fmt.Printf(
 			"%v {\n\tError when initializing WeatherEvent webhooks.\n\tRaw error: %v\n}\n",
@@ -48,7 +45,7 @@ func InitHooks() {
 // callHook calls webhook.
 func (weatherEvent *WeatherEvent) callHook() {
 	//check if webhook still exist in database
-	_, exist := storage.Firebase.Get("weatherEvent", weatherEvent.ID)
+	_, exist := storage.Firebase.Get(dict.WEATHEREVENT_COLLECTION, weatherEvent.ID)
 	if !exist {
 		return
 	}
@@ -60,18 +57,16 @@ func (weatherEvent *WeatherEvent) callHook() {
 	nextTime := time.Now().Truncate(time.Second)
 	nextTime = nextTime.Add(time.Duration(weatherEvent.Timeout) * time.Second)
 	time.Sleep(time.Until(nextTime))
-	mutex.Lock()
-	//get url based on webhook data
-	url := dict.GetWeatherURL(weatherEvent.Location, weatherEvent.Date)
-	var weatherDetails weatherDetails.WeatherDetails
+	dict.MutexState.Lock()
 	//create new GET request and branch if an error occurred
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	var weatherDetails weatherDetails.WeatherDetails
+	req, err := http.NewRequest(http.MethodGet, dict.GetWeatherDetailsURL(weatherEvent.Location, weatherEvent.Date), nil)
 	if err != nil {
 		fmt.Printf(
 			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		mutex.Unlock()
+		dict.MutexState.Unlock()
 		weatherEvent.callHook()
 		return 
 	}
@@ -84,7 +79,7 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when creating HTTP request to Weather.Handler().\n\tStatus code: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), recorder.Result().StatusCode,
 		)
-		mutex.Unlock()
+		dict.MutexState.Unlock()
 		weatherEvent.callHook()
 		return
 	}
@@ -95,7 +90,7 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when parsing Weather structure.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		mutex.Unlock()
+		dict.MutexState.Unlock()
 		weatherEvent.callHook()
 		return
 	}
@@ -106,7 +101,7 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when creating new POST request.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		mutex.Unlock()
+		dict.MutexState.Unlock()
 		weatherEvent.callHook()
 		return
 	}
@@ -118,7 +113,7 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when hashing content before POST request.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		mutex.Unlock()
+		dict.MutexState.Unlock()
 		weatherEvent.callHook()
 		return
 	}
@@ -133,25 +128,26 @@ func (weatherEvent *WeatherEvent) callHook() {
 			"%v {\n\tError when sending HTTP content to webhook.\n\tRaw error: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 		)
-		mutex.Unlock()
+		dict.MutexState.Unlock()
 		weatherEvent.callHook()
 		return
 	}
+	//branch if status from client isn't OK or service unavailable and delete webhook
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusServiceUnavailable {
 		fmt.Printf(
 			"%v {\n\tWebhook URL is not valid. Deleting webhook...\n\tStatus code: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), res.StatusCode,
 		)
-		err = storage.Firebase.Delete("weatherEvent", weatherEvent.ID)
+		err = storage.Firebase.Delete(dict.WEATHEREVENT_COLLECTION, weatherEvent.ID)
 		if err != nil {
 			fmt.Printf(
 				"%v {\n\tDidn't manage to delete webhook.\n\tRaw error: %v\n}\n",
 				time.Now().Format("2006-01-02 15:04:05"), err.Error(),
 			)
 		}
-		mutex.Unlock()
+		dict.MutexState.Unlock()
 		return
 	}
-	mutex.Unlock()
+	dict.MutexState.Unlock()
 	weatherEvent.callHook()
 }

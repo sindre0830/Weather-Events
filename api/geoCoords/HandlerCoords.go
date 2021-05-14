@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"main/api"
+	"main/dict"
 	"main/storage"
 	"math"
 	"net/http"
@@ -33,8 +34,8 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 
 	// We read our local DB, if one exists, into LocalCoords map.
 	//var file []byte
-	if storage.FindCollection("GeoCoords") {
-		file, err := storage.ReadCollection("GeoCoords")
+	if storage.FindCollection(dict.LOCATION_COLLECTION) {
+		file, err := storage.ReadCollection(dict.LOCATION_COLLECTION)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -58,7 +59,7 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 	}
 
 	// If not, we check in firestoreDB if location data for this location exists
-	data, exist := storage.Firebase.Get("GeoCoords", id)
+	data, exist := storage.Firebase.Get(dict.LOCATION_COLLECTION, id)
 
 	// We check whether data on firestore is deprecated or not.
 	// For locations that are not countries/capitals, we don't want to keep our data more than 3 hours.
@@ -101,7 +102,7 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 			return http.StatusInternalServerError, err
 		}
 
-		err = storage.WriteCollection("GeoCoords", file)
+		err = storage.WriteCollection(dict.LOCATION_COLLECTION, file)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -110,7 +111,7 @@ func (locationCoords *LocationCoords) Handler(id string) (int, error) {
 		var data storage.Data
 		data.Time = time.Now().String()
 		data.Container = locationCoords
-		_, _, err = storage.Firebase.Add("GeoCoords", id, data)
+		_, _, err = storage.Firebase.Add(dict.LOCATION_COLLECTION, id, data)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -131,9 +132,9 @@ func getCoords(coords *LocationCoords, location map[string]interface{}) error {
 	var err error
 
 	coords.Address = location["display_name"].(string)
-	latitude, err := strconv.ParseFloat(location["lat"].(string), 64)
+	latitude, _ := strconv.ParseFloat(location["lat"].(string), 64)
 	coords.Latitude = math.Round(latitude*100) / 100
-	longitude, err := strconv.ParseFloat(location["lon"].(string), 64)
+	longitude, _ := strconv.ParseFloat(location["lon"].(string), 64)
 	coords.Longitude = math.Round(longitude*100) / 100
 	importance := location["importance"].(float64)
 	coords.Importance = math.Round(importance*100) / 100
