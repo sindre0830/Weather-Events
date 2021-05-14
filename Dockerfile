@@ -15,6 +15,9 @@ ADD ./main.go /
 RUN CGO_ENABLED=0 GOOS=linux go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o ./bin/main
 
+# Ports we want to use for this
+EXPOSE 8080 8080
+
 # Give permissions to main and run
 RUN chmod +x ./bin/main
 

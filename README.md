@@ -466,6 +466,7 @@ For Visual Studio Code with Golang extension:
 2. Click the ```run test``` label for any function that you want to test
 
 ##### Setup docker (linux version)
+1. Open terminal in directory
 1. sudo docker build . -t 2005project
 2. sudo docker run -d --name 2005container -p 8081:8080 2005project
 3. When finished, try endpoints in postman on port 8081 (or change to your preferred port)
