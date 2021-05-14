@@ -47,7 +47,7 @@ Overall, we had a very smooth experience working on the project - we never got s
 
 ![Firestore operations reaching 5.8K a day](images/firestore.png)
 
-We encountered another problem when the work with calling webhooks started. When two different go routines read from the same file at the same time, the program crashed. We tried to solve this by adding mutex locks. This lead to another problem, as we used two different mutex locks for the webhooks. This was solved by only having one collective mutex lock that we put in the 'dict' file.  
+We encountered another problem when the work with calling webhooks started. When two different go routines read from t file at the same time, the program crashed. We tried to solve this by adding mutex locks. This lead to another problem, as we used two different mutex locks for the webhooks. This was solved by only having one collective mutex lock that we put in the 'dict' file.  
 
 Testing did not go as planned. We struggled to understand how to use stubbing and mocking. After some trial and error we decided to ask a teaching assistant, but it did not seem like he understood to good either. In the end, we went with only doing unit testing even though stubbing and mocking would have been the better option.
 
@@ -252,49 +252,6 @@ Another new learning experience was designing an API by ourselves. In the assign
             }
             ```
 3. weatherHook
-5. Diag
-
-    - Input:
-        ```
-        Method: GET
-        Path: .../weather/diag
-        ```
-
-    - Output
-        ```go
-        type DiagStatuses struct {
-          	Restcountries  int `json:"restcountries"`
-          	TicketMaster   int `json:"ticketmaster"`
-          	LocationIq     int `json:"locationiq"`
-          	Weatherapi     int `json:"weatherapi"`
-          	PublicHolidays int `json:"publicholidays"`
-
-          	RegisteredWebhooks int    `json:"registeredwebhooks"`
-          	Version            string `json:"version"`
-          	Uptime             int    `json:"uptime"`
-        }
-        ```
-
-    - Example:
-        - Input:
-            ```
-            Method: GET
-            Path: localhost:8080/weather-rest/v1/weather/diag/
-            ```
-        - Output:
-            ```json
-            {
-                "restcountries": 200,
-                "ticketmaster": 200,
-                "locationiq": 200,
-                "weatherapi": 200,
-                "publicholidays": 200,
-                "registeredwebhooks": 200,
-                "version": "v1",
-                "uptime": 3600
-            }
-            ```
-
 
     - Input:
         ```
@@ -406,6 +363,48 @@ Another new learning experience was designing an API by ourselves. In the assign
                 "possible_reason": "Unknown"
             }
             ```
+4. Diag
+
+    - Input:
+        ```
+        Method: GET
+        Path: .../weather/diag
+        ```
+
+    - Output
+        ```go
+        type DiagStatuses struct {
+            Restcountries  int `json:"restcountries"`
+            TicketMaster   int `json:"ticketmaster"`
+            LocationIq     int `json:"locationiq"`
+            Weatherapi     int `json:"weatherapi"`
+            PublicHolidays int `json:"publicholidays"`
+
+            RegisteredWebhooks int    `json:"registeredwebhooks"`
+            Version            string `json:"version"`
+            Uptime             int    `json:"uptime"`
+        }
+        ```
+
+    - Example:
+        - Input:
+            ```
+            Method: GET
+            Path: localhost:8080/weather-rest/v1/weather/diag/
+            ```
+        - Output:
+            ```json
+            {
+                "restcountries": 200,
+                "ticketmaster": 200,
+                "locationiq": 200,
+                "weatherapi": 200,
+                "publicholidays": 200,
+                "registeredwebhooks": 200,
+                "version": "v1",
+                "uptime": 3600
+            }
+            ```
 
 
 ## Notes
@@ -496,23 +495,7 @@ type Debug struct {
 
 *TBA*
 
-#### Usage
-
-##### Openstack
-*TBA*
-
-##### Run locally
-1. Open terminal in directory
-2. go build
-3. go run main
-4. Try our endpoints in postman!
-
-##### Run tests
+##### Usage
 For Visual Studio Code with Golang extension:
 1. Open testing file in the IDE
 2. Click the ```run test``` label for any function that you want to test
-
-##### Setup docker (linux version)
-1. sudo docker build . -t 2005project
-2. sudo docker run -d --name 2005container -p 8081:8080 2005project
-3. When finished, try endpoints in postman on port 8081 (or change to your preferred port)
