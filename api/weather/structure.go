@@ -6,9 +6,10 @@ import "main/api/weatherData"
 //
 // Functionality: Handler, get
 type Weather struct {
-	Longitude  float64                           `json:"longitude"`
-	Latitude   float64                           `json:"latitude"`
-	Location   string                            `json:"location"`
-	Updated    string                            `json:"updated"`
-	Timeseries map[string]weatherData.Timeseries `json:"timeseries"`
+	Longitude float64                        `json:"longitude"`
+	Latitude  float64                        `json:"latitude"`
+	Location  string                         `json:"location"`
+	Updated   string                         `json:"updated"`
+	Date	  string                         `json:"date"`
+	Data 	  weatherData.WeatherDataForADay `json:"data"`
 }

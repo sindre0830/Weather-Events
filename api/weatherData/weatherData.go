@@ -56,7 +56,7 @@ func (weatherData *WeatherData) get(lat string, lon string) (int, error) {
 		return status, err
 	}
 	//set weather data for all available days
-	weatherData.Timeseries = make(map[string]Timeseries)
+	weatherData.Timeseries = make(map[string]WeatherDataForADay)
 	var prevDate string
 	for _, elem := range yr.Properties.Timeseries {
 		//only add weather data once for each day
@@ -64,7 +64,7 @@ func (weatherData *WeatherData) get(lat string, lon string) (int, error) {
 		date := rawDate.Format("2006-01-02")
 		if prevDate != date {
 			//set data in structure
-			var timeEntry Timeseries
+			var timeEntry WeatherDataForADay
 			timeEntry.Instant.AirTemperature = elem.Data.Instant.Details.AirTemperature
 			timeEntry.Instant.CloudAreaFraction = elem.Data.Instant.Details.CloudAreaFraction
 			timeEntry.Instant.DewPointTemperature = elem.Data.Instant.Details.DewPointTemperature
@@ -99,11 +99,11 @@ func (weatherData *WeatherData) readData(data interface{}) error {
 		return errors.New("parsing data: invalid data structure")
 	}
 	//parse weather data for all available days
-	weatherData.Timeseries = make(map[string]Timeseries)
+	weatherData.Timeseries = make(map[string]WeatherDataForADay)
 	for date, elem := range timeseries {
 		data := elem.(map[string]interface{})
 		//set data in structure
-		var timeEntry Timeseries
+		var timeEntry WeatherDataForADay
 		instant := data["Instant"].(map[string]interface{})
 		timeEntry.Instant.AirTemperature = instant["AirTemperature"].(float64)
 		timeEntry.Instant.CloudAreaFraction = instant["CloudAreaFraction"].(float64)

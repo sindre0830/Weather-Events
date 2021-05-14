@@ -261,3 +261,5 @@
 [3.2.0]     **development**:    Renamed db package to storage and moved file operations there
 
 [3.2.1]     **setup**:          Moved GeoCoord file to data/ and added a gitkeep
+
+[3.3.0]     **development**:    Restructured Weather and WeatherCompare structures

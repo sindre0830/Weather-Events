@@ -4,12 +4,12 @@ package weatherData
 //
 // Functionality: Handler, get, readData
 type WeatherData struct {
-	Updated    string                `json:"updated"`
-	Timeseries map[string]Timeseries `json:"timeseries"`
+	Updated    string                        `json:"updated"`
+	Timeseries map[string]WeatherDataForADay `json:"timeseries"`
 }
 
-// Timeseries stores current and predicted weather data for a day
-type Timeseries struct {
+// WeatherDataForADay stores current and predicted weather data for a day
+type WeatherDataForADay struct {
 	Instant struct {
 		AirTemperature      float64 `json:"air_temperature"`
 		CloudAreaFraction   float64 `json:"cloud_area_fraction"`

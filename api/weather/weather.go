@@ -122,11 +122,11 @@ func (weather *Weather) get(lat float64, lon float64, date string) (int, error) 
 	if err != nil {
 		return status, err
 	}
-	weather.Timeseries = make(map[string]weatherData.Timeseries)
 	//set data in structure and branch if data can't be found
 	weather.Updated = weatherDataRange.Updated
 	if data, ok := weatherDataRange.Timeseries[date]; ok {
-		weather.Timeseries[date] = data
+		weather.Date = date
+		weather.Data = data
 	} else {
 		return http.StatusBadRequest, errors.New("invalid date: can't find weather data for inputted date")
 	}

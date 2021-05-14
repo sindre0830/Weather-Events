@@ -4,11 +4,12 @@ package compare
 //
 // Functionality: Handler, get
 type WeatherCompare struct {
-	Longitude  float64           `json:"longitude"`
-	Latitude   float64           `json:"latitude"`
-	Location   string            `json:"location"`
-	Updated    string            `json:"updated"`
-	Timeseries map[string][]data `json:"timeseries"`
+	Longitude float64 `json:"longitude"`
+	Latitude  float64 `json:"latitude"`
+	Location  string  `json:"location"`
+	Updated   string  `json:"updated"`
+	Date	  string  `json:"date"`
+	Data 	  []data  `json:"data"`
 }
 
 // data structure stores weather data for a location.

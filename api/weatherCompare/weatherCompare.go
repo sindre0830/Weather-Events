@@ -161,9 +161,9 @@ func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinat
 	if _, ok := mainWeatherData.Timeseries[date]; !ok {
 		return http.StatusBadRequest, errors.New("invalid date: can't find weather data for inputted date")
 	}
+	weatherCompare.Date = date
 	//get weather data for each comparison location and branch if an error occurred
-	weatherCompare.Timeseries = make(map[string][]data)
-	var dataRange []data
+	var arrData []data
 	for _, coordinates := range arrCoordinates {
 		//convert coordinates to string
 		strLat := fmt.Sprintf("%f", coordinates.Latitude)
@@ -193,9 +193,9 @@ func (weatherCompare *WeatherCompare) get(lat float64, lon float64, arrCoordinat
 		data.Predicted.PrecipitationAmountMax = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.PrecipitationAmountMax - mainWeatherData.Timeseries[date].Predicted.PrecipitationAmountMax)
 		data.Predicted.PrecipitationAmountMin = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.PrecipitationAmountMin - mainWeatherData.Timeseries[date].Predicted.PrecipitationAmountMin)
 		data.Predicted.ProbabilityOfPrecipitation = fun.LimitDecimals(weatherData.Timeseries[date].Predicted.ProbabilityOfPrecipitation - mainWeatherData.Timeseries[date].Predicted.ProbabilityOfPrecipitation)
-		dataRange = append(dataRange, data)
+		arrData = append(arrData, data)
 	}
-	weatherCompare.Timeseries[date] = dataRange
+	weatherCompare.Data = arrData
 	weatherCompare.Updated = mainWeatherData.Updated
 	return http.StatusOK, nil
 }
