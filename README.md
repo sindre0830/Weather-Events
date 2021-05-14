@@ -14,6 +14,7 @@
     - Country information:  https://restcountries.eu/rest/v2/all
     - Holiday information:  https://date.nager.at/api/v2/PublicHolidays/
     - Location information: https://us1.locationiq.com/v1/
+    - Event information:    https://developer.ticketmaster.com/products-and-docs/apis/getting-started/
 - You need to be connected to NTNU network with a VPN to run the program. If you want to run it locally, you will have to change the URL variable in the 'dict' package to ```http://localhost```.
 - Client Repo: *TBA*
 
