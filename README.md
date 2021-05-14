@@ -252,6 +252,49 @@ Another new learning experience was designing an API by ourselves. In the assign
             }
             ```
 3. weatherHook
+5. Diag
+
+    - Input:
+        ```
+        Method: GET
+        Path: .../weather/diag
+        ```
+
+    - Output
+        ```go
+        type DiagStatuses struct {
+          	Restcountries  int `json:"restcountries"`
+          	TicketMaster   int `json:"ticketmaster"`
+          	LocationIq     int `json:"locationiq"`
+          	Weatherapi     int `json:"weatherapi"`
+          	PublicHolidays int `json:"publicholidays"`
+
+          	RegisteredWebhooks int    `json:"registeredwebhooks"`
+          	Version            string `json:"version"`
+          	Uptime             int    `json:"uptime"`
+        }
+        ```
+
+    - Example:
+        - Input:
+            ```
+            Method: GET
+            Path: localhost:8080/weather-rest/v1/weather/diag/
+            ```
+        - Output:
+            ```json
+            {
+                "restcountries": 200,
+                "ticketmaster": 200,
+                "locationiq": 200,
+                "weatherapi": 200,
+                "publicholidays": 200,
+                "registeredwebhooks": 200,
+                "version": "v1",
+                "uptime": 3600
+            }
+            ```
+
 
     - Input:
         ```
