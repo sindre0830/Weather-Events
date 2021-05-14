@@ -363,7 +363,122 @@ Another new learning experience was designing an API by ourselves. In the assign
                 "possible_reason": "Unknown"
             }
             ```
-4. Diag
+4. weatherEvent
+
+    - Input:
+        ```
+        Method: GET
+        Path: .../notification/event/{id}
+        ```
+
+        - If {id} is empty, all registered webhooks are returned.
+
+    - Output:
+        ```go
+        type WeatherEvent struct {
+            ID        string `json:"id"`
+            Date      string `json:"date"`
+            Location  string `json:"location"`
+            URL       string `json:"url"`
+            Frequency string `json:"frequency"`
+            Timeout   int64  `json:"timeout"`
+        }
+        ```
+
+    - Example:
+        - Input:
+            ```
+            Method: GET
+            Path: localhost:8080/weather-rest/v1/notification/event/zhXMIlfqWkH7D1bSA3DU
+            ```
+        - Output:
+            ```json
+            {
+                "id": "zhXMIlfqWkH7D1bSA3DU",
+                "date": "2021-12-25",
+                "location": "Hungary",
+                "url": "https://webhook.site/786ed4dd-f6b9-44a2-b470-aef4d4c5abef",
+                "frequency": "EVERY_DAY",
+                "timeout": 60
+            }
+            ```
+
+    - Input:
+        ```
+        Method: POST
+        Path: .../notification/event/{event}
+        ```
+
+        - {event} can either be empty, "holiday" or "ticket". If it is empty, replace "holiday" in the example body with "date". If it is "ticket". Remove "holiday" and "location" and add "ticket".
+
+    - Output:
+        ```go
+        type WeatherEvent struct {
+          	ID        string `json:"id"`
+          	Date      string `json:"date"`
+          	Location  string `json:"location"`
+          	URL       string `json:"url"`
+          	Frequency string `json:"frequency"`
+          	Timeout   int64  `json:"timeout"`
+        }
+        ```
+
+    - Example:
+        - Input:
+            ```
+            Method: POST
+            Path: localhost:8080/weather-rest/v1/notification/event/holiday
+            ```
+            Body:
+
+            ```json
+            {
+                "holiday": "christmas day",
+                "location": "Budapest",
+                "url": "https://webhook.site/786ed4dd-f6b9-44a2-b470-aef4d4c5abef",
+                "frequency": "EVERY_DAY",
+                "timeout": 60
+            }
+            ```
+        - Output
+            ```json
+            {
+                "status_code": 201,
+                "message": "Webhook successfully created for https://webhook.site/786ed4dd-f6b9-44a2-b470-aef4d4c5abef",
+                "id": "zhXMIlfqWkH7D1bSA3DU"
+            }
+            ```
+
+    - Input:
+        ```
+        Method: DELETE
+        Path: .../notification/event/{:id}
+        ```
+
+    - Output:
+        ```go
+        type Feedback struct {
+          	StatusCode int    `json:"status_code"`
+          	Message    string `json:"message"`
+          	ID		   string `json:"id"`
+        }
+        ```
+
+    - Example:
+        - Input:
+            ```
+            Method: DELETE
+            Path: localhost:8080/weather-rest/v1/notification/event/zhXMIlfqWkH7D1bSA3DU
+            ```
+        - Output:
+            ```json
+            {
+                "status_code": 200,
+                "message": "Webhook successfully deleted",
+                "id": "zhXMIlfqWkH7D1bSA3DU"
+            }
+            ```
+5. Diag
 
     - Input:
         ```
@@ -400,7 +515,7 @@ Another new learning experience was designing an API by ourselves. In the assign
                 "locationiq": 200,
                 "weatherapi": 200,
                 "publicholidays": 200,
-                "registeredwebhooks": 200,
+                "registeredwebhooks": 12,
                 "version": "v1",
                 "uptime": 3600
             }
