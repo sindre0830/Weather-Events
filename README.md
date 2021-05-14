@@ -39,7 +39,7 @@ We designed our API to be easy to rewrite and repurpose. We have implemented hel
 
 Working in a group has worked out well. We have had regular meetings and a structured plan which made it easy to get things done. This worked especially well while working on retrieving data from our service endpoints, as everyone could work simultaneously without issue. For some more difficult work, we brainstormed solutions together during meetings while one person implemented and pushed the code. We did have occasional bottlenecks where some of us had to wait for someone else to finish, but there was always refactoring, readme improvements and other things to fix up. None of these lasted very long, so they did not present a challenge for the project as a whole.
 
-Overall, we had a very smooth time with the project - we never got stuck on anything important, nor were we forced to abandon any functionality or compromise our execution of the project.
+Overall, we had a very smooth experience working on the project - we never got stuck on anything important, nor were we forced to abandon any functionality or compromise our execution of the project.
 
 ##### What went wrong
 
@@ -47,7 +47,9 @@ Overall, we had a very smooth time with the project - we never got stuck on anyt
 
 ![Firestore operations reaching 5.8K a day](images/firestore.png)
 
-We encountered another problem when the work with calling webhooks started. When two different go routines read from a file at the same time, the program crashed. We tried to solve this by adding mutex locks. This lead to another problem, as we used two different mutex locks for the webhooks. This was solved by only having one collective mutex lock that we put in the 'dict' file.  
+We encountered another problem when the work with calling webhooks started. When two different go routines read from t file at the same time, the program crashed. We tried to solve this by adding mutex locks. This lead to another problem, as we used two different mutex locks for the webhooks. This was solved by only having one collective mutex lock that we put in the 'dict' file.  
+
+Testing did not go as planned. We struggled to understand how to use stubbing and mocking. After some trial and error we decided to ask a teaching assistant, but it did not seem like he understood to good either. In the end, we went with only doing unit testing even though stubbing and mocking would have been the better option.
 
 ##### Experiences
 
@@ -62,6 +64,8 @@ While we could think of some 'solutions' to this issue - for example a function 
 One new thing we have learned while working on the project is caching, as none of us had any previous experience with it. We stored static data in files, and dynamic data in firestore. Already being familiar and knowing how to use firestore, definitely helped this experience. One challenge was knowing how long to keep the data for. In the end we ended up storing the geo coordinates and the Ticketmaster data for 12 hours before deleting it. The information about holidays are stored until the year changes, as some of the holidays are on different dates each year. We are overall happy with the result.
 
 Another new learning experience was designing an API by ourselves. In the assignments we always got a task and the structure of the different endpoints. Doing this by ourselves was educational, as we had to put a lot of thought into the data structures and what information to return.
+
+#### Hours worked
 
 ### Usage
 
@@ -252,8 +256,11 @@ Another new learning experience was designing an API by ourselves. In the assign
     - Input:
         ```
         Method: GET
-        Path: .../weather-rest/v1/notification/weather{?id=yourhook}
+        Path: .../weather-rest/v1/notification/weather/{id}
         ```
+
+        - If {id} is empty, all registered webhooks are returned.
+
 
     - Output:
         ```go
@@ -269,12 +276,12 @@ Another new learning experience was designing an API by ourselves. In the assign
         - Input:
             ```
             Method: GET
-            Path: localhost:8080/weather-rest/v1/notification/weather?id=yourHookID
+            Path: localhost:8080/weather-rest/v1/notification/weather/ilX0vteqDlunPM1RZpXb
             ```
         - Output:
             ```json
             {
-                "id": "yourHookID",
+                "id": "zKweuha67Rqh",
                 "location": "Oslo",
                 "timeout": 5,
                 "url": "https://webhook.site/292d37f5-a017-4e07-8b62-2d8a4b9c3f94"
@@ -297,12 +304,12 @@ Another new learning experience was designing an API by ourselves. In the assign
 
     - Output:
         ```go
-        type WeatherHook struct {
-            ID       string `json:"id"`
-            Location string `json:"location"`
-            Timeout  int64  `json:"timeout"`
-            URL      string `json:"url"`
+        type Feedback struct {
+          	StatusCode int    `json:"status_code"`
+          	Message    string `json:"message"`
+          	ID		   string `json:"id"`
         }
+
         ```
 
     - Example:
@@ -331,16 +338,15 @@ Another new learning experience was designing an API by ourselves. In the assign
     - Input:
         ```
         Method: DELETE
-        Path: .../weather-rest/v1/notification/weather{?id=yourhook}
+        Path: .../weather-rest/v1/notification/weather/{:id}
         ```
 
     - Output:
         ```go
-        type Debug struct {
-            StatusCode 		 int    `json:"status_code"`
-            Location   		 string `json:"location"`
-            RawError   		 string `json:"raw_error"`
-            PossibleReason   string `json:"possible_reason"`
+        type Feedback struct {
+          	StatusCode int    `json:"status_code"`
+          	Message    string `json:"message"`
+          	ID		   string `json:"id"`
         }
         ```
 
@@ -348,15 +354,168 @@ Another new learning experience was designing an API by ourselves. In the assign
         - Input:
             ```
             Method: DELETE
-            Path: localhost:8080/weather-rest/v1/notification/weather?id=yourHookID
+            Path: localhost:8080/weather-rest/v1/notification/weather/ilX0vteqDlunPM1RZpXb
             ```
         - Output:
             ```json
             {
                 "status_code": 200,
-                "location": "WeatherHook -> MethodHandler() -> weatherHook.HandlerGet() -> Deleting Webhook",
-                "raw_error": "Webhook successfully deleted!",
-                "possible_reason": "Unknown"
+                "message": "Webhook successfully deleted",
+                "id": "ilX0vteqDlunPM1RZpXb"
+            }
+            ```
+4. weatherEvent
+
+    - Input:
+        ```
+        Method: GET
+        Path: .../notification/event/{id}
+        ```
+
+        - If {id} is empty, all registered webhooks are returned.
+
+    - Output:
+        ```go
+        type WeatherEvent struct {
+            ID        string `json:"id"`
+            Date      string `json:"date"`
+            Location  string `json:"location"`
+            URL       string `json:"url"`
+            Frequency string `json:"frequency"`
+            Timeout   int64  `json:"timeout"`
+        }
+        ```
+
+    - Example:
+        - Input:
+            ```
+            Method: GET
+            Path: localhost:8080/weather-rest/v1/notification/event/zKweuha67Rqh
+            ```
+        - Output:
+            ```json
+            {
+                "id": "zKweuha67Rqh",
+                "date": "2021-12-25",
+                "location": "Hungary",
+                "url": "https://webhook.site/786ed4dd-f6b9-44a2-b470-aef4d4c5abef",
+                "frequency": "EVERY_DAY",
+                "timeout": 60
+            }
+            ```
+
+    - Input:
+        ```
+        Method: POST
+        Path: .../notification/event/{event}
+        ```
+
+        - {event} can either be empty, "holiday" or "ticket". If it is empty, replace "holiday" in the example body with "date". If it is "ticket". Remove "holiday" and "location" and add "ticket".
+
+    - Output:
+        ```go
+        type Feedback struct {
+          	StatusCode int    `json:"status_code"`
+          	Message    string `json:"message"`
+          	ID		   string `json:"id"`
+        }
+        ```
+
+    - Example:
+        - Input:
+            ```
+            Method: POST
+            Path: localhost:8080/weather-rest/v1/notification/event/holiday
+            ```
+            Body:
+
+            ```json
+            {
+                "holiday": "christmas day",
+                "location": "Budapest",
+                "url": "https://webhook.site/786ed4dd-f6b9-44a2-b470-aef4d4c5abef",
+                "frequency": "EVERY_DAY",
+                "timeout": 60
+            }
+            ```
+        - Output
+            ```json
+            {
+                "status_code": 201,
+                "message": "Webhook successfully created for https://webhook.site/786ed4dd-f6b9-44a2-b470-aef4d4c5abef",
+                "id": "zKweuha67Rqh"
+            }
+            ```
+
+    - Input:
+        ```
+        Method: DELETE
+        Path: .../notification/event/{:id}
+        ```
+
+    - Output:
+        ```go
+        type Feedback struct {
+          	StatusCode int    `json:"status_code"`
+          	Message    string `json:"message"`
+          	ID		   string `json:"id"`
+        }
+        ```
+
+    - Example:
+        - Input:
+            ```
+            Method: DELETE
+            Path: localhost:8080/weather-rest/v1/notification/event/zKweuha67Rqh
+            ```
+        - Output:
+            ```json
+            {
+                "status_code": 200,
+                "message": "Webhook successfully deleted",
+                "id": "zKweuha67Rqh"
+            }
+            ```
+5. Diag
+
+    - Input:
+        ```
+        Method: GET
+        Path: .../weather/diag
+        ```
+
+    - Output
+        ```go
+        type DiagStatuses struct {
+            Restcountries  int `json:"restcountries"`
+            TicketMaster   int `json:"ticketmaster"`
+            LocationIq     int `json:"locationiq"`
+            Weatherapi     int `json:"weatherapi"`
+            PublicHolidays int `json:"publicholidays"`
+
+            RegisteredWebhooks int    `json:"registeredwebhooks"`
+            Version            string `json:"version"`
+            Uptime             int    `json:"uptime"`
+        }
+        ```
+
+    - Example:
+        - Input:
+            ```
+            Method: GET
+            Path: localhost:8080/weather-rest/v1/weather/diag/
+            ```
+        - Output:
+            ```json
+            {
+                "restcountries": 200,
+                "ticketmaster": 200,
+                "locationiq": 200,
+                "weatherapi": 200,
+                "publicholidays": 200,
+                "registeredwebhooks": 12,
+                "version": "v1",
+                "uptime": 3600
             }
             ```
 
@@ -449,24 +608,7 @@ type Debug struct {
 
 *TBA*
 
-#### Usage
-
-##### Openstack
-*TBA*
-
-##### Run locally
-1. Open terminal in directory
-2. go build
-3. go run main
-4. Try our endpoints in postman!
-
-##### Run tests
+##### Usage
 For Visual Studio Code with Golang extension:
 1. Open testing file in the IDE
 2. Click the ```run test``` label for any function that you want to test
-
-##### Setup docker (linux version)
-1. Open terminal in directory
-1. sudo docker build . -t 2005project
-2. sudo docker run -d --name 2005container -p 8081:8080 2005project
-3. When finished, try endpoints in postman on port 8081 (or change to your preferred port)

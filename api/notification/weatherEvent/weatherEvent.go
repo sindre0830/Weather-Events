@@ -297,7 +297,7 @@ func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//check if date is valid
-	if !weatherEvent.CheckDate() {
+	if !weatherEvent.checkDate() {
 		debug.ErrorMessage.Update(
 			http.StatusNotFound,
 			"WeatherEvent.post() -> WeatherEvent.CheckDate() -> Checking if date is valid",
@@ -405,7 +405,7 @@ func (weatherEvent *WeatherEvent) readData(data interface{}) {
 }
 
 // checkDate checks if date is valid and within timeframe.
-func (weatherEvent *WeatherEvent) CheckDate() bool {
+func (weatherEvent *WeatherEvent) checkDate() bool {
 	date, err := time.Parse("2006-01-02", weatherEvent.Date)
 	if err != nil {
 		return false

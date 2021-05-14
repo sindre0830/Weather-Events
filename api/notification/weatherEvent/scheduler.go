@@ -51,13 +51,27 @@ func (weatherEvent *WeatherEvent) callHook() {
 	}
 	//check if date is available and wait untill it is
 	date, _ := time.Parse("2006-01-02", weatherEvent.Date)
-	date = date.AddDate(0, 0, -8)
+	if weatherEvent.Frequency == "EVERY_DAY" {
+		date = date.AddDate(0, 0, -9)
+	}
 	time.Sleep(time.Until(date))
 	//check if program should sleep on timeout value
 	nextTime := time.Now().Truncate(time.Second)
 	nextTime = nextTime.Add(time.Duration(weatherEvent.Timeout) * time.Second)
 	time.Sleep(time.Until(nextTime))
 	dict.MutexState.Lock()
+	//check if date is invalid
+	if !weatherEvent.checkDate() {
+		err := storage.Firebase.Delete(dict.WEATHEREVENT_COLLECTION, weatherEvent.ID)
+		if err != nil {
+			fmt.Printf(
+				"%v {\n\tDidn't manage to delete webhook.\n\tRaw error: %v\n}\n",
+				time.Now().Format("2006-01-02 15:04:05"), err.Error(),
+			)
+		}
+		dict.MutexState.Unlock()
+		return
+	}
 	//create new GET request and branch if an error occurred
 	var weatherDetails weatherDetails.WeatherDetails
 	req, err := http.NewRequest(http.MethodGet, dict.GetWeatherDetailsURL(weatherEvent.Location, weatherEvent.Date), nil)
