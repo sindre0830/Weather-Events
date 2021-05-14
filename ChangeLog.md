@@ -273,3 +273,5 @@
 [3.7.0]     **development**:    Added collection names in dictionary
 
 [3.8.0]     **development**:    Added check for trigger in weather event hook
+
+[3.9.0]     **development**:    Added check for invalid date in hook loop
