@@ -27,17 +27,15 @@ In addition to these endpoints, we planned to implement another webhook if there
 
 ##### What has been achieved
 
-We have finished all functionality from our original plan. Initially, we struggled with finding an event-based API we could use for our event webhook, which was part of the reason why we did not include it in our original plans. Eventually we figured out that Ticketmaster's API is free, and how to use it. Because of this, we were able to complete all our planned endpoints. In addition, we implemented two more webhooks:
+Initially, we struggled with finding an event-based API we could use for our event webhook, which was part of the reason it was only a "maybe" in our original plan. Eventually we figured out that Ticketmaster's API was free, and how to use it. Because of this, we were able to complete all of our planned endpoints.
 
-- Like the holiday one, we made one that takes a location, date and frequency and sends a weather report based on these parameters. The frequency can be either ON_DATE or EVERY_DAY.
-- Based on Ticketmaster’s API, the user can send in an event ID and frequency. The service returns the weather report for the day of the event.
-- The last webhook takes a location and a timeout. A weather report will then be sent based on the location and timeout.
+In addition, we implemented some more webhooks. We made one with three different variations based on different input structures, which all had the same outcome. The three different options are default, holiday and ticket. Default takes a location and a date. Holiday, like stated in our original plan, takes a location and a holiday. The ticket option takes an event ID. The service sends a weather report for the date and location based on the frequency decided by the user. The frequency can be either ON_DATE or EVERY_DAY. ON_DATE only sends the weather report on the specific date, while EVERY_DAY sends the weather report every day starting 9 days before the date. Another webhook we implemented takes a location and a timeout. A weather report will then be returned based on these parameters.
 
 #### Reflection
 
 ##### What went well
 
-We designed our API to be easy to rewrite and repurpose. We have implemented helping functions and packages where it is fitting, and class methods for structs are quite numerous throughout the project.
+We designed our API to be easy to rewrite and repurpose. We have implemented helping functions and packages where it is fitting, and gclass methods for structs are quite numerous throughout the project.
 
 Working in a group has worked out well. We have had regular meetings and a structured plan which made it easy to get things done. This worked especially well while working on retrieving data from our service endpoints, as everyone could work simultaneously without issue. For some more difficult work, we brainstormed solutions together during meetings while one person implemented and pushed the code. We did have occasional bottlenecks where some of us had to wait for someone else to finish, but there was always refactoring, readme improvements and other things to fix up. None of these lasted very long, so they did not present a challenge for the project as a whole.
 
@@ -45,13 +43,15 @@ Overall, we had a very smooth time with the project - we never got stuck on anyt
 
 ##### What went wrong
 
-##### Experiences
-
-Throughout our work we ran into a couple challenges that we had to overcome as a group. The first problem we encountered was risking exceeding the free firestore operation quota of 50K reads. We planned to store all of our data in firestore, but realized that each firestore query would read through every ID. This resulted in each query reading more than 200 times. We ended up using more than 16% of our free quota in 2 days, after fixing this we used less than 0.5% each day.
+ One problem we encountered was risking exceeding the free firestore operation quota of 50K reads. We planned to store all of our data in firestore, but realized that each firestore query would read through every ID. This resulted in each query reading more than 200 times. We ended up using more than 16% of our free quota in 2 days, after fixing this we used less than 0.5% each day.
 
 ![Firestore operations reaching 5.8K a day](images/firestore.png)
 
-Our second challenge was with the API we used to translate location names into geo-coordinates. Suddenly, a week before the deadline, we were starting to get wrong information from our geocoords handler. It was not consistent nor easily reproduced, yet it happened quite frequently. We struggled for a good our to figure out where our code was going wrong, until we realized the actual source-API - locationiq - was the problem.
+We encountered another problem when the work with calling webhooks started. When two different go routines read from a file at the same time, the program crashed. We tried to solve this by adding mutex locks. This lead to another problem, as we used two different mutex locks for the webhooks. This was solved by only having one collective mutex lock that we put in the 'dict' file.  
+
+##### Experiences
+
+One challenge we ran into was with the API we used to translate location names into geo-coordinates. Suddenly, a week before the deadline, we were starting to get wrong information from our geocoords handler. It was not consistent nor easily reproduced, yet it happened quite frequently. We struggled for a good our to figure out where our code was going wrong, until we realized the actual source-API - locationiq - was the problem.
 
 To put it simply, when we pass a location into locationiq, it returns an array of up to ten locations matching the string we pass in, ordered from most 'important' to least. If there are more than ten, only the top ten will be returned. This is fine, and lets us get our locations in one of two ways - the simple way of just taking the first element in the array, and the theoretically more robust but also more cumbersome way of checking all returned locations and storing the one with highest importance. The problem was that for whatever reason, this endpoint will randomly just return one or two locations instead - and always among the lowest-importance locations as well. Leading to passing 'Oslo' in and having it spit out a location in the US. And since the issue is with the number of locations returned by locationiq, checking importance will not get us the data we need either.
 
