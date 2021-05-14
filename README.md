@@ -14,6 +14,7 @@
     - Country information:  https://restcountries.eu/rest/v2/all
     - Holiday information:  https://date.nager.at/api/v2/PublicHolidays/
     - Location information: https://us1.locationiq.com/v1/
+    - Event information:    https://developer.ticketmaster.com/products-and-docs/apis/getting-started/
 - You need to be connected to NTNU network with a VPN to run the program. If you want to run it locally, you will have to change the URL variable in the 'dict' package to ```http://localhost```.
 - Client Repo: *TBA*
 
@@ -74,8 +75,10 @@ Another new learning experience was designing an API by ourselves. In the assign
     - Input:
         ```
         Method: GET
-        Path: .../weather/location/{:location}
+        Path: .../weather/location/{:location}{?date=specific_date}
         ```
+
+        - If no date is specified, todays date is chosen.
 
     - Output:
         ```go
@@ -84,8 +87,9 @@ Another new learning experience was designing an API by ourselves. In the assign
             Latitude  float64 `json:"latitude"`
             Location  string  `json:"location"`
             Updated   string  `json:"updated"`
+            Date      string  `json:"date"`
             Data      struct {
-                Now struct {
+                Instant struct {
                     AirTemperature      float64 `json:"air_temperature"`
                     CloudAreaFraction   float64 `json:"cloud_area_fraction"`
                     DewPointTemperature float64 `json:"dew_point_temperature"`
@@ -94,8 +98,8 @@ Another new learning experience was designing an API by ourselves. In the assign
                     WindSpeed           float64 `json:"wind_speed"`
                     WindSpeedOfGust     float64 `json:"wind_speed_of_gust"`
                     PrecipitationAmount float64 `json:"precipitation_amount"`
-                } `json:"now"`
-                Today struct {
+                } `json:"instant"`
+                Predicted struct {
                     Summary                    string  `json:"summary"`
                     Confidence                 string  `json:"confidence"`
                     AirTemperatureMax          float64 `json:"air_temperature_max"`
@@ -104,7 +108,7 @@ Another new learning experience was designing an API by ourselves. In the assign
                     PrecipitationAmountMax     float64 `json:"precipitation_amount_max"`
                     PrecipitationAmountMin     float64 `json:"precipitation_amount_min"`
                     ProbabilityOfPrecipitation float64 `json:"probability_of_precipitation"`
-                } `json:"today"`
+                } `json:"predicted"`
             } `json:"data"`
         }
         ```
@@ -113,7 +117,7 @@ Another new learning experience was designing an API by ourselves. In the assign
         - Input:
             ```
             Method: GET
-            Path: localhost:8080/weather-rest/v1/weather/location/oslo
+            Path: localhost:8080/weather-rest/v1/weather/location/oslo?date=2021-04-29
             ```
         - Output:
             ```json
@@ -121,9 +125,10 @@ Another new learning experience was designing an API by ourselves. In the assign
                 "longitude": 10.74,
                 "latitude": 59.91,
                 "location": "Oslo, 0026, Norway",
-                "updated": "29 Apr 21 11:20 CEST",
+                "updated": "25 Apr 21 11:20 CEST",
+                "date": "2021-04-29",
                 "data": {
-                    "now": {
+                    "instant": {
                         "air_temperature": 9.2,
                         "cloud_area_fraction": 7,
                         "dew_point_temperature": -4.4,
@@ -133,7 +138,7 @@ Another new learning experience was designing an API by ourselves. In the assign
                         "wind_speed_of_gust": 8.8,
                         "precipitation_amount": 0
                     },
-                    "today": {
+                    "predicted": {
                         "summary": "fair_day",
                         "confidence": "certain",
                         "air_temperature_max": 12.2,
@@ -146,14 +151,15 @@ Another new learning experience was designing an API by ourselves. In the assign
                 }
             }
             ```
-
 2. Compare
 
     - Input:
         ```
         Method: GET
-        Path: .../weather/compare/{:location}/{:location1;location2;...}
+        Path: .../weather/compare/{:location}/{:location1;location2;...}{?date=specific_date}
         ```
+
+        - If no date is specified, todays date is chosen.
 
     - Output:
         ```go
@@ -162,12 +168,13 @@ Another new learning experience was designing an API by ourselves. In the assign
             Latitude  float64 `json:"latitude"`
             Location  string  `json:"location"`
             Updated   string  `json:"updated"`
-            Data         struct {
+            Date      string  `json:"date"`
+            Data      []struct {
                 Longitude float64 `json:"longitude"`
                 Latitude  float64 `json:"latitude"`
                 Location  string  `json:"location"`
                 Updated   string  `json:"updated"`
-                Now       struct {
+                Instant   struct {
                     AirTemperature      float64 `json:"air_temperature"`
                     CloudAreaFraction   float64 `json:"cloud_area_fraction"`
                     DewPointTemperature float64 `json:"dew_point_temperature"`
@@ -175,15 +182,15 @@ Another new learning experience was designing an API by ourselves. In the assign
                     WindSpeed           float64 `json:"wind_speed"`
                     WindSpeedOfGust     float64 `json:"wind_speed_of_gust"`
                     PrecipitationAmount float64 `json:"precipitation_amount"`
-                } `json:"now"`
-                Today struct {
+                } `json:"instant"`
+                Predicted struct {
                     AirTemperatureMax          float64 `json:"air_temperature_max"`
                     AirTemperatureMin          float64 `json:"air_temperature_min"`
                     PrecipitationAmount        float64 `json:"precipitation_amount"`
                     PrecipitationAmountMax     float64 `json:"precipitation_amount_max"`
                     PrecipitationAmountMin     float64 `json:"precipitation_amount_min"`
                     ProbabilityOfPrecipitation float64 `json:"probability_of_precipitation"`
-                } `json:"today"`
+                } `json:"predicted"`
             } `json:"data"`
         }
         ```
@@ -201,13 +208,14 @@ Another new learning experience was designing an API by ourselves. In the assign
                 "latitude": 59.91,
                 "location": "Oslo, 0026, Norway",
                 "updated": "29 Apr 21 11:20 CEST",
+                "date": "2021-04-29",
                 "data": [
                     {
                         "longitude": 5.33,
                         "latitude": 60.39,
                         "location": "Bergen, Vestland, Norway",
                         "updated": "29 Apr 21 12:26 CEST",
-                        "now": {
+                        "instant": {
                             "air_temperature": 0.1,
                             "cloud_area_fraction": 11.3,
                             "dew_point_temperature": 1.3,
@@ -216,7 +224,7 @@ Another new learning experience was designing an API by ourselves. In the assign
                             "wind_speed_of_gust": -2.7,
                             "precipitation_amount": 0
                         },
-                        "today": {
+                        "predicted": {
                             "air_temperature_max": -1.6,
                             "air_temperature_min": -0.1,
                             "precipitation_amount": 0,
@@ -230,7 +238,7 @@ Another new learning experience was designing an API by ourselves. In the assign
                         "latitude": 59.1,
                         "location": "Stavanger, Rogaland, Norway",
                         "updated": "29 Apr 21 13:09 CEST",
-                        "now": {
+                        "instant": {
                             "air_temperature": 1.9,
                             "cloud_area_fraction": 31.5,
                             "dew_point_temperature": 5.2,
@@ -239,7 +247,7 @@ Another new learning experience was designing an API by ourselves. In the assign
                             "wind_speed_of_gust": -0.6,
                             "precipitation_amount": 0
                         },
-                        "today": {
+                        "predicted": {
                             "air_temperature_max": -0.1,
                             "air_temperature_min": 1.2,
                             "precipitation_amount": 0,

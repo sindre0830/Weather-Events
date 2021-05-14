@@ -276,4 +276,6 @@
 
 [3.9.0]     **development**:    Added check for invalid date in hook loop
 
-[3.10.0]    **development**:    Added SendData() to handle data transfers and updateded error handling in webhooks
+[3.10.0]    **development**:    Added more unit tests
+
+[3.11.0]    **development**:    Added SendData() to handle data transfers and updateded error handling in webhooks

@@ -18,5 +18,5 @@ func ReadCollection(filename string) ([]byte, error) {
 
 // WriteCollection writes to file.
 func WriteCollection(filename string, file []byte) error {
-	return ioutil.WriteFile("./data/" + filename + ".json", file, 0644)
+	return ioutil.WriteFile("./data/"+filename+".json", file, 0644)
 }
