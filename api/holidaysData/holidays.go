@@ -5,13 +5,12 @@ import (
 	"main/api"
 	"main/api/countryData"
 	"main/api/geoCoords"
+	"main/dict"
 	"main/storage"
 	"net/http"
 	"strings"
 	"time"
 )
-
-var holidaysDB = "Holidays"
 
 // Handler that gets data about a country's holidaysData from either the API or the database
 func Handler(location string) (map[string]interface{}, int, error) {
@@ -21,7 +20,7 @@ func Handler(location string) (map[string]interface{}, int, error) {
 	var locationCoords geoCoords.LocationCoords
 	status, err := locationCoords.Handler(location)
 	if err != nil {
-		return holidaysMap, http.StatusBadRequest, err
+		return holidaysMap, status, err
 	}
 
 	// Get location's country and format it correctly
@@ -32,11 +31,11 @@ func Handler(location string) (map[string]interface{}, int, error) {
 	var countryInfo countryData.Information
 	status, err, countryCode := countryInfo.Handler(country)
 	if err != nil {
-		return holidaysMap, http.StatusBadRequest, err
+		return holidaysMap, status, err
 	}
 
 	// Check if country is already stored in the database
-	data, exist := storage.Firebase.Get(holidaysDB, countryCode)
+	data, exist := storage.Firebase.Get(dict.HOLIDAYS_COLLECTION, countryCode)
 
 	if exist {
 		// Finds the year the data was saved and the current year
@@ -67,7 +66,7 @@ func Handler(location string) (map[string]interface{}, int, error) {
 	// Add data to the database
 	var dataDB storage.Data
 	dataDB.Container = holidaysMap
-	_, _, err = storage.Firebase.Add(holidaysDB, countryCode, dataDB)
+	_, _, err = storage.Firebase.Add(dict.HOLIDAYS_COLLECTION, countryCode, dataDB)
 	if err != nil {
 		return holidaysMap, http.StatusInternalServerError, err
 	}

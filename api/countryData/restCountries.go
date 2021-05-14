@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"main/api"
+	"main/dict"
 	"main/storage"
 	"net/http"
 	"strings"
@@ -13,7 +14,7 @@ import (
 func (data Information) Handler(country string) (int, error, string) {
 
 	//Check if a locally stored document with the information exists, if it does not exist, run this code:
-	if !storage.FindCollection("countries") {
+	if !storage.FindCollection(dict.COUNTRY_COLLECTION) {
 
 		//Fetch new information from API:
 		var input Information
@@ -24,7 +25,7 @@ func (data Information) Handler(country string) (int, error, string) {
 
 		//Store it in a file:
 		file, _ := json.MarshalIndent(input, "", " ")
-		err = storage.WriteCollection("countries", file)
+		err = storage.WriteCollection(dict.COUNTRY_COLLECTION, file)
 		if err != nil {
 			return http.StatusInternalServerError, err, ""
 		}
@@ -70,7 +71,7 @@ func (data *Information) req(url string) (int, error) {
 func (data *Information) oneCountry(countryName string) (int, error, string) {
 	countryName = strings.Title(strings.ToLower(countryName))
 	//Get data from document
-	file, err := storage.ReadCollection("countries")
+	file, err := storage.ReadCollection(dict.COUNTRY_COLLECTION)
 	if err != nil {
 		return http.StatusInternalServerError, err, ""
 	}
@@ -94,7 +95,7 @@ func (data *Information) oneCountry(countryName string) (int, error, string) {
 //allCountries -Gets information about all countries from local storage
 func (data *Information) allCountries() (int, error) {
 	//Get data from document
-	file, err := storage.ReadCollection("countries")
+	file, err := storage.ReadCollection(dict.COUNTRY_COLLECTION)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

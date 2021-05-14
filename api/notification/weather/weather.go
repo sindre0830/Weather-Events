@@ -14,9 +14,6 @@ import (
 	"strings"
 )
 
-// name of the firestore database for this webhook
-var hookdb = "weatherDB"
-
 // get handles a get request from the client.
 func (weather *Weather) get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -35,7 +32,7 @@ func (weather *Weather) get(w http.ResponseWriter, r *http.Request) {
 	//set id and check if it's specified by client
 	id := arrPath[5]
 	if id != "" {
-		data, exist := storage.Firebase.Get(hookdb, id)
+		data, exist := storage.Firebase.Get(dict.WEATHER_COLLECTION, id)
 		if !exist {
 			debug.ErrorMessage.Update(
 				http.StatusBadRequest,
@@ -63,7 +60,7 @@ func (weather *Weather) get(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		arrData, err := storage.Firebase.GetAll(hookdb)
+		arrData, err := storage.Firebase.GetAll(dict.WEATHER_COLLECTION)
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError,
@@ -179,7 +176,7 @@ func (weather *Weather) post(w http.ResponseWriter, r *http.Request) {
 	//send data to database
 	var data storage.Data
 	data.Container = weather
-	_, id, err := storage.Firebase.Add(hookdb, "", data)
+	_, id, err := storage.Firebase.Add(dict.WEATHER_COLLECTION, "", data)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
@@ -231,7 +228,7 @@ func (weather *Weather) delete(w http.ResponseWriter, r *http.Request) {
 	}
 	//set id and check if it's specified by client
 	id := arrPath[5]
-	err := storage.Firebase.Delete(hookdb, id)
+	err := storage.Firebase.Delete(dict.WEATHER_COLLECTION, id)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,

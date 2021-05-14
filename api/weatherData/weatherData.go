@@ -2,6 +2,7 @@ package weatherData
 
 import (
 	"errors"
+	"main/dict"
 	"main/storage"
 	"net/http"
 	"time"
@@ -11,7 +12,7 @@ import (
 func (weatherData *WeatherData) Handler(lat string, lon string) (int, error) {
 	//get data from database and branch if an error occurred
 	id := lat + "&" + lon
-	data, exist := storage.Firebase.Get("WeatherData", id)
+	data, exist := storage.Firebase.Get(dict.WEATHERDATA_COLLECTION, id)
 	//check if data is valid and branch if an error occurred
 	var err error
 	valid := false
@@ -38,7 +39,7 @@ func (weatherData *WeatherData) Handler(lat string, lon string) (int, error) {
 		//send data to database and branch if an error occured 
 		var data storage.Data
 		data.Container = weatherData
-		date, _, err := storage.Firebase.Add("WeatherData", id, data)
+		date, _, err := storage.Firebase.Add(dict.WEATHERDATA_COLLECTION, id, data)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}

@@ -34,7 +34,7 @@ func (weatherEvent *WeatherEvent) get(w http.ResponseWriter, r *http.Request) {
 	//set id and check if it's specified by client
 	id := arrPath[5]
 	if id != "" {
-		data, exist := storage.Firebase.Get("weatherEvent", id)
+		data, exist := storage.Firebase.Get(dict.WEATHEREVENT_COLLECTION, id)
 		if !exist {
 			debug.ErrorMessage.Update(
 				http.StatusBadRequest,
@@ -62,7 +62,7 @@ func (weatherEvent *WeatherEvent) get(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		arrData, err := storage.Firebase.GetAll("weatherEvent")
+		arrData, err := storage.Firebase.GetAll(dict.WEATHEREVENT_COLLECTION)
 		if err != nil {
 			debug.ErrorMessage.Update(
 				http.StatusInternalServerError,
@@ -310,7 +310,7 @@ func (weatherEvent *WeatherEvent) post(w http.ResponseWriter, r *http.Request) {
 	//send data to database
 	var data storage.Data
 	data.Container = weatherEvent
-	_, id, err := storage.Firebase.Add("weatherEvent", "", data)
+	_, id, err := storage.Firebase.Add(dict.WEATHEREVENT_COLLECTION, "", data)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,
@@ -362,7 +362,7 @@ func (weatherEvent *WeatherEvent) delete(w http.ResponseWriter, r *http.Request)
 	}
 	//set id and check if it's specified by client
 	id := arrPath[5]
-	err := storage.Firebase.Delete("weatherEvent", id)
+	err := storage.Firebase.Delete(dict.WEATHEREVENT_COLLECTION, id)
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusBadRequest,

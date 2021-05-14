@@ -20,7 +20,7 @@ import (
 // InitHooks initilizes all weather hooks from the database.
 func InitHooks() {
 	//get all webhooks and branch if an error occured
-	arrWeather, err := storage.Firebase.GetAll(hookdb)
+	arrWeather, err := storage.Firebase.GetAll(dict.WEATHER_COLLECTION)
 	if err != nil {
 		fmt.Printf(
 			"%v {\n\tError when initializing weather webhooks.\n\tRaw error: %v\n}\n",
@@ -45,7 +45,7 @@ func InitHooks() {
 // callHook calls webhook.
 func (weather *Weather) callHook() {
 	//check if webhook still exist in database
-	_, exist := storage.Firebase.Get(hookdb, weather.ID)
+	_, exist := storage.Firebase.Get(dict.WEATHER_COLLECTION, weather.ID)
 	if !exist {
 		return
 	}
@@ -134,7 +134,7 @@ func (weather *Weather) callHook() {
 			"%v {\n\tWebhook URL is not valid. Deleting webhook...\n\tStatus code: %v\n}\n",
 			time.Now().Format("2006-01-02 15:04:05"), res.StatusCode,
 		)
-		err = storage.Firebase.Delete(hookdb, weather.ID)
+		err = storage.Firebase.Delete(dict.WEATHER_COLLECTION, weather.ID)
 		if err != nil {
 			fmt.Printf(
 				"%v {\n\tDidn't manage to delete webhook.\n\tRaw error: %v\n}\n",

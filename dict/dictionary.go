@@ -21,6 +21,15 @@ var WEATHEREVENT_HOOK_PATH = MAIN_URL + "/weather-rest/v1/notification/event/"
 var MAIN_URL = "localhost"
 var YR_URL = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
 
+/* Collection names */
+var COUNTRY_COLLECTION = "country-information"
+var EVENT_COLLECTION = "event-information"
+var LOCATION_COLLECTION = "location-information"
+var HOLIDAYS_COLLECTION = "holidays-information"
+var WEATHERDATA_COLLECTION = "weather-data"
+var WEATHEREVENT_COLLECTION = "weather-event-hooks"
+var WEATHER_COLLECTION = "weather-hooks"
+
 // GetYrURL generates yr REST service URL according to parameters.
 func GetYrURL(latitude string, longitude string) string {
 	return YR_URL + "?lat=" + latitude + "&lon=" + longitude
