@@ -268,5 +268,6 @@
 
 [3.5.0]     **development**:    Restructured Weather hook to be more similar to WeatherEvent, added a common mutex state to handle multiple webhooks
 
-[3.6.0]     **development**:    Added collection names in dictionary
+[3.6.0]     **development**:    Added more unit tests
 
+[3.7.0]     **development**:    Added collection names in dictionary
