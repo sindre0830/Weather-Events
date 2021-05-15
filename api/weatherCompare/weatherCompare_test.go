@@ -86,4 +86,13 @@ func TestGet(t *testing.T) {
 	if status != http.StatusOK && status != http.StatusRequestTimeout {
 		t.Errorf("Expected '%v' but got '%v'. Tested: '%v'. Err: %v. Path: %v", http.StatusOK, status, "35.5, 23.6, \"current date + 1 day\"", err, newDir)
 	}
+
+	array = []locationInfo{
+		locationInfo{5.70, 59.11, "stavanger"},
+		locationInfo{5.33, 60.39, "bergen"}}
+	status, err = data.get(35.5, 23.6, array, time.Now().AddDate(0, 0, 1).Format("2006-01-02")) //should return status ok
+	//branch if we get an unexpected answer that is not timed out
+	if status != http.StatusOK && status != http.StatusRequestTimeout {
+		t.Errorf("Expected '%v' but got '%v'. Tested: '%v'. Err: %v. Path: %v", http.StatusOK, status, "35.5, 23.6, \"current date + 1 day\"", err, newDir)
+	}
 }

@@ -27,6 +27,7 @@ func TestHandler(t *testing.T) {
 			t.Errorf("Expected '%v' but got '%v'. Tested: '%v'. Err: %v. Path: %v", expectedStatus, status, test, err, newDir)
 		}
 	}
+
 }
 
 func TestReq(t *testing.T) {

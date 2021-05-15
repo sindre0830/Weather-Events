@@ -16,7 +16,7 @@ import (
 // }
 
 func TestValidCheckDate(t *testing.T) {
-	status, err := CheckDate("13 May 21 14:25 CEST", 3)
+	status, err := CheckDate("21 May 21 14:25 CEST", 3)
 
 	if status != true {
 		t.Errorf("testHandlerValid failed, expected %v, got %v", 200, status)

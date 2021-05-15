@@ -24,7 +24,10 @@ func TestHandler(t *testing.T) {
 
 	//store expected data to check against
 	testData := map[string]int{
-		"Oslo": http.StatusOK,
+		"Oslo":              http.StatusOK,
+		"Bergen":            http.StatusOK,
+		"PlaceDoesntExist":  http.StatusNotFound,
+		"There/are/slashes": http.StatusNotFound,
 		//Add more cases here
 	}
 	//iterate through map and check each key to expected element

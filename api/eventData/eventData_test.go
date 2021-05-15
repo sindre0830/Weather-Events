@@ -1,6 +1,7 @@
 package eventData
 
 import (
+	"main/dict"
 	"main/storage"
 	"net/http"
 	"os"
@@ -24,7 +25,10 @@ func TestHandler(t *testing.T) {
 
 	//store expected data to check against
 	testData := map[string]int{
-		"vvG1YZ4VLloAHj": http.StatusOK,
+		"vvG1YZ4VLloAHj":   http.StatusOK,
+		"Oslo":             http.StatusInternalServerError,
+		"vvG1Y/Z4VLl/oAHj": http.StatusInternalServerError,
+		"Z698xZbpZ17a4oM":  http.StatusOK,
 		//Add more cases here
 	}
 	//iterate through map and check each key to expected element
@@ -35,7 +39,9 @@ func TestHandler(t *testing.T) {
 		if status != expectedStatus && status != http.StatusRequestTimeout {
 			t.Errorf("Expected '%v' but got '%v'. Tested: '%v'. Err: %v. Path: %v", expectedStatus, status, test, err, newDir)
 		}
+
 	}
+
 }
 
 func TestGet(t *testing.T) {
@@ -43,6 +49,9 @@ func TestGet(t *testing.T) {
 	//store expected data to check against
 	testData := map[string]int{
 		"https://notok/wontwork": http.StatusInternalServerError,
+		"":                       http.StatusInternalServerError,
+		dict.GetTicketmasterURL("Z698xZbpZ17a4oM"): http.StatusOK,
+		dict.GetTicketmasterURL("vvG1YZ4VLloAHj"):  http.StatusOK,
 		//Add more cases here
 	}
 	//iterate through map and check each key to expected element
