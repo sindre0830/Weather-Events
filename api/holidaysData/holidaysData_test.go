@@ -1,18 +1,17 @@
 package holidaysData
 
 import (
+	"main/fun"
 	"main/storage"
 	"net/http"
-	"os"
 	"testing"
 )
 
 func TestHandler(t *testing.T) {
-	//Change directory
-	os.Chdir("./../../")
-	newDir, err := os.Getwd()
+	//change directory to root
+	newDir, err := fun.GoToRoot()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	//Mocked firebase
@@ -24,7 +23,10 @@ func TestHandler(t *testing.T) {
 
 	//store expected data to check against
 	testData := map[string]int{
-		"Oslo": http.StatusOK,
+		"Oslo":              http.StatusOK,
+		"Bergen":            http.StatusOK,
+		"PlaceDoesntExist":  http.StatusNotFound,
+		"There/are/slashes": http.StatusNotFound,
 		//Add more cases here
 	}
 	//iterate through map and check each key to expected element

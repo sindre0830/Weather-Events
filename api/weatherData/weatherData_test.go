@@ -1,18 +1,17 @@
 package weatherData
 
 import (
+	"main/fun"
 	"main/storage"
 	"net/http"
-	"os"
 	"testing"
 )
 
 func TestHandler(t *testing.T) {
-	//Change directory
-	os.Chdir("./../../")
-	newDir, err := os.Getwd()
+	//change directory to root
+	newDir, err := fun.GoToRoot()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	//Mocked firebase
@@ -24,7 +23,10 @@ func TestHandler(t *testing.T) {
 
 	//store expected data to check against
 	testData := map[[2]string]int{
-		{"9.4", "23.4"}: http.StatusOK,
+		{"9.4", "23.4"}:     http.StatusOK,
+		{"199.4", "23.4"}:   http.StatusBadRequest,
+		{"99.4", "1223.4"}:  http.StatusBadRequest,
+		{"Letters", "23.4"}: http.StatusBadRequest,
 		//Add more cases here
 	}
 	//iterate through map and check each key to expected element

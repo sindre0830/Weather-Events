@@ -1,19 +1,17 @@
 package geoCoords
 
 import (
+	"main/fun"
 	"main/storage"
 	"net/http"
-	"os"
 	"testing"
 )
 
 func TestHandler(t *testing.T) {
-
-	//Change directory
-	os.Chdir("./../../")
-	newDir, err := os.Getwd()
+	//change directory to root
+	newDir, err := fun.GoToRoot()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	//Mocked firebase
@@ -51,7 +49,7 @@ func TestGetCoords(t *testing.T) {
 
 	//iterate through map and check each key to expected element
 	for test, expectedStatus := range testData {
-
+		var count = 0
 		var locations []map[string]interface{}
 		status, err := getLocations(&locations, test)
 		if err != nil {
@@ -61,7 +59,7 @@ func TestGetCoords(t *testing.T) {
 		}
 
 		var data LocationCoords
-		err = getCoords(&data, locations[0])
+		err = getCoords(&data, locations[count])
 
 		if err != nil {
 			t.Errorf("testHandlerValid failed, expected %v, got %v", "nil", err)

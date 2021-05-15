@@ -7,8 +7,8 @@
     - Susanne Skjold Edvardsen (susanse@stud.ntnu.no)
     - Maren Skårestuen Grindal (marensg@stud.ntnu.no)
 - Root path:
-    - Main:     localhost:8080/weather-rest/v1
-    - Client:   *TBA*
+    - Main:     http://10.212.142.102:8080/
+    - Client:   http://10.212.142.102:8081/
 - We have used these REST web services to build our service:
     - Weather information:  https://api.met.no/weatherapi/locationforecast/2.0/complete
     - Country information:  https://restcountries.eu/rest/v2/all
@@ -123,7 +123,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         - Input:
             ```
             Method: GET
-            Path: localhost:8080/weather-rest/v1/weather/location/oslo?date=2021-04-29
+            Path: http://10.212.142.102:8080/weather-rest/v1/weather/location/oslo?date=2021-04-29
             ```
         - Output:
             ```json
@@ -205,7 +205,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         - Input:
             ```
             Method: GET
-            Path: localhost:8080/weather-rest/v1/weather/compare/oslo/bergen;stavanger
+            Path: http://10.212.142.102:8080/weather-rest/v1/weather/compare/oslo/bergen;stavanger
             ```
         - Output:
             ```json
@@ -290,7 +290,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         - Input:
             ```
             Method: GET
-            Path: localhost:8080/weather-rest/v1/notification/weather/ilX0vteqDlunPM1RZpXb
+            Path: http://10.212.142.102:8080/weather-rest/v1/notification/weather/ilX0vteqDlunPM1RZpXb
             ```
         - Output:
             ```json
@@ -330,7 +330,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         - Input:
             ```
             Method: POST
-            Path: localhost:8080/weather-rest/v1/notification/weather
+            Path: http://10.212.142.102:8080/weather-rest/v1/notification/weather
             ```
             ```json
             Body:
@@ -368,7 +368,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         - Input:
             ```
             Method: DELETE
-            Path: localhost:8080/weather-rest/v1/notification/weather/ilX0vteqDlunPM1RZpXb
+            Path: http://10.212.142.102:8080/weather-rest/v1/notification/weather/ilX0vteqDlunPM1RZpXb
             ```
         - Output:
             ```json
@@ -404,7 +404,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         - Input:
             ```
             Method: GET
-            Path: localhost:8080/weather-rest/v1/notification/event/zKweuha67Rqh
+            Path: http://10.212.142.102:8080/weather-rest/v1/notification/event/zKweuha67Rqh
             ```
         - Output:
             ```json
@@ -439,7 +439,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         - Input:
             ```
             Method: POST
-            Path: localhost:8080/weather-rest/v1/notification/event/holiday
+            Path: http://10.212.142.102:8080/weather-rest/v1/notification/event/holiday
             ```
             Body:
 
@@ -480,7 +480,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         - Input:
             ```
             Method: DELETE
-            Path: localhost:8080/weather-rest/v1/notification/event/zKweuha67Rqh
+            Path: http://10.212.142.102:8080/weather-rest/v1/notification/event/zKweuha67Rqh
             ```
         - Output:
             ```json
@@ -517,7 +517,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         - Input:
             ```
             Method: GET
-            Path: localhost:8080/weather-rest/v1/weather/diag/
+            Path: http://10.212.142.102:8080/weather-rest/v1/weather/diag/
             ```
         - Output:
             ```json

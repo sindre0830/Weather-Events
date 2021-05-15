@@ -1,17 +1,17 @@
 package countryData
 
 import (
+	"main/fun"
 	"net/http"
 	"os"
 	"testing"
 )
 
 func TestHandler(t *testing.T) {
-	//Change directory code from https://golangbyexample.com/change-current-working-directory-go/#:~:text=Menu-,cd%20command%20in%20Go%20or,working%20directory%20in%20Go%20(Golang)&text=os.,similar%20to%20the%20cd%20command.
-	os.Chdir("./../../")
-	newDir, err := os.Getwd()
+	//change directory to root
+	newDir, err := fun.GoToRoot()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	//store expected data to check against
 	testData := map[string]int{
@@ -27,6 +27,7 @@ func TestHandler(t *testing.T) {
 			t.Errorf("Expected '%v' but got '%v'. Tested: '%v'. Err: %v. Path: %v", expectedStatus, status, test, err, newDir)
 		}
 	}
+
 }
 
 func TestReq(t *testing.T) {

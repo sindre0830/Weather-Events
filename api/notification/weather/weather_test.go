@@ -2,19 +2,18 @@ package weather
 
 import (
 	"main/dict"
+	"main/fun"
 	"main/storage"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 )
 
 func TestGetAll(t *testing.T) {
-	//Change directory
-	os.Chdir("./../../../")
-	_, err := os.Getwd()
+	//change directory to root
+	_, err := fun.GoToRoot()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	//Mocked firebase

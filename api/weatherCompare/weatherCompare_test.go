@@ -3,20 +3,19 @@ package weatherCompare
 import (
 	"encoding/json"
 	"main/dict"
+	"main/fun"
 	"main/storage"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 )
 
 func TestHandler(t *testing.T) {
-	//Change directory
-	os.Chdir("./../../")
-	_, err := os.Getwd()
+	//change directory to root
+	_, err := fun.GoToRoot()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	//Mocked firebase
@@ -62,11 +61,10 @@ func TestHandler(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	//change directory
-	os.Chdir("./../../")
-	newDir, err := os.Getwd()
+	//change directory to root
+	newDir, err := fun.GoToRoot()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	//Mocked firebase
@@ -82,6 +80,15 @@ func TestGet(t *testing.T) {
 		locationInfo{10.74, 59.91, "oslo"},
 		locationInfo{5.71, 59.1, "stavanger"}}
 	status, err := data.get(35.5, 23.6, array, time.Now().AddDate(0, 0, 1).Format("2006-01-02")) //should return status ok
+	//branch if we get an unexpected answer that is not timed out
+	if status != http.StatusOK && status != http.StatusRequestTimeout {
+		t.Errorf("Expected '%v' but got '%v'. Tested: '%v'. Err: %v. Path: %v", http.StatusOK, status, "35.5, 23.6, \"current date + 1 day\"", err, newDir)
+	}
+
+	array = []locationInfo{
+		locationInfo{5.70, 59.11, "stavanger"},
+		locationInfo{5.33, 60.39, "bergen"}}
+	status, err = data.get(35.5, 23.6, array, time.Now().AddDate(0, 0, 1).Format("2006-01-02")) //should return status ok
 	//branch if we get an unexpected answer that is not timed out
 	if status != http.StatusOK && status != http.StatusRequestTimeout {
 		t.Errorf("Expected '%v' but got '%v'. Tested: '%v'. Err: %v. Path: %v", http.StatusOK, status, "35.5, 23.6, \"current date + 1 day\"", err, newDir)
