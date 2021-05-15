@@ -81,6 +81,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         ```
 
         - If no date is specified, todays date is chosen.
+        - The date has to be in the range of the date you make the request and 9 days after.
 
     - Output:
         ```go
@@ -162,6 +163,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         ```
 
         - If no date is specified, todays date is chosen.
+        - The date has to be in the range of the date you make the request and 9 days after.
 
     - Output:
         ```go
