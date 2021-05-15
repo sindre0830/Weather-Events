@@ -36,7 +36,7 @@ func (weatherData *WeatherData) Handler(lat string, lon string) (int, error) {
 		if err != nil {
 			return status, err
 		}
-		//send data to database and branch if an error occured 
+		//send data to database and branch if an error occured
 		var data storage.Data
 		data.Container = weatherData
 		date, _, err := storage.Firebase.Add(dict.WEATHERDATA_COLLECTION, id, data)

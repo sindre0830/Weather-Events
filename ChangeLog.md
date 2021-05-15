@@ -283,3 +283,5 @@
 [3.12.0]    **development**:    Moved URLs to dict
 
 [3.12.1]    **development**:    Changed naming of structs in eventData
+
+[3.13.0]    **development**:    Added base for all unit tests for further testing possibilities 
