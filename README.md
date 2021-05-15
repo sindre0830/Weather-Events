@@ -16,7 +16,7 @@
     - Location information: https://us1.locationiq.com/v1/
     - Event information:    https://developer.ticketmaster.com/products-and-docs/apis/getting-started/
 - You need to be connected to NTNU network with a VPN to run the program. If you want to run it locally, you will have to change the URL variable in the 'dict' package to ```http://localhost```.
-- Client Repo: *TBA*
+- Client Repo: https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2021-workspace/sindre0830/project/webhook-client
 
 #### Plan
 
@@ -52,7 +52,7 @@ We encountered another problem when the work with calling webhooks started. When
 
 Testing did not go as planned. We struggled to understand how to use stubbing and mocking. After some trial and error we decided to ask a teaching assistant, but it did not seem like he understood to good either. In the end, we went with only doing unit testing even though stubbing and mocking would have been the better option.
 
-Our maybe biggest issue was with starting our Openstack instance. We were planning to use winctl(?) to send our serviceAccountKey.json file to Openstack so it could connect to firebase, however for whatever reason we were unable to connect and got a variety of errors and 'wrong password' messages for multiple different servers. Eventually we gave up on this, and due to the tight deadline at this point, we therefore added the key to our repo. Obviously this is a terrible idea for actual services and extremely insecure, and we would not do this for future work.
+Our maybe biggest issue was with starting our Openstack instance. We were planning to use winSCP to send our serviceAccountKey.json file to Openstack so it could connect to firebase, however for whatever reason we were unable to connect and got a variety of errors and 'wrong password' messages for multiple different servers. Eventually we gave up on this, and due to the tight deadline at this point, we therefore added the key to our repo. Obviously this is a terrible idea for actual services and extremely insecure, and we would not do this for future work.
 
 Finally, we ran into a problem with how we had formatted our main URL in dictionary.go. We were unintentionally adding it to all our endpoint URLs, which gave us serious trouble when we tried running our instance in openstack. For whatever reason, this issue did not give us any trouble on our local machines or when testing in ubuntu VM, so it took us a lot of work and some help to get this fixed up.
 
@@ -66,7 +66,7 @@ While we could think of some 'solutions' to this issue - for example a function 
 
 #### Learning experiences
 
-One new thing we have learned while working on the project is caching, as none of us had any previous experience with it. We stored static data in files, and dynamic data in firestore. Already being familiar and knowing how to use firestore, definitely helped this experience. One challenge was knowing how long to keep the data for. In the end we ended up storing the geo coordinates and the Ticketmaster data for 12 hours before deleting it. The information about holidays are stored until the year changes, as some of the holidays are on different dates each year. We are overall happy with the result.
+One new thing we have learned while working on the project is caching, as none of us had any previous experience with it. We stored static data in files, and dynamic data in firestore. Already being familiar and knowing how to use firestore, definitely helped this experience. One challenge was knowing how long to keep the data for. We ended up storing geo coordinates in both firestore and in files. Locations with an importance above a certain number are saved in files, since they will probably be requested more often. Those with low importance are stored in firestore. Both the geo coordinates and the TicketMaster data are stored in firestore for 12 hours before being deleted. The information about holidays are stored until the year changes, as some of the holidays are on different dates each year. We are overall happy with the result.
 
 Another new learning experience was designing an API by ourselves. In the assignments we always got a task and the structure of the different endpoints. Doing this by ourselves was educational, as we had to put a lot of thought into the data structures and what information to return.
 
@@ -85,6 +85,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         ```
 
         - If no date is specified, todays date is chosen.
+        - The date has to be in the range of the date you make the request and 9 days after.
 
     - Output:
         ```go
@@ -166,6 +167,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         ```
 
         - If no date is specified, todays date is chosen.
+        - The date has to be in the range of the date you make the request and 9 days after.
 
     - Output:
         ```go
@@ -538,7 +540,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
 
 #### Keys
 
-Since this is a project, we wanted to make it as easy as possible for the people who are testing. We therefore decided to add firestore's service account key and the keys to the APIs we are using. In a real life setting, this would not be an option, as this is information that should not be available to the public. We would either make an encrypted file that contains the sensitive information, or not pushed it to the repository.
+Since this is a project, we wanted to make it as easy as possible for the people who are validating this project. We therefore decided to add the API keys we are using (need to register to get them) in the repository. In a real life setting, this would not be an option, as this is information that should not be available to the public. We would either make an encrypted file that contains the sensitive information, or not pushed it to the repository.
 
 #### Design Decisions
 
