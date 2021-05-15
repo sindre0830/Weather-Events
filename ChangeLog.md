@@ -282,4 +282,4 @@
 
 [3.12.0]    **development**:    Moved URLs to dict
 
-[3.12.0]    **development**:    Changed naming of structs in eventData
+[3.12.1]    **development**:    Changed naming of structs in eventData
