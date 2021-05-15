@@ -63,7 +63,7 @@ func MethodHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//Note that this one will almost always return 405, no documentation was found on this, however the endpoints using this api works fine.
-	diag.PublicHolidays, err = getStatusOf("https://date.nager.at/api/v2/publicholidays/2017/NO")
+	diag.PublicHolidays, err = getStatusOf("https://date.nager.at/api/v2/publicholidays/2021/NO")
 	if err != nil {
 		debug.ErrorMessage.Update(
 			http.StatusInternalServerError,

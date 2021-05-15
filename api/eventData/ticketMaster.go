@@ -6,11 +6,6 @@ import (
 	"net/http"
 )
 
-//Constants
-var baseURL = "https://app.ticketmaster.com/discovery/v2/events/"
-var padding = ".json?apikey="
-var key = "ySyIqc6FFKgUIIgzKB5LAOQeGUeU1mot"
-
 //req -Requests information from the api
 func (data *EventInformation) req(url string) (int, error) {
 	output, status, jsonErr := api.RequestData(url)

@@ -20,8 +20,15 @@ var WEATHEREVENT_HOOK_PATH = MAIN_URL + "/weather-rest/v1/notification/event/"
 /* REST services */
 var MAIN_URL = "localhost"
 var YR_URL = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
+var TICKETMASTER_URL = "https://app.ticketmaster.com/discovery/v2/events/"
+var LOCATIONIQ_URL = "https://us1.locationiq.com/v1/search.php"
+var PUBLICHOLIDAYS_URL = "https://date.nager.at/api/v2/PublicHolidays/"
 
-/* Collection names */
+/* API keys */
+var TICKETMASTER_PK = ".json?apikey=ySyIqc6FFKgUIIgzKB5LAOQeGUeU1mot"
+var LOCATIONIQ_PK = "?key=pk.d8a67c78822d16869c7a3e8f6d7617af"
+
+/* collection names */
 var COUNTRY_COLLECTION = "country-information"
 var EVENT_COLLECTION = "event-information"
 var LOCATION_COLLECTION = "location-information"
@@ -29,6 +36,20 @@ var HOLIDAYS_COLLECTION = "holidays-information"
 var WEATHERDATA_COLLECTION = "weather-data"
 var WEATHEREVENT_COLLECTION = "weather-event-hooks"
 var WEATHER_COLLECTION = "weather-hooks"
+
+func GetPublicHolidaysURL(year string, country string) string {
+	return PUBLICHOLIDAYS_URL + year + "/" + country
+}
+
+// GetYrURL generates locationiq REST service URL according to parameters.
+func GetLocationiqURL(location string) string {
+	return LOCATIONIQ_URL + LOCATIONIQ_PK + "&q=" + location + "&format=json"
+}
+
+// GetYrURL generates ticketmaster REST service URL according to parameters.
+func GetTicketmasterURL(event string) string {
+	return TICKETMASTER_URL + event + TICKETMASTER_PK
+}
 
 // GetYrURL generates yr REST service URL according to parameters.
 func GetYrURL(latitude string, longitude string) string {

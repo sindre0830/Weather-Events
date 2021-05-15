@@ -279,3 +279,5 @@
 [3.10.0]    **development**:    Added more unit tests
 
 [3.11.0]    **development**:    Added SendData() to handle data transfers and updateded error handling in webhooks
+
+[3.12.0]    **development**:    Moved URLs to dict

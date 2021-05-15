@@ -13,9 +13,6 @@ import (
 	"time"
 )
 
-var baseURL = "https://us1.locationiq.com/v1/search.php?key="
-var key = "pk.d8a67c78822d16869c7a3e8f6d7617af"
-
 // This loads in local database from file of most important locations
 var LocalCoords = make(map[string]LocationCoords)
 
@@ -152,7 +149,7 @@ func getCoords(coords *LocationCoords, location map[string]interface{}) error {
 *	@return	err				-	Interface holding error messages
 **/
 func getLocations(locations *[]map[string]interface{}, location string) (int, error) {
-	url := baseURL + key + "&q=" + location + "&format=json"
+	url := dict.GetLocationiqURL(location)
 
 	out, status, err := api.RequestData(url)
 

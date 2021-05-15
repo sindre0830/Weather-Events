@@ -44,7 +44,7 @@ func (fireBaseStore *FirebaseStore) Handler(eventId string) (int, error) {
 	} else { //If not in firebase, fetch information and store it in firebase
 
 		//Fetch Info:
-		status, err := fireBaseStore.get(baseURL + eventId + padding + key)
+		status, err := fireBaseStore.get(dict.GetTicketmasterURL(eventId))
 		if err != nil {
 			return status, err
 		}

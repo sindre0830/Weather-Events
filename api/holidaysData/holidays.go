@@ -83,7 +83,7 @@ func get(country string) (Holiday, int, error) {
 	year := t.String()[:4]
 
 	// Add year and country code as URL path
-	url := "https://date.nager.at/api/v2/PublicHolidays/" + year + "/" + country
+	url := dict.GetPublicHolidaysURL(year, country)
 
 	// Get data from the request URL
 	res, status, err := api.RequestData(url)
