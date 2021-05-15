@@ -68,6 +68,8 @@ Another new learning experience was designing an API by ourselves. In the assign
 
 #### Hours worked
 
+The group has worked approximately 280 hours in total. We had meetings that equals to about 60 hours each plus some time used to work by ourselves.  
+
 ### Usage
 
 1. Weather
@@ -529,6 +531,10 @@ Another new learning experience was designing an API by ourselves. In the assign
 
 
 ## Notes
+
+#### Keys
+
+Since this is a project, we wanted to make it as easy as possible for the people who are testing. We therefore decided to add firestore's service account key and the keys to the APIs we are using. In a real life setting, this would not be an option, as this is information that should not be available to the public. We would either make an encrypted file that contains the sensitive information, or not pushed it to the repository.
 
 #### Design Decisions
 
