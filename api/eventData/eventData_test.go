@@ -1,11 +1,8 @@
 package eventData
 
 import (
-<<<<<<< HEAD
 	"main/dict"
-=======
 	"main/fun"
->>>>>>> 2d5dc6bea249e27bb43e7100201d2c6191d89690
 	"main/storage"
 	"net/http"
 	"testing"
