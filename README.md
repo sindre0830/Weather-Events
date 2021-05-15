@@ -52,7 +52,7 @@ We encountered another problem when the work with calling webhooks started. When
 
 Testing did not go as planned. We struggled to understand how to use stubbing and mocking. After some trial and error we decided to ask a teaching assistant, but it did not seem like he understood to good either. In the end, we went with only doing unit testing even though stubbing and mocking would have been the better option.
 
-Our maybe biggest issue was with starting our Openstack instance. We were planning to use winctl(?) to send our serviceAccountKey.json file to Openstack so it could connect to firebase, however for whatever reason we were unable to connect and got a variety of errors and 'wrong password' messages for multiple different servers. Eventually we gave up on this, and due to the tight deadline at this point, we therefore added the key to our repo. Obviously this is a terrible idea for actual services and extremely insecure, and we would not do this for future work.
+Our maybe biggest issue was with starting our Openstack instance. We were planning to use winSCP to send our serviceAccountKey.json file to Openstack so it could connect to firebase, however for whatever reason we were unable to connect and got a variety of errors and 'wrong password' messages for multiple different servers. Eventually we gave up on this, and due to the tight deadline at this point, we therefore added the key to our repo. Obviously this is a terrible idea for actual services and extremely insecure, and we would not do this for future work.
 
 Finally, we ran into a problem with how we had formatted our main URL in dictionary.go. We were unintentionally adding it to all our endpoint URLs, which gave us serious trouble when we tried running our instance in openstack. For whatever reason, this issue did not give us any trouble on our local machines or when testing in ubuntu VM, so it took us a lot of work and some help to get this fixed up.
 
@@ -540,7 +540,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
 
 #### Keys
 
-Since this is a project, we wanted to make it as easy as possible for the people who are testing. We therefore decided to add firestore's service account key and the keys to the APIs we are using. In a real life setting, this would not be an option, as this is information that should not be available to the public. We would either make an encrypted file that contains the sensitive information, or not pushed it to the repository.
+Since this is a project, we wanted to make it as easy as possible for the people who are validating this project. We therefore decided to add the API keys we are using (need to register to get them) in the repository. In a real life setting, this would not be an option, as this is information that should not be available to the public. We would either make an encrypted file that contains the sensitive information, or not pushed it to the repository.
 
 #### Design Decisions
 
