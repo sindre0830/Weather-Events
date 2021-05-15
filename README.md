@@ -542,7 +542,7 @@ Since this is a project, we wanted to make it as easy as possible for the people
 
 #### Design Decisions
 
-We wanted to use diverse types of storage and caching for the project, both for its own sake and because storing everything in Firestore would be very inefficient. We therefore store a lot of static data locally, in our /data/ folder. This includes for example the list of holidays for each country, or the list of geocoordinates for more popular and populated locations (large cities, etc).
+We wanted to use diverse types of storage and caching for the project, both for its own sake and because storing everything in Firestore would be very inefficient. We therefore store a lot of static data locally. This includes for example the list of holidays for each country, or the list of geocoordinates for more popular and populated locations (large cities, etc).
 
 ##### Technologies used
 
@@ -553,57 +553,75 @@ The technologies we are going to use are Firestore, OpenStack and Docker. We are
 ```
 ├──api
 │   ├── countryData
+│   │   ├── countryData_test.go
 │   │   ├── restCountries.go
 │   │   └── structure.go
 │   ├── diag
 │   │   ├── diag.go
+│   │   ├── diag_test.go
 │   │   └── structure.go
 │   ├── eventData
 │   │   ├── eventData.go
+│   │   ├── eventData_test.go
 │   │   ├── structure.go
 │   │   └── ticketMaster.go
 │   ├── geoCoordsData
+│   │   ├── geoCoords_test.go
 │   │   ├── HandlerCoords.go
 │   │   └── structure.go
 │   ├── holidaysData
 │   │   ├── holidays.go
+│   │   ├── holidaysData_test.go
 │   │   └── structure.go
 │   ├── notification
+│   │   ├── weather
+│   │   │   ├── methodHandler.go
+│   │   │   ├── scheduler.go
+│   │   │   ├── structure.go
+│   │   │   ├── weather.go
+│   │   │   └── weather_test.go
 │   │   ├── weatherEvent
 │   │   │   ├── methodHandler.go
 │   │   │   ├── scheduler.go
 │   │   │   ├── structure.go
-│   │   │   └── weatherEvent.go
-│   │   ├── weatherHook
-│   │   │   ├── methodHandler.go
-│   │   │   ├── scheduler.go
-│   │   │   ├── structure.go
-│   │   │   └── weather.go
+│   │   │   ├── weatherEvent.go
+│   │   │   └── weatherEvent_test.go
 │   │   └── feedback.go
-│   ├── weather
-│   │   ├── methodHandler.go
-│   │   ├── structure.go
-│   │   └── weather.go
 │   ├── weatherCompare
 │   │   ├── methodHandler.go
 │   │   ├── structure.go
-│   │   └── weatherCompare.go
+│   │   ├── weatherCompare.go
+│   │   └── weatherCompare_test.go
 │   ├── weatherData
 │   │   ├── structure.go
 │   │   ├── weatherData.go
+│   │   ├── weatherData_test.go
 │   │   └── yr.go
-│   └── dataHandling
-├── db
-│   └── database.go
+│   ├── weatherDetails
+│   │   ├── methodHandler.go
+│   │   ├── structure.go
+│   │   ├── weatherDetails.go
+│   │   └── weatherDetails_test.go
+│   └── dataHandling.go
+├── data
 ├── debug
-│   └── errorHandler.go
+│   ├── errorHandler.go
+│   └── errorHandler_test.go
 ├── dict
-│   └── dictionary.go
+│   ├── dictionary.go
+│   └── dictionary_test.go
 ├── fun
 │   ├── math.go
 │   └── sleep.go
+├── images
+│   ├── firestore.png
+├── storage
+│   ├── file.go
+│   ├── firebase.go
+│   └── storage_test.go
 ├── .gitignore
 ├── ChangeLog.md
+├── Dockerfile
 ├── go.mod
 ├── go.sum
 ├── main.go

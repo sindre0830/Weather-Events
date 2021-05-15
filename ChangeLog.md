@@ -289,3 +289,5 @@
 [3.14.0]    **development**:    Added more cases to tests
 
 [3.15.0]    **development**:    Updated readme with problems occurred + design decision
+
+[3.16.0]    **development**:    Updated structure in README.md
