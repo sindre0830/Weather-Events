@@ -311,7 +311,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         Body:
            {
                 "location": "Location of interest.",
-                "timeout": 1,
+                "timeout": 15,
                 "url": "URL to pass data to."
             }
         ```
@@ -336,7 +336,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
             Body:
             {
                     "location": "Oslo",
-                    "timeout": 5,
+                    "timeout": 15,
                     "url": "https://webhook.site/292d37f5-a017-4e07-8b62-2d8a4b9c3f94"
             }
             ```
