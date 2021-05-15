@@ -1,12 +1,12 @@
 package eventData
 
 //FirebaseStore -simple struct containing ticketmaster information
-type FirebaseStore struct {
+type EventInformation struct {
 	Localdate string `json:"localDate"`
 	Name      string `json:"name"`
 }
 
-type EventInformation struct {
+type Ticketmaster struct {
 	Dates struct {
 		Start struct {
 			Localdate string `json:"localDate"`

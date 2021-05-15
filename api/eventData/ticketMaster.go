@@ -7,7 +7,7 @@ import (
 )
 
 //req -Requests information from the api
-func (data *EventInformation) req(url string) (int, error) {
+func (data *Ticketmaster) req(url string) (int, error) {
 	output, status, jsonErr := api.RequestData(url)
 
 	if jsonErr != nil {

@@ -281,3 +281,5 @@
 [3.11.0]    **development**:    Added SendData() to handle data transfers and updateded error handling in webhooks
 
 [3.12.0]    **development**:    Moved URLs to dict
+
+[3.12.0]    **development**:    Changed naming of structs in eventData

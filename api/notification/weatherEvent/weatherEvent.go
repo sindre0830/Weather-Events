@@ -188,7 +188,7 @@ func (weatherEvent *WeatherEvent) postHandler(w http.ResponseWriter, r *http.Req
 			debug.ErrorMessage.Print(w)
 			return
 		}
-		var ticketMaster eventData.FirebaseStore
+		var ticketMaster eventData.EventInformation
 		status, err := ticketMaster.Handler(weatherEventTicketmaster.Ticket)
 		if err != nil {
 			debug.ErrorMessage.Update(
