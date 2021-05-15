@@ -52,6 +52,10 @@ We encountered another problem when the work with calling webhooks started. When
 
 Testing did not go as planned. We struggled to understand how to use stubbing and mocking. After some trial and error we decided to ask a teaching assistant, but it did not seem like he understood to good either. In the end, we went with only doing unit testing even though stubbing and mocking would have been the better option.
 
+Our maybe biggest issue was with starting our Openstack instance. We were planning to use winctl(?) to send our serviceAccountKey.json file to Openstack so it could connect to firebase, however for whatever reason we were unable to connect and got a variety of errors and 'wrong password' messages for multiple different servers. Eventually we gave up on this, and due to the tight deadline at this point, we therefore added the key to our repo. Obviously this is a terrible idea for actual services and extremely insecure, and we would not do this for future work.
+
+Finally, we ran into a problem with how we had formatted our main URL in dictionary.go. We were unintentionally adding it to all our endpoint URLs, which gave us serious trouble when we tried running our instance in openstack. For whatever reason, this issue did not give us any trouble on our local machines or when testing in ubuntu VM, so it took us a lot of work and some help to get this fixed up.
+
 ##### Experiences
 
 One challenge we ran into was with the API we used to translate location names into geo-coordinates. Suddenly, a week before the deadline, we were starting to get wrong information from our geocoords handler. It was not consistent nor easily reproduced, yet it happened quite frequently. We struggled for a good our to figure out where our code was going wrong, until we realized the actual source-API - locationiq - was the problem.
@@ -538,7 +542,9 @@ Since this is a project, we wanted to make it as easy as possible for the people
 
 #### Design Decisions
 
-##### Technologies used
+We wanted to use diverse types of storage and caching for the project, both for its own sake and because storing everything in Firestore would be very inefficient. We therefore store a lot of static data locally, in our /data/ folder. This includes for example the list of holidays for each country, or the list of geocoordinates for more popular and populated locations (large cities, etc).
+
+#### Technologies used
 
 The technologies we are going to use are Firestore, OpenStack and Docker. We are using firestore for caching. The weather data are stored for 6 hours. Whether or not the geocoords are stored depends on the importance of the selected location. If it has a low importance, it is stored for 3 hours. If the importance is high, it is saved in a file. The data about holidays are stored until the year change.
 
