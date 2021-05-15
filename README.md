@@ -544,7 +544,7 @@ Since this is a project, we wanted to make it as easy as possible for the people
 
 We wanted to use diverse types of storage and caching for the project, both for its own sake and because storing everything in Firestore would be very inefficient. We therefore store a lot of static data locally, in our /data/ folder. This includes for example the list of holidays for each country, or the list of geocoordinates for more popular and populated locations (large cities, etc).
 
-#### Technologies used
+##### Technologies used
 
 The technologies we are going to use are Firestore, OpenStack and Docker. We are using firestore for caching. The weather data are stored for 6 hours. Whether or not the geocoords are stored depends on the importance of the selected location. If it has a low importance, it is stored for 3 hours. If the importance is high, it is saved in a file. The data about holidays are stored until the year change.
 
