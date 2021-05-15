@@ -49,5 +49,5 @@ func main() {
 	//handle weather webhook
 	http.HandleFunc(dict.WEATHER_HOOK_PATH, weather.MethodHandler)
 	//ends program if it can't open port
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":" + port, nil))
 }
