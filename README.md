@@ -620,7 +620,7 @@ type Debug struct {
 
 #### Testing
 
-*TBA*
+Testing has been implemented for all files and endpoints. To find the tests for a specific package, go into that folder and find the file ending in "_test.go". An example of a testingfile can be found in the api/diag/diag_test.go. To run the test folow the instructions bellow. Most tests are for the handlers but we have also implemented tests on helping functions to showcase our competence, despite knowing that before those functions are run in the actual code, their parameters get tested rigeriously so no mistakes or faulty tests should be able to happen.
 
 ##### Usage
 For Visual Studio Code with Golang extension:

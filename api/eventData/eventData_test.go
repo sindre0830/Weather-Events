@@ -29,7 +29,7 @@ func TestHandler(t *testing.T) {
 	}
 	//iterate through map and check each key to expected element
 	for test, expectedStatus := range testData {
-		var data FirebaseStore
+		var data EventInformation
 		status, err := data.Handler(test)
 		//branch if we get an unexpected answer that is not timed out
 		if status != expectedStatus && status != http.StatusRequestTimeout {
@@ -47,7 +47,7 @@ func TestGet(t *testing.T) {
 	}
 	//iterate through map and check each key to expected element
 	for test, expectedStatus := range testData {
-		var data FirebaseStore
+		var data EventInformation
 		status, _ := data.get(test)
 		//branch if we get an unexpected answer that is not timed out
 		if status != expectedStatus && status != http.StatusRequestTimeout {
@@ -69,7 +69,7 @@ func TestReq(t *testing.T) {
 	}
 	//iterate through map and check each key to expected element
 	for test, expectedStatus := range testData {
-		var data EventInformation
+		var data Ticketmaster
 		status, _ := data.req(test)
 		//branch if we get an unexpected answer that is not timed out
 		if status != expectedStatus && status != http.StatusRequestTimeout {

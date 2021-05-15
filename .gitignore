@@ -1,4 +1,4 @@
 *.exe
-serviceAccountKey.json
 *.json
+!serviceAccountKey.json
 bin/

@@ -1,4 +1,4 @@
-package weatherEvent
+package weather
 
 import (
 	"main/dict"
@@ -26,7 +26,7 @@ func TestGetAll(t *testing.T) {
 
 	// Create a request to pass to our handler. We don't have any query parameters for now, so we'll
 	// pass 'nil' as the third parameter.
-	req, err := http.NewRequest("GET", dict.WEATHEREVENT_HOOK_PATH, nil)
+	req, err := http.NewRequest("GET", dict.WEATHER_HOOK_PATH, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,13 +44,4 @@ func TestGetAll(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
-}
-
-func TestCheckDate(t *testing.T) {
-
-	var data WeatherEvent
-	if data.checkDate() { //branch if we get an unexpected answer
-		t.Errorf("Expected '%v' but got '%v'. Tested: '%v'", "true", data.checkDate(), "data.checkDate()")
-	}
-
 }

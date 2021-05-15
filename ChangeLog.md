@@ -279,3 +279,9 @@
 [3.10.0]    **development**:    Added more unit tests
 
 [3.11.0]    **development**:    Added SendData() to handle data transfers and updateded error handling in webhooks
+
+[3.12.0]    **development**:    Moved URLs to dict
+
+[3.12.1]    **development**:    Changed naming of structs in eventData
+
+[3.13.0]    **development**:    Added base for all unit tests for further testing possibilities 
