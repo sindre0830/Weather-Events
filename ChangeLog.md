@@ -285,3 +285,5 @@
 [3.12.1]    **development**:    Changed naming of structs in eventData
 
 [3.13.0]    **development**:    Added base for all unit tests for further testing possibilities 
+
+[3.14.0]    **development**:    Added more cases to tests

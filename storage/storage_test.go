@@ -16,18 +16,20 @@ import (
 // }
 
 func TestValidCheckDate(t *testing.T) {
-	status, err := CheckDate("21 May 21 14:25 CEST", 3)
+	var tm = time.Now().AddDate(0, 0, 1).Format("02 Jan 06 15:04 MST")
+
+	status, err := CheckDate(tm, 3)
 
 	if status != true {
-		t.Errorf("testHandlerValid failed, expected %v, got %v", 200, status)
+		t.Errorf("testValidCheckDate failed, expected %v, got %v", 200, status)
 	} else {
-		t.Logf("testHandlerValid success, expected %v, got %v", 200, status)
+		t.Logf("testValidCheckDate success, expected %v, got %v", 200, status)
 	}
 
 	if err != nil {
-		t.Errorf("testHandlerValid failed, expected %v, got %v", nil, err)
+		t.Errorf("testValidCheckDate failed, expected %v, got %v", nil, err)
 	} else {
-		t.Logf("testHandlerValid success, expected %v, got %v", nil, err)
+		t.Logf("testValidCheckDate success, expected %v, got %v", nil, err)
 	}
 }
 

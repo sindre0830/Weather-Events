@@ -1,19 +1,17 @@
 package geoCoords
 
 import (
+	"main/fun"
 	"main/storage"
 	"net/http"
-	"os"
 	"testing"
 )
 
 func TestHandler(t *testing.T) {
-
-	//Change directory
-	os.Chdir("./../../")
-	newDir, err := os.Getwd()
+	//change directory to root
+	newDir, err := fun.GoToRoot()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	//Mocked firebase

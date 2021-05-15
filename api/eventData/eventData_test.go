@@ -1,19 +1,21 @@
 package eventData
 
 import (
+<<<<<<< HEAD
 	"main/dict"
+=======
+	"main/fun"
+>>>>>>> 2d5dc6bea249e27bb43e7100201d2c6191d89690
 	"main/storage"
 	"net/http"
-	"os"
 	"testing"
 )
 
 func TestHandler(t *testing.T) {
-	//Change directory
-	os.Chdir("./../../")
-	newDir, err := os.Getwd()
+	//change directory to root
+	newDir, err := fun.GoToRoot()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	//Mocked firebase

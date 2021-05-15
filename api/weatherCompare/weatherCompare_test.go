@@ -3,20 +3,19 @@ package weatherCompare
 import (
 	"encoding/json"
 	"main/dict"
+	"main/fun"
 	"main/storage"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 )
 
 func TestHandler(t *testing.T) {
-	//Change directory
-	os.Chdir("./../../")
-	_, err := os.Getwd()
+	//change directory to root
+	_, err := fun.GoToRoot()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	//Mocked firebase
@@ -62,11 +61,10 @@ func TestHandler(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	//change directory
-	os.Chdir("./../../")
-	newDir, err := os.Getwd()
+	//change directory to root
+	newDir, err := fun.GoToRoot()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	//Mocked firebase
