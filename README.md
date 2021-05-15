@@ -16,7 +16,7 @@
     - Location information: https://us1.locationiq.com/v1/
     - Event information:    https://developer.ticketmaster.com/products-and-docs/apis/getting-started/
 - You need to be connected to NTNU network with a VPN to run the program. If you want to run it locally, you will have to change the URL variable in the 'dict' package to ```http://localhost```.
-- Client Repo: *TBA*
+- Client Repo: https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2021-workspace/sindre0830/project/webhook-client
 
 #### Plan
 
