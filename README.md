@@ -68,7 +68,7 @@ Another new learning experience was designing an API by ourselves. In the assign
 
 #### Hours worked
 
-The group has worked approximately 280 hours in total. We had meetings that equals to about 60 hours each plus some time used to work by ourselves.  
+The group has worked approximately 280 hours in total. We had meetings that equals to about 60 hours each. In addition we worked some hours by ourselves between the meetings.
 
 ### Usage
 
