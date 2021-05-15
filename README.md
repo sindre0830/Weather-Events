@@ -261,7 +261,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
                 ]
             }
             ```
-3. weatherHook
+3. Weather webhook
 
     - Input:
         ```
@@ -374,7 +374,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
                 "id": "ilX0vteqDlunPM1RZpXb"
             }
             ```
-4. weatherEvent
+4. Weather event webhook
 
     - Input:
         ```
