@@ -52,6 +52,10 @@ We encountered another problem when the work with calling webhooks started. When
 
 Testing did not go as planned. We struggled to understand how to use stubbing and mocking. After some trial and error we decided to ask a teaching assistant, but it did not seem like he understood to good either. In the end, we went with only doing unit testing even though stubbing and mocking would have been the better option.
 
+Our maybe biggest issue was with starting our Openstack instance. We were planning to use winctl(?) to send our serviceAccountKey.json file to Openstack so it could connect to firebase, however for whatever reason we were unable to connect and got a variety of errors and 'wrong password' messages for multiple different servers. Eventually we gave up on this, and due to the tight deadline at this point, we therefore added the key to our repo. Obviously this is a terrible idea for actual services and extremely insecure, and we would not do this for future work.
+
+Finally, we ran into a problem with how we had formatted our main URL in dictionary.go. We were unintentionally adding it to all our endpoint URLs, which gave us serious trouble when we tried running our instance in openstack. For whatever reason, this issue did not give us any trouble on our local machines or when testing in ubuntu VM, so it took us a lot of work and some help to get this fixed up.
+
 ##### Experiences
 
 One challenge we ran into was with the API we used to translate location names into geo-coordinates. Suddenly, a week before the deadline, we were starting to get wrong information from our geocoords handler. It was not consistent nor easily reproduced, yet it happened quite frequently. We struggled for a good our to figure out where our code was going wrong, until we realized the actual source-API - locationiq - was the problem.
@@ -309,7 +313,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
         Body:
            {
                 "location": "Location of interest.",
-                "timeout": 1,
+                "timeout": 15,
                 "url": "URL to pass data to."
             }
         ```
@@ -334,7 +338,7 @@ The group has worked approximately 280 hours in total. We had meetings that equa
             Body:
             {
                     "location": "Oslo",
-                    "timeout": 5,
+                    "timeout": 15,
                     "url": "https://webhook.site/292d37f5-a017-4e07-8b62-2d8a4b9c3f94"
             }
             ```
@@ -539,6 +543,8 @@ The group has worked approximately 280 hours in total. We had meetings that equa
 Since this is a project, we wanted to make it as easy as possible for the people who are testing. We therefore decided to add firestore's service account key and the keys to the APIs we are using. In a real life setting, this would not be an option, as this is information that should not be available to the public. We would either make an encrypted file that contains the sensitive information, or not pushed it to the repository.
 
 #### Design Decisions
+
+We wanted to use diverse types of storage and caching for the project, both for its own sake and because storing everything in Firestore would be very inefficient. We therefore store a lot of static data locally, in our /data/ folder. This includes for example the list of holidays for each country, or the list of geocoordinates for more popular and populated locations (large cities, etc).
 
 ##### Technologies used
 
